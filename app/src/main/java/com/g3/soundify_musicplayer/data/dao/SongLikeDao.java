@@ -1,0 +1,47 @@
+package com.g3.soundify_musicplayer.data.dao;
+
+import androidx.lifecycle.LiveData;
+import androidx.room.Dao;
+import androidx.room.Delete;
+import androidx.room.Insert;
+import androidx.room.Query;
+
+import com.example.musicplayer_prm.data.entity.Song;
+import com.example.musicplayer_prm.data.entity.SongLike;
+import com.example.musicplayer_prm.data.entity.User;
+
+import java.util.List;
+
+@Dao
+public interface SongLikeDao {
+    
+    @Insert
+    void insert(SongLike songLike);
+    
+    @Delete
+    void delete(SongLike songLike);
+    
+    @Query("SELECT s.* FROM songs s INNER JOIN song_likes sl ON s.id = sl.song_id WHERE sl.user_id = :userId ORDER BY sl.created_at DESC")
+    LiveData<List<Song>> getLikedSongsByUser(long userId);
+    
+    @Query("SELECT u.* FROM users u INNER JOIN song_likes sl ON u.id = sl.user_id WHERE sl.song_id = :songId ORDER BY sl.created_at DESC")
+    LiveData<List<User>> getUsersWhoLikedSong(long songId);
+    
+    @Query("SELECT COUNT(*) FROM song_likes WHERE song_id = :songId")
+    int getLikeCountForSong(long songId);
+    
+    @Query("SELECT COUNT(*) FROM song_likes WHERE song_id = :songId AND user_id = :userId")
+    int isSongLikedByUser(long songId, long userId);
+    
+    @Query("DELETE FROM song_likes WHERE song_id = :songId AND user_id = :userId")
+    void unlikeSong(long songId, long userId);
+    
+    @Query("SELECT * FROM song_likes WHERE song_id = :songId AND user_id = :userId")
+    SongLike getSongLike(long songId, long userId);
+    
+    @Query("DELETE FROM song_likes WHERE song_id = :songId")
+    void deleteAllLikesForSong(long songId);
+    
+    @Query("DELETE FROM song_likes WHERE user_id = :userId")
+    void deleteAllLikesByUser(long userId);
+} 
