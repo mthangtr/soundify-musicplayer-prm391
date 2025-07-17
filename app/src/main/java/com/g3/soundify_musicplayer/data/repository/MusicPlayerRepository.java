@@ -3,17 +3,17 @@ package com.g3.soundify_musicplayer.data.repository;
 import android.app.Application;
 import androidx.lifecycle.LiveData;
 
-import com.example.musicplayer_prm.data.database.AppDatabase;
-import com.example.musicplayer_prm.data.dao.CommentDao;
-import com.example.musicplayer_prm.data.dao.CommentLikeDao;
-import com.example.musicplayer_prm.data.dao.SongLikeDao;
-import com.example.musicplayer_prm.data.dao.UserFollowDao;
-import com.example.musicplayer_prm.data.entity.Comment;
-import com.example.musicplayer_prm.data.entity.CommentLike;
-import com.example.musicplayer_prm.data.entity.SongLike;
-import com.example.musicplayer_prm.data.entity.User;
-import com.example.musicplayer_prm.data.entity.UserFollow;
-import com.example.musicplayer_prm.data.entity.Song;
+import com.g3.soundify_musicplayer.data.database.AppDatabase;
+import com.g3.soundify_musicplayer.data.dao.CommentDao;
+import com.g3.soundify_musicplayer.data.dao.CommentLikeDao;
+import com.g3.soundify_musicplayer.data.dao.SongLikeDao;
+import com.g3.soundify_musicplayer.data.dao.UserFollowDao;
+import com.g3.soundify_musicplayer.data.entity.Comment;
+import com.g3.soundify_musicplayer.data.entity.CommentLike;
+import com.g3.soundify_musicplayer.data.entity.SongLike;
+import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.entity.UserFollow;
+import com.g3.soundify_musicplayer.data.entity.Song;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

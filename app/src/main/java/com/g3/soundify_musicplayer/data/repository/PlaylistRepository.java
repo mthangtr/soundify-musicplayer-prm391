@@ -3,12 +3,12 @@ package com.g3.soundify_musicplayer.data.repository;
 import android.app.Application;
 import androidx.lifecycle.LiveData;
 
-import com.example.musicplayer_prm.data.database.AppDatabase;
-import com.example.musicplayer_prm.data.dao.PlaylistDao;
-import com.example.musicplayer_prm.data.dao.PlaylistSongDao;
-import com.example.musicplayer_prm.data.entity.Playlist;
-import com.example.musicplayer_prm.data.entity.PlaylistSong;
-import com.example.musicplayer_prm.data.entity.Song;
+import com.g3.soundify_musicplayer.data.database.AppDatabase;
+import com.g3.soundify_musicplayer.data.dao.PlaylistDao;
+import com.g3.soundify_musicplayer.data.dao.PlaylistSongDao;
+import com.g3.soundify_musicplayer.data.entity.Playlist;
+import com.g3.soundify_musicplayer.data.entity.PlaylistSong;
+import com.g3.soundify_musicplayer.data.entity.Song;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

@@ -7,8 +7,8 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.example.musicplayer_prm.data.entity.PlaylistSong;
-import com.example.musicplayer_prm.data.entity.Song;
+import com.g3.soundify_musicplayer.data.entity.PlaylistSong;
+import com.g3.soundify_musicplayer.data.entity.Song;
 
 import java.util.List;
 
@@ -31,7 +31,7 @@ public interface PlaylistSongDao {
     List<Song> getSongsInPlaylistSync(long playlistId);
     
     @Query("SELECT p.* FROM playlists p INNER JOIN playlist_songs ps ON p.id = ps.playlist_id WHERE ps.song_id = :songId")
-    LiveData<List<com.example.musicplayer_prm.data.entity.Playlist>> getPlaylistsContainingSong(long songId);
+    LiveData<List<com.g3.soundify_musicplayer.data.entity.Playlist>> getPlaylistsContainingSong(long songId);
     
     @Query("DELETE FROM playlist_songs WHERE playlist_id = :playlistId AND song_id = :songId")
     void removeSongFromPlaylist(long playlistId, long songId);

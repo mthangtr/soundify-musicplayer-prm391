@@ -6,8 +6,8 @@ import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 
-import com.example.musicplayer_prm.data.entity.CommentLike;
-import com.example.musicplayer_prm.data.entity.User;
+import com.g3.soundify_musicplayer.data.entity.CommentLike;
+import com.g3.soundify_musicplayer.data.entity.User;
 
 import java.util.List;
 

@@ -7,7 +7,7 @@ import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
 
-import com.example.musicplayer_prm.data.entity.Song;
+import com.g3.soundify_musicplayer.data.entity.Song;
 
 import java.util.List;
 
