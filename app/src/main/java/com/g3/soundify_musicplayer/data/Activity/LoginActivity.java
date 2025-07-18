@@ -38,7 +38,8 @@ public class LoginActivity extends AppCompatActivity {
             String pass = edtPassword.getText().toString();
 
             if (user.equals("admin") && pass.equals("123")) {
-                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                // Navigate to Player Demo for UI testing
+                Intent intent = new Intent(LoginActivity.this, com.g3.soundify_musicplayer.ui.player.PlayerDemoActivity.class);
                 startActivity(intent);
                 finish();
             } else {

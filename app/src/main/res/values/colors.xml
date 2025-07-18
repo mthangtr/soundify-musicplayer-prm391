@@ -1,5 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Apple-like Color Scheme -->
+    <color name="primary_background">#FFFFFF</color>
+    <color name="secondary_background">#F8F9FA</color>
+    <color name="surface_background">#FFFFFF</color>
+
+    <!-- Text Colors -->
+    <color name="text_primary">#1C1C1E</color>
+    <color name="text_secondary">#8E8E93</color>
+    <color name="text_tertiary">#C7C7CC</color>
+
+    <!-- Accent Colors -->
+    <color name="accent_blue">#007AFF</color>
+    <color name="accent_red">#FF3B30</color>
+    <color name="accent_green">#34C759</color>
+    <color name="accent_orange">#FF9500</color>
+
+    <!-- Player Colors -->
+    <color name="player_background">#FFFFFF</color>
+    <color name="player_control_active">#007AFF</color>
+    <color name="player_control_inactive">#8E8E93</color>
+    <color name="progress_bar_active">#007AFF</color>
+    <color name="progress_bar_inactive">#E5E5EA</color>
+
+    <!-- Button Colors -->
+    <color name="button_follow">#007AFF</color>
+    <color name="button_like_active">#FF3B30</color>
+    <color name="button_like_inactive">#8E8E93</color>
+
+    <!-- Divider and Border -->
+    <color name="divider_color">#E5E5EA</color>
+    <color name="border_color">#D1D1D6</color>
 </resources>
