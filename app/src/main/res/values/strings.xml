@@ -60,4 +60,52 @@
     <string name="toast_unliked_song">Removed from liked songs</string>
     <string name="toast_comment_added">Comment added</string>
     <string name="toast_added_to_playlist">Added to playlist</string>
+
+    <!-- Upload Song Screen -->
+    <string name="upload_song_title">Upload Song</string>
+    <string name="edit_song_title">Edit Song</string>
+    <string name="select_cover_art">Chọn ảnh bìa (tùy chọn)</string>
+    <string name="select_audio_file">Chọn file Audio (.mp3)</string>
+    <string name="song_title_hint">Tiêu đề bài hát</string>
+    <string name="song_description_hint">Mô tả</string>
+    <string name="song_genre_hint">Thể loại</string>
+    <string name="song_visibility_public">Công khai</string>
+    <string name="button_save">Lưu</string>
+    <string name="button_delete">Xóa</string>
+    <string name="button_cancel">Hủy</string>
+
+    <!-- Upload Song Validation -->
+    <string name="error_no_audio_file">Vui lòng chọn file audio</string>
+    <string name="error_no_title">Vui lòng nhập tiêu đề bài hát</string>
+    <string name="error_title_too_long">Tiêu đề quá dài (tối đa 100 ký tự)</string>
+    <string name="error_description_too_long">Mô tả quá dài (tối đa 500 ký tự)</string>
+
+    <!-- Upload Song Success/Error -->
+    <string name="toast_song_saved">Bài hát đã được lưu</string>
+    <string name="toast_song_updated">Bài hát đã được cập nhật</string>
+    <string name="toast_song_deleted">Bài hát đã được xóa</string>
+    <string name="error_saving_song">Lỗi khi lưu bài hát</string>
+    <string name="error_updating_song">Lỗi khi cập nhật bài hát</string>
+    <string name="error_deleting_song">Lỗi khi xóa bài hát</string>
+
+    <!-- Delete Confirmation -->
+    <string name="delete_song_title">Xóa bài hát</string>
+    <string name="delete_song_message">Bạn có chắc chắn muốn xóa bài hát này? Hành động này không thể hoàn tác.</string>
+    <string name="delete_confirm">Xóa</string>
+
+    <!-- Genre Array -->
+    <string-array name="genre_array">
+        <item>Pop</item>
+        <item>Rock</item>
+        <item>Hip Hop</item>
+        <item>Electronic</item>
+        <item>Classical</item>
+        <item>Jazz</item>
+        <item>R&amp;B</item>
+        <item>Country</item>
+        <item>Folk</item>
+        <item>Blues</item>
+        <item>Reggae</item>
+        <item>Khác</item>
+    </string-array>
 </resources>
