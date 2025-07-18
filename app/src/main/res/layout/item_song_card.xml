@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Cover art -->
+        <ImageView
+            android:id="@+id/imgCover"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/splashi_icon"/>
+
+        <!-- Tiêu đề bài hát -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/imgCover"
+            android:layout_marginStart="12dp"
+            android:text="Sample Song"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:textStyle="bold"/>
+
+        <!-- Uploader -->
+        <TextView
+            android:id="@+id/tvUploader"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/tvTitle"
+            android:layout_toEndOf="@id/imgCover"
+            android:layout_marginStart="12dp"
+            android:text="NguyenVanDuy"
+            android:textColor="#CCCCCC"
+            android:textSize="14sp"/>
+
+        <!-- Nút play -->
+        <ImageButton
+            android:id="@+id/btnPlay"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentEnd="true"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_media_play"
+            android:tint="@android:color/white"/>
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

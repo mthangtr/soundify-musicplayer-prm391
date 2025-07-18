@@ -1,12 +1,16 @@
 package com.g3.soundify_musicplayer;
 
 import android.os.Bundle;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import com.g3.soundify_musicplayer.data.Fragment.HomeFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -20,5 +24,39 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        if (savedInstanceState == null) {
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new HomeFragment())
+                    .commit();
+        }
+
+        // Setup Bottom Navigation
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            
+            if (itemId == R.id.nav_home) {
+                // Already showing HomeFragment
+                return true;
+            } else if (itemId == R.id.nav_search) {
+                Toast.makeText(this, "Search clicked", Toast.LENGTH_SHORT).show();
+                // TODO: Navigate to SearchFragment
+                return true;
+            } else if (itemId == R.id.nav_library) {
+                Toast.makeText(this, "Library clicked", Toast.LENGTH_SHORT).show();
+                // TODO: Navigate to LibraryFragment
+                return true;
+            } else if (itemId == R.id.nav_upload) {
+                Toast.makeText(this, "Upload clicked", Toast.LENGTH_SHORT).show();
+                // TODO: Navigate to UploadFragment
+                return true;
+            }
+            return false;
+        });
+        
+        // Set Home as selected by default
+        bottomNav.setSelectedItemId(R.id.nav_home);
     }
 }

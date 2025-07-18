@@ -36,7 +36,11 @@ public class SongRepository {
     public Future<Song> getSongByIdSync(long songId) {
         return executor.submit(() -> songDao.getSongByIdSync(songId));
     }
-    
+
+    public LiveData<List<Song>> getAllSongs() {
+        return songDao.getAllSongs();
+    }
+
     public LiveData<List<Song>> getSongsByUploader(long uploaderId) {
         return songDao.getSongsByUploader(uploaderId);
     }

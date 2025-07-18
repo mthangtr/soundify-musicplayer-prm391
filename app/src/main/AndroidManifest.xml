@@ -15,26 +15,26 @@
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/splashi_icon"
         android:label="@string/app_name"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@drawable/splashi_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Soundifymusicplayer">
         <activity android:name=".data.Activity.LoginActivity"/>
         <activity android:name=".data.Activity.RegisterActivity"/>
-        <activity android:name=".ui.upload.UploadSongActivity" />
-<!--        <activity-->
-<!--            android:name=".ui.playlist.SelectSongsActivity"-->
-<!--            android:parentActivityName=".ui.playlist.PlaylistDetailActivity"-->
-<!--            android:theme="@style/Theme.Soundifymusicplayer"/>-->
+        <activity android:name=".ui.profile.UserProfileActivity"/>git
         <activity
-            android:name=".ui.profile.UserProfileActivity"
+            android:name=".ui.upload.UploadSongActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.playlist.SelectSongsActivity"
+            android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
+            android:theme="@style/Theme.Soundifymusicplayer"/>
     </application>
 
 </manifest>
