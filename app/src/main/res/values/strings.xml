@@ -225,8 +225,8 @@
     <string name="toast_followed_user_profile">Now following %s</string>
     <string name="toast_unfollowed_user_profile">Unfollowed %s</string>
     <string name="error_loading_profile">Error loading profile</string>
-    <string name="error_user_not_found">User not found</string>
-    <string name="error_follow_action">Error updating follow status</string>
+<!--    <string name="error_user_not_found">User not found</string>-->
+<!--    <string name="error_follow_action">Error updating follow status</string>-->
 
     <!-- Follow Confirmation -->
     <string name="unfollow_confirmation_title">Unfollow %s?</string>
@@ -241,4 +241,87 @@
     <string name="cd_followers_stat">Followers count</string>
     <string name="cd_following_stat">Following count</string>
     <string name="cd_songs_stat">Songs count</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="change_profile_photo">Change Profile Photo</string>
+    <string name="basic_information">Basic Information</string>
+    <string name="display_name_hint">Display Name</string>
+    <string name="username_hint">Username</string>
+    <string name="email_hint">Email</string>
+    <string name="bio_hint">Bio (Optional)</string>
+    <string name="change_password">Change Password</string>
+    <string name="current_password_hint">Current Password</string>
+    <string name="new_password_hint">New Password</string>
+    <string name="confirm_password_hint">Confirm New Password</string>
+    <string name="button_save_changes">Save Changes</string>
+
+    <!-- Image Selection -->
+    <string name="select_profile_photo">Select Profile Photo</string>
+    <string name="select_from_camera">Take Photo</string>
+    <string name="select_from_gallery">Choose from Gallery</string>
+    <string name="permission_required_for_image">Permission required to access images</string>
+
+    <!-- Validation Errors -->
+    <string name="error_display_name_required">Display name is required</string>
+    <string name="error_display_name_too_long">Display name is too long (max 100 characters)</string>
+    <string name="error_username_required">Username is required</string>
+    <string name="error_username_invalid">Username must be 3-50 characters and contain only letters, numbers, and underscores</string>
+    <string name="error_username_taken">Username is already taken</string>
+    <string name="error_email_required">Email is required</string>
+    <string name="error_email_invalid">Please enter a valid email address</string>
+    <string name="error_email_taken">Email is already registered</string>
+    <string name="error_password_invalid">Password must be at least 6 characters</string>
+    <string name="error_confirm_password_required">Please confirm your new password</string>
+    <string name="error_passwords_not_match">Passwords do not match</string>
+    <string name="error_current_password_required">Current password is required to change password</string>
+    <string name="error_current_password_incorrect">Current password is incorrect</string>
+    <string name="error_fix_validation_errors">Please fix the validation errors</string>
+
+    <!-- Success/Error Messages -->
+    <string name="profile_updated_successfully">Profile updated successfully</string>
+    <string name="error_updating_profile">Error updating profile</string>
+    <string name="error_user_not_found">User not found</string>
+
+    <!-- Unsaved Changes Dialog -->
+    <string name="unsaved_changes_title">Unsaved Changes</string>
+    <string name="unsaved_changes_message">You have unsaved changes. Are you sure you want to leave?</string>
+    <string name="discard_changes">Discard Changes</string>
+    <string name="keep_editing">Keep Editing</string>
+
+    <!-- Followers/Following Screen -->
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
+    <string name="followers_tab_title">Followers (%d)</string>
+    <string name="following_tab_title">Following (%d)</string>
+    <string name="search_users_hint">Search users...</string>
+    <string name="loading_users">Loading users...</string>
+    <string name="button_retry">Retry</string>
+
+    <!-- Follow Actions -->
+    <string name="follow">Follow</string>
+    <string name="following_button">Following</string>
+    <string name="follows_you">Follows you</string>
+    <string name="followed_user">Now following %s</string>
+    <string name="unfollowed_user">Unfollowed %s</string>
+
+    <!-- Empty States -->
+    <string name="no_followers_title">No Followers</string>
+    <string name="no_followers_subtitle">When people follow this user, they\'ll appear here</string>
+    <string name="no_followers_subtitle_own">When people follow you, they\'ll appear here</string>
+    <string name="no_following_title">Not Following Anyone</string>
+    <string name="no_following_subtitle">This user isn\'t following anyone yet</string>
+    <string name="no_following_subtitle_own">You aren\'t following anyone yet. Find people to follow!</string>
+    <string name="no_users_title">No Users</string>
+    <string name="no_users_subtitle">No users found</string>
+    <string name="no_search_results_title">No Results</string>
+    <string name="no_search_results_subtitle">No users found for \"%s\"</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_users">Error loading users</string>
+    <string name="error_loading_user">Error loading user information</string>
+    <string name="error_follow_action">Error performing follow action</string>
+    <string name="error_not_logged_in">You must be logged in to follow users</string>
+    <string name="error_cannot_follow_self">You cannot follow yourself</string>
+    <string name="error_invalid_user">Invalid user</string>
 </resources>
