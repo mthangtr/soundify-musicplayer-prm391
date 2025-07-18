@@ -39,7 +39,7 @@ public class LoginActivity extends AppCompatActivity {
 
             if (user.equals("admin") && pass.equals("123")) {
                 // Navigate to Player Demo for UI testing
-                Intent intent = new Intent(LoginActivity.this, com.g3.soundify_musicplayer.ui.player.PlayerDemoActivity.class);
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                 startActivity(intent);
                 finish();
             } else {
