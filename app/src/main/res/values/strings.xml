@@ -1,3 +1,63 @@
 <resources>
     <string name="app_name">soundify-musicplayer</string>
+
+    <!-- Full Player Screen -->
+    <string name="player_minimize">Minimize</string>
+    <string name="player_follow">Follow</string>
+    <string name="player_following">Following</string>
+    <string name="player_previous">Previous</string>
+    <string name="player_play">Play</string>
+    <string name="player_pause">Pause</string>
+    <string name="player_next">Next</string>
+    <string name="player_like">Like</string>
+    <string name="player_liked">Liked</string>
+    <string name="player_comment">Comment</string>
+    <string name="player_add_to_playlist">Add to Playlist</string>
+    <string name="player_queue">Queue</string>
+    <string name="player_share">Share</string>
+
+    <!-- Time and Duration -->
+    <string name="time_format">%d:%02d</string>
+    <string name="duration_unknown">--:--</string>
+
+    <!-- Comment Section -->
+    <string name="comment_hint">Add a comment…</string>
+    <string name="comment_post">Post</string>
+    <string name="comment_count">%d comments</string>
+    <string name="comment_count_single">1 comment</string>
+    <string name="comment_count_none">No comments</string>
+
+    <!-- Actions -->
+    <string name="action_follow_user">Follow %s</string>
+    <string name="action_unfollow_user">Unfollow %s</string>
+    <string name="action_like_song">Like song</string>
+    <string name="action_unlike_song">Unlike song</string>
+    <string name="action_add_comment">Add comment</string>
+    <string name="action_view_comments">View comments</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_album_art">Album artwork</string>
+    <string name="cd_minimize_player">Minimize player</string>
+    <string name="cd_follow_button">Follow artist</string>
+    <string name="cd_play_button">Play/Pause</string>
+    <string name="cd_previous_button">Previous track</string>
+    <string name="cd_next_button">Next track</string>
+    <string name="cd_like_button">Like song</string>
+    <string name="cd_comment_button">View comments</string>
+    <string name="cd_playlist_button">Add to playlist</string>
+    <string name="cd_queue_button">View queue</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_song">Error loading song</string>
+    <string name="error_follow_user">Error following user</string>
+    <string name="error_add_comment">Error adding comment</string>
+    <string name="error_like_song">Error liking song</string>
+
+    <!-- Toast Messages -->
+    <string name="toast_followed_user">Following %s</string>
+    <string name="toast_unfollowed_user">Unfollowed %s</string>
+    <string name="toast_liked_song">Liked song</string>
+    <string name="toast_unliked_song">Removed from liked songs</string>
+    <string name="toast_comment_added">Comment added</string>
+    <string name="toast_added_to_playlist">Added to playlist</string>
 </resources>

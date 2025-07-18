@@ -13,8 +13,9 @@
         android:theme="@style/Theme.Soundifymusicplayer">
         <activity android:name=".data.Activity.LoginActivity"/>
         <activity android:name=".data.Activity.RegisterActivity"/>
+<!--        <activity android:name=".ui.player.PlayerDemoActivity"/>-->
         <activity
-            android:name=".SplashActivity"
+            android:name=".ui.player.PlayerDemoActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
