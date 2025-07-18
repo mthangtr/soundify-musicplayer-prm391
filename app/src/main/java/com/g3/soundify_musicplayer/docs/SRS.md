@@ -225,7 +225,7 @@ Chứa 3 sub-tab:
 ### 5.11 Select Songs for Playlist Dialog/Screen
 
 * **Mục đích:** Chọn nhiều bài để thêm vào playlist.
-* **Entity:** Song.
+* **Entity:** Song[..](..).
 * **CRUD:** R danh sách; C PlaylistSong.
 * **Điều hướng:** → Playlist Detail; multi-select confirm.
 * **Ghi chú:** Checkbox multi-select RecyclerView.

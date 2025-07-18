@@ -10,6 +10,7 @@ import androidx.room.Update;
 import com.g3.soundify_musicplayer.data.entity.Song;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 @Dao
 public interface SongDao {
@@ -37,6 +38,12 @@ public interface SongDao {
 
     @Query("SELECT * FROM songs WHERE is_public = 1 ORDER BY created_at DESC")
     LiveData<List<Song>> getPublicSongs();
+
+    @Query("SELECT * FROM songs WHERE uploader_id = :uploaderId ORDER BY created_at DESC")
+    List<Song> getSongsByUploaderSync(long uploaderId);
+
+    @Query("SELECT * FROM songs WHERE uploader_id = :uploaderId AND is_public = 1 ORDER BY created_at DESC")
+    List<Song> getPublicSongsByUploaderSync(long uploaderId);
     
     @Query("SELECT * FROM songs WHERE is_public = 1 AND (title LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%') ORDER BY created_at DESC")
     LiveData<List<Song>> searchPublicSongs(String query);

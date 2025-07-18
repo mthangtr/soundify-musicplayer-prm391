@@ -10,6 +10,7 @@ import androidx.room.Update;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 
 import java.util.List;
+import java.util.concurrent.Future;
 
 @Dao
 public interface PlaylistDao {
@@ -31,6 +32,12 @@ public interface PlaylistDao {
     
     @Query("SELECT * FROM playlists WHERE owner_id = :ownerId ORDER BY created_at DESC")
     LiveData<List<Playlist>> getPlaylistsByOwner(long ownerId);
+
+    @Query("SELECT * FROM playlists WHERE owner_id = :ownerId ORDER BY created_at DESC")
+    List<Playlist> getPlaylistsByOwnerSync(long ownerId);
+
+    @Query("SELECT * FROM playlists WHERE owner_id = :ownerId AND is_public = 1 ORDER BY created_at DESC")
+    List<Playlist> getPublicPlaylistsByOwnerSync(long ownerId);
     
     @Query("SELECT * FROM playlists WHERE is_public = 1 ORDER BY created_at DESC")
     LiveData<List<Playlist>> getPublicPlaylists();

@@ -48,6 +48,14 @@ public class SongRepository {
     public LiveData<List<Song>> getPublicSongs() {
         return songDao.getPublicSongs();
     }
+
+    public Future<List<Song>> getSongsByUploaderSync(long uploaderId) {
+        return executor.submit(() -> songDao.getSongsByUploaderSync(uploaderId));
+    }
+
+    public Future<List<Song>> getPublicSongsByUploaderSync(long uploaderId) {
+        return executor.submit(() -> songDao.getPublicSongsByUploaderSync(uploaderId));
+    }
     
     public LiveData<List<Song>> searchPublicSongs(String query) {
         return songDao.searchPublicSongs(query);

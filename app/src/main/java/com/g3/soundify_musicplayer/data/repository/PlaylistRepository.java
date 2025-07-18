@@ -44,6 +44,14 @@ public class PlaylistRepository {
     public LiveData<List<Playlist>> getPlaylistsByOwner(long ownerId) {
         return playlistDao.getPlaylistsByOwner(ownerId);
     }
+
+    public Future<List<Playlist>> getPlaylistsByOwnerSync(long ownerId) {
+        return executor.submit(() -> playlistDao.getPlaylistsByOwnerSync(ownerId));
+    }
+
+    public Future<List<Playlist>> getPublicPlaylistsByOwnerSync(long ownerId) {
+        return executor.submit(() -> playlistDao.getPublicPlaylistsByOwnerSync(ownerId));
+    }
     
     public LiveData<List<Playlist>> getPublicPlaylists() {
         return playlistDao.getPublicPlaylists();

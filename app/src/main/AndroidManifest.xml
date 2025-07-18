@@ -22,9 +22,9 @@
         android:theme="@style/Theme.Soundifymusicplayer">
         <activity android:name=".data.Activity.LoginActivity"/>
         <activity android:name=".data.Activity.RegisterActivity"/>
-        <activity android:name=".ui.upload.UploadSongActivity" />
+        <activity android:name=".ui.profile.UserProfileActivity"/>git
         <activity
-            android:name=".ui.playlist.PlaylistDetailActivity"
+            android:name=".ui.upload.UploadSongActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
