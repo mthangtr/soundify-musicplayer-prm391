@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/player_background"
+    android:fitsSystemWindows="true">
+
+    <!-- Header Section -->
+    <LinearLayout
+        android:id="@+id/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/player_header_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/spacing_md"
+        android:paddingTop="@dimen/spacing_sm"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Minimize Button -->
+        <ImageButton
+            android:id="@+id/btn_minimize"
+            android:layout_width="@dimen/min_touch_target"
+            android:layout_height="@dimen/min_touch_target"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_chevron_down"
+            android:contentDescription="@string/cd_minimize_player"
+            android:tint="@color/text_primary" />
+
+        <!-- Song Info Container -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginHorizontal="@dimen/spacing_md"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/text_song_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_headline"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Song Title" />
+
+            <TextView
+                android:id="@+id/text_artist_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="@dimen/text_size_subhead"
+                android:textColor="@color/text_secondary"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginTop="@dimen/spacing_xs"
+                tools:text="Artist Name" />
+
+        </LinearLayout>
+
+        <!-- Follow Button -->
+        <Button
+            android:id="@+id/btn_follow"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/button_height_small"
+            android:text="@string/player_follow"
+            android:textSize="@dimen/text_size_footnote"
+            android:textColor="@color/white"
+            android:background="@drawable/button_follow_background"
+            android:paddingHorizontal="@dimen/spacing_md"
+            android:contentDescription="@string/cd_follow_button"
+            style="?android:attr/borderlessButtonStyle" />
+
+    </LinearLayout>
+
+    <!-- Album Art Section -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_album_art"
+        android:layout_width="@dimen/player_album_art_size"
+        android:layout_height="@dimen/player_album_art_size"
+        android:layout_marginTop="@dimen/spacing_xl"
+        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardElevation="@dimen/card_elevation"
+        app:layout_constraintTop_toBottomOf="@id/layout_header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/image_album_art"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/cd_album_art"
+            android:src="@drawable/placeholder_album_art" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Playback Controls Section -->
+    <LinearLayout
+        android:id="@+id/layout_playback_controls"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/spacing_xl"
+        android:layout_marginTop="@dimen/spacing_xl"
+        app:layout_constraintTop_toBottomOf="@id/card_album_art"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Progress Bar and Time -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <SeekBar
+                android:id="@+id/seekbar_progress"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:progressTint="@color/progress_bar_active"
+                android:progressBackgroundTint="@color/progress_bar_inactive"
+                android:thumbTint="@color/progress_bar_active"
+                android:max="100"
+                android:progress="0" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="@dimen/spacing_xs">
+
+                <TextView
+                    android:id="@+id/text_current_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_caption_1"
+                    android:textColor="@color/text_secondary"
+                    tools:text="0:00" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/text_total_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="@dimen/text_size_caption_1"
+                    android:textColor="@color/text_secondary"
+                    tools:text="3:45" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Control Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="@dimen/spacing_lg">
+
+            <ImageButton
+                android:id="@+id/btn_previous"
+                android:layout_width="@dimen/player_control_button_size"
+                android:layout_height="@dimen/player_control_button_size"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_skip_previous"
+                android:contentDescription="@string/cd_previous_button"
+                android:tint="@color/player_control_active" />
+
+            <ImageButton
+                android:id="@+id/btn_play_pause"
+                android:layout_width="@dimen/player_play_button_size"
+                android:layout_height="@dimen/player_play_button_size"
+                android:layout_marginHorizontal="@dimen/spacing_xl"
+                android:background="@drawable/button_play_background"
+                android:src="@drawable/ic_play"
+                android:contentDescription="@string/cd_play_button"
+                android:tint="@color/white" />
+
+            <ImageButton
+                android:id="@+id/btn_next"
+                android:layout_width="@dimen/player_control_button_size"
+                android:layout_height="@dimen/player_control_button_size"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_skip_next"
+                android:contentDescription="@string/cd_next_button"
+                android:tint="@color/player_control_active" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Comment Input Section -->
+    <LinearLayout
+        android:id="@+id/layout_comment_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/spacing_md"
+        android:paddingVertical="@dimen/spacing_sm"
+        android:layout_marginTop="@dimen/spacing_lg"
+        android:background="@drawable/comment_input_background"
+        android:layout_marginHorizontal="@dimen/spacing_md"
+        app:layout_constraintTop_toBottomOf="@id/layout_playback_controls"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <EditText
+            android:id="@+id/edit_comment"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/input_field_height"
+            android:layout_weight="1"
+            android:hint="@string/comment_hint"
+            android:textSize="@dimen/text_size_body"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_tertiary"
+            android:background="@android:color/transparent"
+            android:paddingHorizontal="@dimen/spacing_sm"
+            android:maxLines="1"
+            android:imeOptions="actionSend" />
+
+    </LinearLayout>
+
+    <!-- Bottom Action Bar -->
+    <LinearLayout
+        android:id="@+id/layout_bottom_actions"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/player_bottom_bar_height"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/spacing_xl"
+        android:background="@color/surface_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Like Button -->
+        <ImageButton
+            android:id="@+id/btn_like"
+            android:layout_width="@dimen/min_touch_target"
+            android:layout_height="@dimen/min_touch_target"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_heart"
+            android:contentDescription="@string/cd_like_button"
+            android:tint="@color/button_like_inactive" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Comment Button -->
+        <ImageButton
+            android:id="@+id/btn_comments"
+            android:layout_width="@dimen/min_touch_target"
+            android:layout_height="@dimen/min_touch_target"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_comment"
+            android:contentDescription="@string/cd_comment_button"
+            android:tint="@color/player_control_inactive" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Add to Playlist Button -->
+        <ImageButton
+            android:id="@+id/btn_add_to_playlist"
+            android:layout_width="@dimen/min_touch_target"
+            android:layout_height="@dimen/min_touch_target"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_playlist_add"
+            android:contentDescription="@string/cd_playlist_button"
+            android:tint="@color/player_control_inactive" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <!-- Queue Button -->
+        <ImageButton
+            android:id="@+id/btn_queue"
+            android:layout_width="@dimen/min_touch_target"
+            android:layout_height="@dimen/min_touch_target"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_queue_music"
+            android:contentDescription="@string/cd_queue_button"
+            android:tint="@color/player_control_inactive" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
