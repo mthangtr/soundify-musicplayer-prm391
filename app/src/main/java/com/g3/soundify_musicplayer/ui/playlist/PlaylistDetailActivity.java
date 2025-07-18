@@ -1,5 +1,6 @@
 package com.g3.soundify_musicplayer.ui.playlist;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -11,6 +12,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,6 +39,9 @@ public class PlaylistDetailActivity extends AppCompatActivity implements Playlis
     
     private PlaylistDetailViewModel viewModel;
     private PlaylistSongAdapter adapter;
+
+    // Activity result launcher for selecting songs
+    private ActivityResultLauncher<Intent> selectSongsLauncher;
     
     // UI Components
     private Toolbar toolbar;
@@ -59,16 +66,39 @@ public class PlaylistDetailActivity extends AppCompatActivity implements Playlis
         
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(PlaylistDetailViewModel.class);
-        
+
+        // Setup activity result launcher
+        setupActivityResultLauncher();
+
         // Initialize UI
         initializeViews();
         setupToolbar();
         setupRecyclerView();
         setupClickListeners();
         setupObservers();
-        
+
         // Load playlist data
         handleIntent();
+    }
+
+    /**
+     * Setup activity result launcher for selecting songs
+     */
+    private void setupActivityResultLauncher() {
+        selectSongsLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    int addedCount = result.getData().getIntExtra(SelectSongsActivity.RESULT_ADDED_COUNT, 0);
+                    if (addedCount > 0) {
+                        String message = addedCount == 1 ?
+                            "1 song added to playlist" :
+                            addedCount + " songs added to playlist";
+                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        );
     }
     
     /**
@@ -278,8 +308,13 @@ public class PlaylistDetailActivity extends AppCompatActivity implements Playlis
      * Add songs to playlist (owner only)
      */
     private void addSongsToPlaylist() {
-        // TODO: Navigate to select songs screen
-        Toast.makeText(this, "Add Songs - Not implemented yet", Toast.LENGTH_SHORT).show();
+        Playlist playlist = viewModel.getCurrentPlaylist().getValue();
+        if (playlist != null) {
+            Intent intent = SelectSongsActivity.createIntent(this, playlist.getId(), playlist.getName());
+            selectSongsLauncher.launch(intent);
+        } else {
+            Toast.makeText(this, "Playlist not loaded", Toast.LENGTH_SHORT).show();
+        }
     }
     
     /**

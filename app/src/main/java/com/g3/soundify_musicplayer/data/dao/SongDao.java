@@ -29,9 +29,12 @@ public interface SongDao {
     @Query("SELECT * FROM songs WHERE id = :songId")
     Song getSongByIdSync(long songId);
     
+    @Query("SELECT * FROM songs ORDER BY created_at DESC")
+    LiveData<List<Song>> getAllSongs();
+
     @Query("SELECT * FROM songs WHERE uploader_id = :uploaderId ORDER BY created_at DESC")
     LiveData<List<Song>> getSongsByUploader(long uploaderId);
-    
+
     @Query("SELECT * FROM songs WHERE is_public = 1 ORDER BY created_at DESC")
     LiveData<List<Song>> getPublicSongs();
     
