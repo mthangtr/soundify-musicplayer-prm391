@@ -108,4 +108,47 @@
         <item>Reggae</item>
         <item>Khác</item>
     </string-array>
+
+    <!-- Playlist Detail Screen -->
+    <string name="playlist_detail_title">Playlist Detail</string>
+    <string name="playlist_songs_count">%d songs</string>
+    <string name="playlist_songs_count_single">1 song</string>
+    <string name="playlist_songs_count_none">No songs</string>
+    <string name="playlist_total_duration">%s total</string>
+    <string name="playlist_created_by">Created by %s</string>
+    <string name="playlist_public">Public</string>
+    <string name="playlist_private">Private</string>
+
+    <!-- Playlist Actions -->
+    <string name="action_play_all">Play All</string>
+    <string name="action_shuffle_play">Shuffle</string>
+    <string name="action_edit_playlist">Edit Playlist</string>
+    <string name="action_add_songs">Add Songs</string>
+    <string name="action_remove_song">Remove from playlist</string>
+    <string name="action_move_up">Move up</string>
+    <string name="action_move_down">Move down</string>
+
+    <!-- Playlist Messages -->
+    <string name="playlist_empty_message">This playlist is empty</string>
+    <string name="playlist_empty_subtitle">Add some songs to get started</string>
+    <string name="toast_song_removed">Song removed from playlist</string>
+    <string name="toast_song_moved">Song position updated</string>
+    <string name="toast_playlist_updated">Playlist updated</string>
+    <string name="error_loading_playlist">Error loading playlist</string>
+    <string name="error_removing_song">Error removing song</string>
+    <string name="error_updating_position">Error updating song position</string>
+
+    <!-- Remove Song Confirmation -->
+    <string name="remove_song_title">Remove Song</string>
+    <string name="remove_song_message">Remove \"%s\" from this playlist?</string>
+    <string name="remove_confirm">Remove</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_playlist_cover">Playlist cover art</string>
+    <string name="cd_play_all_button">Play all songs</string>
+    <string name="cd_shuffle_button">Shuffle play</string>
+    <string name="cd_edit_playlist_button">Edit playlist</string>
+    <string name="cd_add_songs_button">Add songs to playlist</string>
+    <string name="cd_song_menu">Song options</string>
+    <string name="cd_drag_handle">Drag to reorder</string>
 </resources>

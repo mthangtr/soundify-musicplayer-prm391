@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item
+        android:id="@+id/action_move_up"
+        android:title="@string/action_move_up"
+        android:icon="@drawable/ic_skip_previous" />
+    
+    <item
+        android:id="@+id/action_move_down"
+        android:title="@string/action_move_down"
+        android:icon="@drawable/ic_skip_next" />
+    
+    <item
+        android:id="@+id/action_remove_song"
+        android:title="@string/action_remove_song"
+        android:icon="@drawable/ic_heart" />
+    
+</menu>
