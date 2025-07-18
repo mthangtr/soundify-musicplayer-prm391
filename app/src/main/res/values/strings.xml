@@ -151,4 +151,94 @@
     <string name="cd_add_songs_button">Add songs to playlist</string>
     <string name="cd_song_menu">Song options</string>
     <string name="cd_drag_handle">Drag to reorder</string>
+
+    <!-- Select Songs Screen -->
+    <string name="select_songs_title">Add Songs</string>
+    <string name="select_songs_search_hint">Search songs…</string>
+    <string name="select_songs_done">Done</string>
+    <string name="select_songs_cancel">Cancel</string>
+    <string name="select_songs_selected_count">%d selected</string>
+    <string name="select_songs_selected_count_single">1 selected</string>
+    <string name="select_songs_selected_count_none">None selected</string>
+
+    <!-- Filter Options -->
+    <string name="filter_all_songs">All Songs</string>
+    <string name="filter_my_songs">My Songs</string>
+    <string name="filter_public_songs">Public Songs</string>
+
+    <!-- Select Songs Messages -->
+    <string name="select_songs_empty_message">No songs found</string>
+    <string name="select_songs_empty_subtitle">Try adjusting your search or filter</string>
+    <string name="select_songs_no_results">No results for \"%s\"</string>
+    <string name="select_songs_loading">Loading songs…</string>
+    <string name="toast_songs_added">%d songs added to playlist</string>
+    <string name="toast_songs_added_single">1 song added to playlist</string>
+    <string name="error_loading_songs">Error loading songs</string>
+    <string name="error_adding_songs">Error adding songs to playlist</string>
+
+    <!-- Content Descriptions for Select Songs -->
+    <string name="cd_search_songs">Search songs</string>
+    <string name="cd_filter_songs">Filter songs</string>
+    <string name="cd_song_checkbox">Select song</string>
+    <string name="cd_clear_search">Clear search</string>
+
+    <!-- User Profile Screen -->
+    <string name="user_profile_title">Profile</string>
+    <string name="user_profile_follow">Follow</string>
+    <string name="user_profile_unfollow">Unfollow</string>
+    <string name="user_profile_following">Following</string>
+    <string name="user_profile_edit_profile">Edit Profile</string>
+
+    <!-- Profile Stats -->
+    <string name="profile_followers">Followers</string>
+    <string name="profile_following">Following</string>
+    <string name="profile_songs">Songs</string>
+    <string name="profile_followers_count">%d followers</string>
+    <string name="profile_followers_count_single">1 follower</string>
+    <string name="profile_followers_count_none">No followers</string>
+    <string name="profile_following_count">%d following</string>
+    <string name="profile_following_count_single">1 following</string>
+    <string name="profile_following_count_none">Not following anyone</string>
+    <string name="profile_songs_count">%d songs</string>
+    <string name="profile_songs_count_single">1 song</string>
+    <string name="profile_songs_count_none">No songs</string>
+
+    <!-- Profile Tabs -->
+    <string name="tab_songs">Songs</string>
+    <string name="tab_playlists">Playlists</string>
+
+    <!-- Profile Empty States -->
+    <string name="profile_no_songs_title">No public songs</string>
+    <string name="profile_no_songs_subtitle">This user hasn\'t shared any songs yet</string>
+    <string name="profile_no_playlists_title">No public playlists</string>
+    <string name="profile_no_playlists_subtitle">This user hasn\'t shared any playlists yet</string>
+    <string name="profile_own_no_songs_title">You haven\'t shared any songs</string>
+    <string name="profile_own_no_songs_subtitle">Upload and make your songs public to share them</string>
+    <string name="profile_own_no_playlists_title">You haven\'t shared any playlists</string>
+    <string name="profile_own_no_playlists_subtitle">Create and make your playlists public to share them</string>
+
+    <!-- Profile Actions -->
+    <string name="action_view_followers">View followers</string>
+    <string name="action_view_following">View following</string>
+
+    <!-- Profile Messages -->
+    <string name="toast_followed_user_profile">Now following %s</string>
+    <string name="toast_unfollowed_user_profile">Unfollowed %s</string>
+    <string name="error_loading_profile">Error loading profile</string>
+    <string name="error_user_not_found">User not found</string>
+    <string name="error_follow_action">Error updating follow status</string>
+
+    <!-- Follow Confirmation -->
+    <string name="unfollow_confirmation_title">Unfollow %s?</string>
+    <string name="unfollow_confirmation_message">You will no longer see their posts in your feed</string>
+    <string name="unfollow_confirm">Unfollow</string>
+
+    <!-- Content Descriptions for Profile -->
+    <string name="cd_user_avatar">User avatar</string>
+    <string name="cd_follow_button_profile">Follow user</string>
+    <string name="cd_unfollow_button">Unfollow user</string>
+    <string name="cd_edit_profile_button">Edit profile</string>
+    <string name="cd_followers_stat">Followers count</string>
+    <string name="cd_following_stat">Following count</string>
+    <string name="cd_songs_stat">Songs count</string>
 </resources>

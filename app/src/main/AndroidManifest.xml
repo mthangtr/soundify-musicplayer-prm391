@@ -23,8 +23,12 @@
         <activity android:name=".data.Activity.LoginActivity"/>
         <activity android:name=".data.Activity.RegisterActivity"/>
         <activity android:name=".ui.upload.UploadSongActivity" />
+<!--        <activity-->
+<!--            android:name=".ui.playlist.SelectSongsActivity"-->
+<!--            android:parentActivityName=".ui.playlist.PlaylistDetailActivity"-->
+<!--            android:theme="@style/Theme.Soundifymusicplayer"/>-->
         <activity
-            android:name=".ui.playlist.PlaylistDetailActivity"
+            android:name=".ui.profile.UserProfileActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
