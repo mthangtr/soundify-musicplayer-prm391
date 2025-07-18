@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
+    <!-- Camera permission for profile photo -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -22,19 +25,20 @@
         android:theme="@style/Theme.Soundifymusicplayer">
         <activity android:name=".data.Activity.LoginActivity"/>
         <activity android:name=".data.Activity.RegisterActivity"/>
-        <activity android:name=".ui.profile.UserProfileActivity"/>git
+        <activity android:name=".ui.profile.UserProfileActivity"/>
         <activity
-            android:name=".ui.upload.UploadSongActivity"
+            android:name=".ui.profile.EditProfileActivity"
+            android:parentActivityName=".ui.profile.UserProfileActivity"
+            android:theme="@style/Theme.Soundifymusicplayer"/>
+
+        <activity
+            android:name=".ui.profile.FollowersFollowingActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".ui.playlist.SelectSongsActivity"
-            android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
-            android:theme="@style/Theme.Soundifymusicplayer"/>
     </application>
 
 </manifest>

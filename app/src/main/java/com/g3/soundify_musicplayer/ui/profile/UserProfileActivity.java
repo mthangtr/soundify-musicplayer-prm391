@@ -433,27 +433,35 @@ public class UserProfileActivity extends AppCompatActivity implements
     }
 
     /**
-     * Edit profile (placeholder)
+     * Edit profile - Navigate to EditProfileActivity
      */
     private void editProfile() {
-        // TODO: Navigate to edit profile screen
-        Toast.makeText(this, "Edit Profile - Not implemented yet", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, EditProfileActivity.class);
+        startActivity(intent);
     }
 
     /**
-     * View followers (placeholder)
+     * View followers - Navigate to FollowersFollowingActivity
      */
     private void viewFollowers() {
-        // TODO: Navigate to followers list
-        Toast.makeText(this, "View Followers - Not implemented yet", Toast.LENGTH_SHORT).show();
+        User user = viewModel.getCurrentUser().getValue();
+        if (user != null) {
+            Intent intent = FollowersFollowingActivity.createIntent(
+                this, user.getId(), user.getUsername(), FollowersFollowingActivity.TAB_FOLLOWERS);
+            startActivity(intent);
+        }
     }
 
     /**
-     * View following (placeholder)
+     * View following - Navigate to FollowersFollowingActivity
      */
     private void viewFollowing() {
-        // TODO: Navigate to following list
-        Toast.makeText(this, "View Following - Not implemented yet", Toast.LENGTH_SHORT).show();
+        User user = viewModel.getCurrentUser().getValue();
+        if (user != null) {
+            Intent intent = FollowersFollowingActivity.createIntent(
+                this, user.getId(), user.getUsername(), FollowersFollowingActivity.TAB_FOLLOWING);
+            startActivity(intent);
+        }
     }
 
     // PublicSongAdapter.OnSongClickListener implementation
