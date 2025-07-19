@@ -360,6 +360,10 @@
     <string name="error_cannot_follow_self">You cannot follow yourself</string>
     <string name="error_invalid_user">Invalid user</string>
 
+    <!-- Playlist Selection -->
+    <string name="cd_select_playlist">Select playlist</string>
+    <string name="cd_back_button">Back</string>
+
     <!-- Library Screen -->
     <string name="library_title">Your Library</string>
     <string name="library_subtitle">Your music collection and playlists</string>

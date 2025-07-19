@@ -20,13 +20,16 @@
     <dimen name="text_size_title_1">28sp</dimen>
     <dimen name="text_size_title_2">22sp</dimen>
     <dimen name="text_size_title_3">20sp</dimen>
+    <dimen name="text_size_title">20sp</dimen>
     <dimen name="text_size_headline">17sp</dimen>
     <dimen name="text_size_body">17sp</dimen>
+    <dimen name="text_size_body_large">18sp</dimen>
     <dimen name="text_size_callout">16sp</dimen>
     <dimen name="text_size_subhead">15sp</dimen>
     <dimen name="text_size_footnote">13sp</dimen>
     <dimen name="text_size_caption_1">12sp</dimen>
     <dimen name="text_size_caption_2">11sp</dimen>
+    <dimen name="text_size_caption">12sp</dimen>
     
     <!-- Player Specific Dimensions -->
     <dimen name="player_header_height">80dp</dimen>
@@ -62,8 +65,13 @@
     
     <!-- Card and Container -->
     <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_corner_radius_small">8dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_elevation_small">1dp</dimen>
     <dimen name="container_padding">16dp</dimen>
+
+    <!-- Playlist Item Dimensions -->
+    <dimen name="playlist_item_cover_size">56dp</dimen>
     
     <!-- Input Fields -->
     <dimen name="input_field_height">44dp</dimen>

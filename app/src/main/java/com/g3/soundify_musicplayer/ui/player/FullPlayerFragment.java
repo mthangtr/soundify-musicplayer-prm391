@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistSelectionActivity;
 import com.g3.soundify_musicplayer.utils.TimeUtils;
 
 /**
@@ -30,6 +31,7 @@ import com.g3.soundify_musicplayer.utils.TimeUtils;
 public class FullPlayerFragment extends Fragment {
 
     private static final String ARG_SONG_ID = "song_id";
+    private static final int REQUEST_CODE_PLAYLIST_SELECTION = 1001;
     
     // UI Components
     private ImageButton btnMinimize;
@@ -206,8 +208,11 @@ public class FullPlayerFragment extends Fragment {
         });
         
         btnAddToPlaylist.setOnClickListener(v -> {
-            // TODO: Implement add to playlist
-            showToast("Add to playlist");
+            if (currentSong != null) {
+                navigateToPlaylistSelection();
+            } else {
+                showToast("No song selected");
+            }
         });
         
         btnQueue.setOnClickListener(v -> {
@@ -335,9 +340,32 @@ public class FullPlayerFragment extends Fragment {
         }
     }
 
+    private void navigateToPlaylistSelection() {
+        if (getContext() != null && currentSong != null) {
+            Intent intent = PlaylistSelectionActivity.createIntent(getContext(), currentSong.getId());
+            startActivityForResult(intent, REQUEST_CODE_PLAYLIST_SELECTION);
+        }
+    }
+
     private void showToast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_PLAYLIST_SELECTION && resultCode == getActivity().RESULT_OK) {
+            if (data != null) {
+                String playlistName = data.getStringExtra(PlaylistSelectionActivity.RESULT_PLAYLIST_NAME);
+                if (playlistName != null) {
+                    showToast("Added to " + playlistName);
+                } else {
+                    showToast("Added to playlist");
+                }
+            }
         }
     }
 }

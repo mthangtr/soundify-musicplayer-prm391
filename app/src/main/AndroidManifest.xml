@@ -67,6 +67,10 @@
             android:name=".ui.playlist.SelectSongsActivity"
             android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.playlist.PlaylistSelectionActivity"
+            android:parentActivityName=".ui.player.PlayerDemoActivity"
+            android:exported="false" />
 
         <!-- Main Activity with Bottom Navigation and Mini Player - LAUNCHER -->
         <activity
