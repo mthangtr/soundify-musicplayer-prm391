@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Permissions for file access -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -20,17 +19,25 @@
         android:roundIcon="@drawable/splashi_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Soundifymusicplayer">
-        <activity android:name=".data.Activity.LoginActivity"/>
-        <activity android:name=".data.Activity.RegisterActivity"/>
-        <activity android:name=".ui.upload.UploadSongActivity" />
-        <activity
-            android:name=".ui.playlist.PlaylistDetailActivity"
+        <!-- Main launcher activity -->
+        <activity 
+            android:name=".SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
+        <!-- Các activities khác KHÔNG có intent-filter MAIN -->
+        <activity android:name=".MainActivity" />
+        <activity android:name=".data.Activity.LoginActivity"/>
+        <activity android:name=".data.Activity.RegisterActivity"/>
+        <activity android:name=".ui.upload.UploadSongActivity" />
+        <activity android:name=".ui.player.PlayerDemoActivity"/>
+        <activity
+            android:name=".ui.playlist.PlaylistDetailActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.playlist.SelectSongsActivity"
             android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
