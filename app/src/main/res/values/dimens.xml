@@ -43,6 +43,10 @@
     <dimen name="mini_player_button_size">40dp</dimen>
     <dimen name="mini_player_progress_height">2dp</dimen>
     <dimen name="mini_player_elevation">4dp</dimen>
+
+    <!-- Search Screen Dimensions -->
+    <dimen name="search_item_image_size">56dp</dimen>
+    <dimen name="search_item_image_radius">8dp</dimen>
     
     <!-- Button Dimensions -->
     <dimen name="button_height_standard">44dp</dimen>

@@ -68,21 +68,21 @@
             android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
             android:exported="false" />
 
-        <!-- Main Activity with Bottom Navigation and Mini Player -->
+        <!-- Main Activity with Bottom Navigation and Mini Player - LAUNCHER -->
         <activity
             android:name=".MainActivity"
-            android:exported="true" />
-
-        <!-- Full Player Demo Activity - FOR TESTING -->
-        <activity
-            android:name=".ui.player.PlayerDemoActivity"
-            android:exported="true"
-            android:parentActivityName=".MainActivity">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Full Player Demo Activity -->
+        <activity
+            android:name=".ui.player.PlayerDemoActivity"
+            android:exported="true"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>
