@@ -63,13 +63,16 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
         initViews(view);
         setupRecyclerView();
         setupViewModel();
         setupSearchInput();
         setupFilterChips();
         observeViewModel();
+
+        // Load initial mock data
+        loadMockData();
     }
 
     private void initViews(View view) {
@@ -167,10 +170,7 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         viewModel.getCurrentQuery().observe(getViewLifecycleOwner(), query -> {
             if (query != null) {
                 currentQuery = query;
-                if (query.isEmpty()) {
-                    updateUIState(false, true); // Show initial empty state
-                    textResultsCount.setVisibility(View.GONE);
-                }
+                // Don't show empty state for empty query - let search results handle it
             }
         });
 
@@ -270,5 +270,11 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    private void loadMockData() {
+        // SIMPLE: Just trigger search with empty query to show all mock data
+        // No backend, no network, just pure mock data display
+        viewModel.search("");
     }
 }

@@ -12,6 +12,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.g3.soundify_musicplayer.data.Fragment.HomeFragment;
 import com.g3.soundify_musicplayer.ui.base.BaseActivity;
 import com.g3.soundify_musicplayer.ui.search.SearchFragment;
+import com.g3.soundify_musicplayer.ui.library.LibraryFragment;
 
 public class MainActivity extends BaseActivity {
 
@@ -55,8 +56,10 @@ public class MainActivity extends BaseActivity {
                     .commit();
                 return true;
             } else if (itemId == R.id.nav_library) {
-                Toast.makeText(this, "Library clicked", Toast.LENGTH_SHORT).show();
-                // TODO: Navigate to LibraryFragment
+                getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new LibraryFragment())
+                    .commit();
                 return true;
             } else if (itemId == R.id.nav_upload) {
                 Toast.makeText(this, "Upload clicked", Toast.LENGTH_SHORT).show();

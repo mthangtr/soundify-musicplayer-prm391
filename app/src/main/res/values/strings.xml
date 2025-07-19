@@ -359,4 +359,16 @@
     <string name="error_not_logged_in">You must be logged in to follow users</string>
     <string name="error_cannot_follow_self">You cannot follow yourself</string>
     <string name="error_invalid_user">Invalid user</string>
+
+    <!-- Library Screen -->
+    <string name="library_title">Your Library</string>
+    <string name="library_subtitle">Your music collection and playlists</string>
+    <string name="tab_my_songs">My Songs</string>
+    <string name="tab_my_playlists">My Playlists</string>
+    <string name="tab_liked_songs">Liked Songs</string>
+
+    <!-- Library Empty States -->
+    <string name="empty_state_title">Nothing here yet</string>
+    <string name="empty_state_subtitle">Start building your library</string>
+    <string name="cd_empty_state">Empty state illustration</string>
 </resources>
