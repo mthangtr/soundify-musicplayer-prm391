@@ -18,6 +18,8 @@ import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
 import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
+import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
 
 import java.util.Arrays;
 import java.util.List;
@@ -77,8 +79,9 @@ public class HomeFragment extends Fragment {
         RecentSongAdapter recentAdapter = new RecentSongAdapter(demo, new RecentSongAdapter.OnRecentSongClick() {
             @Override
             public void onPlay(Song s) {
-                Toast.makeText(requireContext(), "Play recent: " + s.getTitle(), Toast.LENGTH_SHORT).show();
-                // TODO: Implement play functionality
+                Toast.makeText(requireContext(), "Playing: " + s.getTitle(), Toast.LENGTH_SHORT).show();
+                // Show mini player with the selected song
+                showMiniPlayer(s);
             }
         });
         rvRecentlyPlayed.setAdapter(recentAdapter);
@@ -86,7 +89,9 @@ public class HomeFragment extends Fragment {
         // All Songs Adapter
         SongAdapter adt = new SongAdapter(demo, new SongAdapter.OnSongClick() {
             @Override public void onPlay(Song s) {
-                Toast.makeText(requireContext(), "Play " + s.getTitle(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Playing: " + s.getTitle(), Toast.LENGTH_SHORT).show();
+                // Show mini player with the selected song
+                showMiniPlayer(s);
             }
             @Override public void onOpenDetail(Song s) {
                 Toast.makeText(requireContext(), "Open detail " + s.getTitle(), Toast.LENGTH_SHORT).show();
@@ -103,5 +108,25 @@ public class HomeFragment extends Fragment {
         playlist.setPublic(true);
         playlist.setCreatedAt(System.currentTimeMillis() - (id * 86400000L)); // Different creation times
         return playlist;
+    }
+
+    // Helper method to show mini player with song
+    private void showMiniPlayer(Song song) {
+        // Create a mock artist for the song
+        User mockArtist = createMockArtist(song.getUploaderId());
+
+        // Show mini player using the global manager
+        MiniPlayerManager.getInstance().showMiniPlayer(song, mockArtist);
+    }
+
+    // Helper method to create mock artist
+    private User createMockArtist(long artistId) {
+        User artist = new User();
+        artist.setId(artistId);
+        artist.setUsername("demo_artist");
+        artist.setDisplayName("Demo Artist");
+        artist.setAvatarUrl("mock://avatar/demo_artist.jpg");
+        artist.setCreatedAt(System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)); // 30 days ago
+        return artist;
     }
 }

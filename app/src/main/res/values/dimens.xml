@@ -35,6 +35,14 @@
     <dimen name="player_play_button_size">64dp</dimen>
     <dimen name="player_progress_bar_height">4dp</dimen>
     <dimen name="player_bottom_bar_height">72dp</dimen>
+
+    <!-- Mini Player Dimensions -->
+    <dimen name="mini_player_height">64dp</dimen>
+    <dimen name="mini_player_album_art_size">48dp</dimen>
+    <dimen name="mini_player_album_art_radius">6dp</dimen>
+    <dimen name="mini_player_button_size">40dp</dimen>
+    <dimen name="mini_player_progress_height">2dp</dimen>
+    <dimen name="mini_player_elevation">4dp</dimen>
     
     <!-- Button Dimensions -->
     <dimen name="button_height_standard">44dp</dimen>
