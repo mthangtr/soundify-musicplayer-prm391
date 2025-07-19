@@ -11,6 +11,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.g3.soundify_musicplayer.data.Fragment.HomeFragment;
 import com.g3.soundify_musicplayer.ui.base.BaseActivity;
+import com.g3.soundify_musicplayer.ui.search.SearchFragment;
 
 public class MainActivity extends BaseActivity {
 
@@ -42,11 +43,16 @@ public class MainActivity extends BaseActivity {
             int itemId = item.getItemId();
             
             if (itemId == R.id.nav_home) {
-                // Already showing HomeFragment
+                getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new HomeFragment())
+                    .commit();
                 return true;
             } else if (itemId == R.id.nav_search) {
-                Toast.makeText(this, "Search clicked", Toast.LENGTH_SHORT).show();
-                // TODO: Navigate to SearchFragment
+                getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, new SearchFragment())
+                    .commit();
                 return true;
             } else if (itemId == R.id.nav_library) {
                 Toast.makeText(this, "Library clicked", Toast.LENGTH_SHORT).show();
