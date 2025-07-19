@@ -13,12 +13,12 @@ import com.g3.soundify_musicplayer.data.entity.User;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 /**
  * ViewModel for the Search screen.
- * Provides mock data and handles search functionality for demo purposes.
- * UI ONLY - No backend integration.
+ * 100% MOCK DATA - No backend, no network, no database
+ * Pure UI testing with hardcoded data for demo purposes
+ * SIMPLE LOGIC - Instant filtering, no loading states
  */
 public class SearchViewModel extends AndroidViewModel {
 
@@ -48,27 +48,14 @@ public class SearchViewModel extends AndroidViewModel {
         lastQuery = query.trim();
         
         if (lastQuery.isEmpty()) {
-            searchResults.setValue(new ArrayList<>());
+            // Show all results when query is empty
+            searchResults.setValue(allResults);
             return;
         }
         
-        isLoading.setValue(true);
-        
-        // Simulate search delay
-        Executors.newSingleThreadExecutor().execute(() -> {
-            try {
-                Thread.sleep(300); // Simulate network delay
-                
-                List<SearchResult> filteredResults = filterResults(lastQuery, currentFilter.getValue());
-                
-                searchResults.postValue(filteredResults);
-                isLoading.postValue(false);
-                
-            } catch (InterruptedException e) {
-                error.postValue("Search failed");
-                isLoading.postValue(false);
-            }
-        });
+        // SIMPLE: No loading, no threads, no delays - just instant mock data filtering
+        List<SearchResult> filteredResults = filterResults(lastQuery, currentFilter.getValue());
+        searchResults.setValue(filteredResults);
     }
 
     public void setFilter(FilterType filter) {
