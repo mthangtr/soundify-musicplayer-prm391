@@ -216,8 +216,11 @@ public class FullPlayerFragment extends Fragment {
         });
         
         btnQueue.setOnClickListener(v -> {
-            // TODO: Implement queue view
-            showToast("View queue");
+            if (currentSong != null) {
+                navigateToQueue();
+            } else {
+                showToast("No song selected");
+            }
         });
     }
 
@@ -344,6 +347,19 @@ public class FullPlayerFragment extends Fragment {
         if (getContext() != null && currentSong != null) {
             Intent intent = PlaylistSelectionActivity.createIntent(getContext(), currentSong.getId());
             startActivityForResult(intent, REQUEST_CODE_PLAYLIST_SELECTION);
+        }
+    }
+
+    private void navigateToQueue() {
+        if (getActivity() != null && currentSong != null) {
+            // Create and show queue fragment
+            QueueFragment queueFragment = QueueFragment.newInstance(currentSong.getId());
+
+            getActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, queueFragment)
+                .addToBackStack(null)
+                .commit();
         }
     }
 
