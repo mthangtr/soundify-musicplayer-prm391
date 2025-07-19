@@ -1,5 +1,6 @@
 package com.g3.soundify_musicplayer.ui.player;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -124,10 +125,18 @@ public class FullPlayerFragment extends Fragment {
     private void setupClickListeners() {
         // Header actions
         btnMinimize.setOnClickListener(v -> {
-            // TODO: Implement minimize functionality
-            showToast("Minimize player");
+            // Show mini player with current song when minimizing
+            if (currentSong != null && currentArtist != null) {
+                MiniPlayerManager.getInstance().showMiniPlayer(currentSong, currentArtist);
+            }
+            showToast("Minimized to mini player");
+
+            // Navigate to MainActivity to show mini player
             if (getActivity() != null) {
-                getActivity().onBackPressed();
+                Intent intent = new Intent(getActivity(), com.g3.soundify_musicplayer.MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                getActivity().finish();
             }
         });
         
@@ -192,8 +201,8 @@ public class FullPlayerFragment extends Fragment {
         });
         
         btnComments.setOnClickListener(v -> {
-            // TODO: Implement comments view
-            showToast("View comments");
+            // Navigate to comments screen
+            navigateToComments();
         });
         
         btnAddToPlaylist.setOnClickListener(v -> {
@@ -311,6 +320,19 @@ public class FullPlayerFragment extends Fragment {
 
     private void updateCurrentTime(int progress) {
         textCurrentTime.setText(TimeUtils.formatDuration(progress));
+    }
+
+    private void navigateToComments() {
+        if (getActivity() != null && currentSong != null) {
+            // Create and show comments fragment
+            CommentsFragment commentsFragment = CommentsFragment.newInstance(currentSong.getId());
+
+            getActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, commentsFragment)
+                .addToBackStack(null)
+                .commit();
+        }
     }
 
     private void showToast(String message) {

@@ -27,6 +27,26 @@
     <string name="comment_count_single">1 comment</string>
     <string name="comment_count_none">No comments</string>
 
+    <!-- Comments Screen -->
+    <string name="comments_title">Comments</string>
+    <string name="comments_empty">No comments yet</string>
+    <string name="comments_empty_subtitle">Be the first to comment on this song</string>
+    <string name="cd_comment_like_button">Like comment</string>
+    <string name="comment_likes_count">%d likes</string>
+    <string name="comment_likes_count_single">1 like</string>
+    <string name="comment_time_ago">%s ago</string>
+    <string name="just_now">Just now</string>
+    <string name="minutes_ago">%d minutes ago</string>
+    <string name="hours_ago">%d hours ago</string>
+    <string name="days_ago">%d days ago</string>
+
+    <!-- Mini Player -->
+    <string name="mini_player_expand">Expand player</string>
+    <string name="cd_mini_player_play_pause">Play or pause</string>
+    <string name="cd_mini_player_next">Next track</string>
+    <string name="cd_mini_player_expand">Expand to full player</string>
+    <string name="cd_mini_player_close">Close mini player</string>
+
     <!-- Actions -->
     <string name="action_follow_user">Follow %s</string>
     <string name="action_unfollow_user">Unfollow %s</string>
