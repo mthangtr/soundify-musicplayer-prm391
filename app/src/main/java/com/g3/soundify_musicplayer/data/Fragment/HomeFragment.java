@@ -9,6 +9,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,16 +21,23 @@ import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
+import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
 
+    private HomeViewModel homeViewModel;
+
     public HomeFragment() { super(R.layout.fragment_home); }
 
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle b) {
+        // Initialize ViewModel
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+
         // Recently Played RecyclerView
         RecyclerView rvRecentlyPlayed = v.findViewById(R.id.rvRecentlyPlayed);
         rvRecentlyPlayed.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -53,43 +61,64 @@ public class HomeFragment extends Fragment {
             @Override
             public void onPlaylistClick(Playlist playlist) {
                 Toast.makeText(requireContext(), "Open playlist: " + playlist.getName(), Toast.LENGTH_SHORT).show();
+
+                // Track playlist access
+                homeViewModel.trackPlaylistAccess(playlist.getId());
+
                 // TODO: Navigate to playlist detail
             }
-            
+
             @Override
             public void onPlayButtonClick(Playlist playlist) {
                 Toast.makeText(requireContext(), "Play playlist: " + playlist.getName(), Toast.LENGTH_SHORT).show();
+
+                // Track playlist access
+                homeViewModel.trackPlaylistAccess(playlist.getId());
+
                 // TODO: Implement play playlist functionality
             }
         });
         rvMyPlaylists.setAdapter(playlistAdapter);
 
-        // ✨ Dữ liệu cứng tạm thời
-        List<Song> demo = Arrays.asList(
-                new Song(1, "Lofi Chill", "file:///android_asset/lofi.mp3"),
-                new Song(2, "Future Bass", "file:///android_asset/future.mp3"),
-                new Song(3, "Guitar Solo", "file:///android_asset/guitar.mp3"),
-                new Song(4, "Jazz Night", "file:///android_asset/jazz.mp3")
-        );
-
-        // gán cover tạm
-        for (Song s : demo) s.setCoverArtUrl("");
-
         // Recently Played Adapter
-        RecentSongAdapter recentAdapter = new RecentSongAdapter(demo, new RecentSongAdapter.OnRecentSongClick() {
+        RecentSongAdapter recentAdapter = new RecentSongAdapter(new ArrayList<>(), new RecentSongAdapter.OnRecentSongClick() {
             @Override
             public void onPlay(Song s) {
                 Toast.makeText(requireContext(), "Playing: " + s.getTitle(), Toast.LENGTH_SHORT).show();
+
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(s.getId());
+
                 // Show mini player with the selected song
                 showMiniPlayer(s);
             }
         });
         rvRecentlyPlayed.setAdapter(recentAdapter);
 
-        // All Songs Adapter
-        SongAdapter adt = new SongAdapter(demo, new SongAdapter.OnSongClick() {
+        // Observe recent songs from ViewModel
+        homeViewModel.getRecentSongs().observe(getViewLifecycleOwner(), recentSongs -> {
+            if (recentSongs != null) {
+                recentAdapter.updateSongs(recentSongs);
+                android.util.Log.d("HomeFragment", "Recent songs updated: " + recentSongs.size() + " songs");
+            }
+        });
+
+        // Observe recent playlists from ViewModel
+        homeViewModel.getRecentPlaylists().observe(getViewLifecycleOwner(), recentPlaylists -> {
+            if (recentPlaylists != null) {
+                playlistAdapter.updateData(recentPlaylists);
+                android.util.Log.d("HomeFragment", "Recent playlists updated: " + recentPlaylists.size() + " playlists");
+            }
+        });
+
+        // All Songs (Suggested) Adapter
+        SongAdapter adt = new SongAdapter(new ArrayList<>(), new SongAdapter.OnSongClick() {
             @Override public void onPlay(Song s) {
                 Toast.makeText(requireContext(), "Playing: " + s.getTitle(), Toast.LENGTH_SHORT).show();
+
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(s.getId());
+
                 // Show mini player with the selected song
                 showMiniPlayer(s);
             }
@@ -98,6 +127,14 @@ public class HomeFragment extends Fragment {
             }
         });
         rv.setAdapter(adt);
+
+        // Observe suggested songs from ViewModel
+        homeViewModel.getSuggestedSongs().observe(getViewLifecycleOwner(), suggestedSongs -> {
+            if (suggestedSongs != null) {
+                adt.updateData(suggestedSongs);
+                android.util.Log.d("HomeFragment", "Suggested songs updated: " + suggestedSongs.size() + " songs");
+            }
+        });
     }
     
     // Helper method to create demo playlists

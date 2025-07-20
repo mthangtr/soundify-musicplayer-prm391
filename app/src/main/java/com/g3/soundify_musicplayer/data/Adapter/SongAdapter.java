@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongVH> {
@@ -26,7 +27,7 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongVH> {
     }
 
     public SongAdapter(List<Song> data, OnSongClick l) {
-        this.data = data;
+        this.data = new ArrayList<>(data != null ? data : new ArrayList<>());
         this.listener = l;
     }
 

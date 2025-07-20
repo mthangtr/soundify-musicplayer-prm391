@@ -5,7 +5,9 @@ import androidx.lifecycle.LiveData;
 
 import com.g3.soundify_musicplayer.data.database.AppDatabase;
 import com.g3.soundify_musicplayer.data.dao.SongDao;
+import com.g3.soundify_musicplayer.data.dao.RecentlyPlayedDao;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.entity.RecentlyPlayed;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -13,13 +15,15 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class SongRepository {
-    
+
     private SongDao songDao;
+    private RecentlyPlayedDao recentlyPlayedDao;
     private ExecutorService executor;
     
     public SongRepository(Application application) {
         AppDatabase database = AppDatabase.getInstance(application);
         songDao = database.songDao();
+        recentlyPlayedDao = database.recentlyPlayedDao();
         executor = Executors.newFixedThreadPool(4);
     }
     
@@ -100,9 +104,53 @@ public class SongRepository {
         });
     }
     
+    // Recently Played methods
+
+    /**
+     * Get 6 most recent songs for current user
+     */
+    public LiveData<List<Song>> getRecentSongs(long userId) {
+        return recentlyPlayedDao.getRecentSongs(userId);
+    }
+
+    /**
+     * Track that user played a song
+     */
+    public void trackRecentlyPlayed(long userId, long songId) {
+        executor.execute(() -> {
+            try {
+                long currentTime = System.currentTimeMillis();
+                RecentlyPlayed recentlyPlayed = new RecentlyPlayed(userId, songId, currentTime);
+
+                // Insert/update the record
+                recentlyPlayedDao.insert(recentlyPlayed);
+
+                // Clean up old records to prevent database bloat
+                recentlyPlayedDao.cleanupOldRecords(userId);
+
+            } catch (Exception e) {
+                android.util.Log.e("SongRepository", "Error tracking recently played", e);
+            }
+        });
+    }
+
+    /**
+     * Get recently played records for debugging
+     */
+    public LiveData<List<RecentlyPlayed>> getAllRecentlyPlayed(long userId) {
+        return recentlyPlayedDao.getAllRecentlyPlayed(userId);
+    }
+
+    /**
+     * Get 10 random suggested songs
+     */
+    public LiveData<List<Song>> getSuggestedSongs() {
+        return songDao.getRandomSongs(10);
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();
         }
     }
-} 
+}

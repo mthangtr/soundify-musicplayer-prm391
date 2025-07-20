@@ -13,6 +13,7 @@ import com.bumptech.glide.Glide;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class RecentSongAdapter extends RecyclerView.Adapter<RecentSongAdapter.RecentSongVH> {
@@ -25,7 +26,7 @@ public class RecentSongAdapter extends RecyclerView.Adapter<RecentSongAdapter.Re
     }
 
     public RecentSongAdapter(List<Song> data, OnRecentSongClick listener) {
-        this.data = data;
+        this.data = new ArrayList<>(data != null ? data : new ArrayList<>());
         this.listener = listener;
     }
 
@@ -58,7 +59,18 @@ public class RecentSongAdapter extends RecyclerView.Adapter<RecentSongAdapter.Re
 
     @Override
     public int getItemCount() {
-        return Math.min(data.size(), 4); // Chỉ hiển thị tối đa 4 bài
+        return Math.min(data.size(), 6); // Hiển thị tối đa 6 bài (theo requirement mới)
+    }
+
+    /**
+     * Update songs list and notify adapter
+     */
+    public void updateSongs(List<Song> newSongs) {
+        data.clear();
+        if (newSongs != null) {
+            data.addAll(newSongs);
+        }
+        notifyDataSetChanged();
     }
 
     static class RecentSongVH extends RecyclerView.ViewHolder {

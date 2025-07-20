@@ -13,6 +13,7 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -28,7 +29,7 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
     }
     
     public PlaylistAdapter(List<Playlist> playlists, OnPlaylistClickListener listener) {
-        this.playlists = playlists;
+        this.playlists = new ArrayList<>(playlists != null ? playlists : new ArrayList<>());
         this.listener = listener;
     }
     

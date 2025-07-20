@@ -4,6 +4,8 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.migration.Migration;
+import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.g3.soundify_musicplayer.data.dao.CommentDao;
 import com.g3.soundify_musicplayer.data.dao.CommentLikeDao;
@@ -13,6 +15,8 @@ import com.g3.soundify_musicplayer.data.dao.SongDao;
 import com.g3.soundify_musicplayer.data.dao.SongLikeDao;
 import com.g3.soundify_musicplayer.data.dao.UserDao;
 import com.g3.soundify_musicplayer.data.dao.UserFollowDao;
+import com.g3.soundify_musicplayer.data.dao.RecentlyPlayedDao;
+import com.g3.soundify_musicplayer.data.dao.PlaylistAccessDao;
 import com.g3.soundify_musicplayer.data.entity.Comment;
 import com.g3.soundify_musicplayer.data.entity.CommentLike;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
@@ -21,6 +25,8 @@ import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.SongLike;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.entity.UserFollow;
+import com.g3.soundify_musicplayer.data.entity.RecentlyPlayed;
+import com.g3.soundify_musicplayer.data.entity.PlaylistAccess;
 
 @Database(
     entities = {
@@ -31,9 +37,11 @@ import com.g3.soundify_musicplayer.data.entity.UserFollow;
         UserFollow.class,
         Comment.class,
         CommentLike.class,
-        SongLike.class
+        SongLike.class,
+        RecentlyPlayed.class,
+        PlaylistAccess.class
     },
-    version = 1,
+    version = 3,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {
@@ -50,6 +58,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract CommentDao commentDao();
     public abstract CommentLikeDao commentLikeDao();
     public abstract SongLikeDao songLikeDao();
+    public abstract RecentlyPlayedDao recentlyPlayedDao();
+    public abstract PlaylistAccessDao playlistAccessDao();
     
     // Singleton pattern
     public static AppDatabase getInstance(Context context) {
@@ -61,7 +71,8 @@ public abstract class AppDatabase extends RoomDatabase {
                         AppDatabase.class,
                         DATABASE_NAME
                     )
-                    .fallbackToDestructiveMigration() // For development only
+                    // .addMigrations(MIGRATION_1_2)  // TODO: Fix migration
+                    .fallbackToDestructiveMigration() // For development - will recreate DB
                     .build();
                 }
             }

@@ -6,8 +6,10 @@ import androidx.lifecycle.LiveData;
 import com.g3.soundify_musicplayer.data.database.AppDatabase;
 import com.g3.soundify_musicplayer.data.dao.PlaylistDao;
 import com.g3.soundify_musicplayer.data.dao.PlaylistSongDao;
+import com.g3.soundify_musicplayer.data.dao.PlaylistAccessDao;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.PlaylistSong;
+import com.g3.soundify_musicplayer.data.entity.PlaylistAccess;
 import com.g3.soundify_musicplayer.data.entity.Song;
 
 import java.util.List;
@@ -19,12 +21,14 @@ public class PlaylistRepository {
     
     private PlaylistDao playlistDao;
     private PlaylistSongDao playlistSongDao;
+    private PlaylistAccessDao playlistAccessDao;
     private ExecutorService executor;
     
     public PlaylistRepository(Application application) {
         AppDatabase database = AppDatabase.getInstance(application);
         playlistDao = database.playlistDao();
         playlistSongDao = database.playlistSongDao();
+        playlistAccessDao = database.playlistAccessDao();
         executor = Executors.newFixedThreadPool(4);
     }
     
@@ -130,10 +134,47 @@ public class PlaylistRepository {
             return null;
         });
     }
-    
+
+    // Recently Accessed Playlists methods
+
+    /**
+     * Get 3 most recently accessed playlists for current user
+     */
+    public LiveData<List<Playlist>> getRecentlyAccessedPlaylists(long userId) {
+        return playlistAccessDao.getRecentlyAccessedPlaylists(userId);
+    }
+
+    /**
+     * Track that user accessed a playlist
+     */
+    public void trackPlaylistAccess(long userId, long playlistId) {
+        executor.execute(() -> {
+            try {
+                long currentTime = System.currentTimeMillis();
+                PlaylistAccess playlistAccess = new PlaylistAccess(userId, playlistId, currentTime);
+
+                // Insert/update the record
+                playlistAccessDao.insert(playlistAccess);
+
+                // Clean up old records to prevent database bloat
+                playlistAccessDao.cleanupOldAccessRecords(userId);
+
+            } catch (Exception e) {
+                android.util.Log.e("PlaylistRepository", "Error tracking playlist access", e);
+            }
+        });
+    }
+
+    /**
+     * Get playlist access records for debugging
+     */
+    public LiveData<List<PlaylistAccess>> getAllPlaylistAccess(long userId) {
+        return playlistAccessDao.getAllPlaylistAccess(userId);
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();
         }
     }
-} 
+}

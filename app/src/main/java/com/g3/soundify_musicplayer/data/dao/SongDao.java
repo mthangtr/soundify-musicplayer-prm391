@@ -38,6 +38,8 @@ public interface SongDao {
 
     @Query("SELECT * FROM songs WHERE is_public = 1 ORDER BY created_at DESC")
     LiveData<List<Song>> getPublicSongs();
+    @Query("SELECT * FROM songs ORDER BY RANDOM() LIMIT :limit")
+    LiveData<List<Song>> getRandomSongs(int limit);
 
     @Query("SELECT * FROM songs WHERE uploader_id = :uploaderId ORDER BY created_at DESC")
     List<Song> getSongsByUploaderSync(long uploaderId);
@@ -62,4 +64,10 @@ public interface SongDao {
     
     @Query("DELETE FROM songs WHERE id = :songId")
     void deleteSongById(long songId);
-} 
+
+    /**
+     * Get all songs (sync version for checking if songs exist)
+     */
+    @Query("SELECT * FROM songs")
+    List<Song> getAllSongsSync();
+}

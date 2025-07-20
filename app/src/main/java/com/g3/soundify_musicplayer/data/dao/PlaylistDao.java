@@ -53,4 +53,10 @@ public interface PlaylistDao {
     
     @Query("SELECT COUNT(*) FROM playlists WHERE owner_id = :ownerId")
     int getPlaylistCountByOwner(long ownerId);
-} 
+
+    /**
+     * Get all playlists (sync version for checking if playlists exist)
+     */
+    @Query("SELECT * FROM playlists")
+    List<Playlist> getAllPlaylistsSync();
+}
