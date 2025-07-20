@@ -59,6 +59,14 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongVH> {
 
     @Override public int getItemCount() { return data.size(); }
 
+    public void updateData(List<Song> newData) {
+        data.clear();
+        if (newData != null) {
+            data.addAll(newData);
+        }
+        notifyDataSetChanged();
+    }
+
     static class SongVH extends RecyclerView.ViewHolder {
         ImageView imgCover; TextView tvTitle, tvUploader; ImageButton btnPlay;
         SongVH(View v) {

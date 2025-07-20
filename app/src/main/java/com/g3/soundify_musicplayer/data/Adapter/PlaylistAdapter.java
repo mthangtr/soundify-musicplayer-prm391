@@ -87,4 +87,12 @@ public class PlaylistAdapter extends RecyclerView.Adapter<PlaylistAdapter.Playli
             });
         }
     }
+
+    public void updateData(List<Playlist> newData) {
+        playlists.clear();
+        if (newData != null) {
+            playlists.addAll(newData);
+        }
+        notifyDataSetChanged();
+    }
 }

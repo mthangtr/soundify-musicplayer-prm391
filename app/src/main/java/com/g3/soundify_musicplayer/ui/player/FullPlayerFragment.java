@@ -1,5 +1,6 @@
 package com.g3.soundify_musicplayer.ui.player;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistSelectionActivity;
 import com.g3.soundify_musicplayer.utils.TimeUtils;
 
 /**
@@ -29,6 +31,7 @@ import com.g3.soundify_musicplayer.utils.TimeUtils;
 public class FullPlayerFragment extends Fragment {
 
     private static final String ARG_SONG_ID = "song_id";
+    private static final int REQUEST_CODE_PLAYLIST_SELECTION = 1001;
     
     // UI Components
     private ImageButton btnMinimize;
@@ -124,10 +127,18 @@ public class FullPlayerFragment extends Fragment {
     private void setupClickListeners() {
         // Header actions
         btnMinimize.setOnClickListener(v -> {
-            // TODO: Implement minimize functionality
-            showToast("Minimize player");
+            // Show mini player with current song when minimizing
+            if (currentSong != null && currentArtist != null) {
+                MiniPlayerManager.getInstance().showMiniPlayer(currentSong, currentArtist);
+            }
+            showToast("Minimized to mini player");
+
+            // Navigate to MainActivity to show mini player
             if (getActivity() != null) {
-                getActivity().onBackPressed();
+                Intent intent = new Intent(getActivity(), com.g3.soundify_musicplayer.data.Activity.MainActivity.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                getActivity().finish();
             }
         });
         
@@ -192,18 +203,24 @@ public class FullPlayerFragment extends Fragment {
         });
         
         btnComments.setOnClickListener(v -> {
-            // TODO: Implement comments view
-            showToast("View comments");
+            // Navigate to comments screen
+            navigateToComments();
         });
         
         btnAddToPlaylist.setOnClickListener(v -> {
-            // TODO: Implement add to playlist
-            showToast("Add to playlist");
+            if (currentSong != null) {
+                navigateToPlaylistSelection();
+            } else {
+                showToast("No song selected");
+            }
         });
         
         btnQueue.setOnClickListener(v -> {
-            // TODO: Implement queue view
-            showToast("View queue");
+            if (currentSong != null) {
+                navigateToQueue();
+            } else {
+                showToast("No song selected");
+            }
         });
     }
 
@@ -313,9 +330,58 @@ public class FullPlayerFragment extends Fragment {
         textCurrentTime.setText(TimeUtils.formatDuration(progress));
     }
 
+    private void navigateToComments() {
+        if (getActivity() != null && currentSong != null) {
+            // Create and show comments fragment
+            CommentsFragment commentsFragment = CommentsFragment.newInstance(currentSong.getId());
+
+            getActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, commentsFragment)
+                .addToBackStack(null)
+                .commit();
+        }
+    }
+
+    private void navigateToPlaylistSelection() {
+        if (getContext() != null && currentSong != null) {
+            Intent intent = PlaylistSelectionActivity.createIntent(getContext(), currentSong.getId());
+            startActivityForResult(intent, REQUEST_CODE_PLAYLIST_SELECTION);
+        }
+    }
+
+    private void navigateToQueue() {
+        if (getActivity() != null && currentSong != null) {
+            // Create and show queue fragment
+            QueueFragment queueFragment = QueueFragment.newInstance(currentSong.getId());
+
+            getActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, queueFragment)
+                .addToBackStack(null)
+                .commit();
+        }
+    }
+
     private void showToast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE_PLAYLIST_SELECTION && resultCode == getActivity().RESULT_OK) {
+            if (data != null) {
+                String playlistName = data.getStringExtra(PlaylistSelectionActivity.RESULT_PLAYLIST_NAME);
+                if (playlistName != null) {
+                    showToast("Added to " + playlistName);
+                } else {
+                    showToast("Added to playlist");
+                }
+            }
         }
     }
 }

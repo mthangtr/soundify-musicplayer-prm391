@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:paddingHorizontal="@dimen/spacing_medium"
+    android:paddingVertical="@dimen/spacing_small">
+
+    <!-- Item Image/Icon -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_item_image"
+        android:layout_width="@dimen/search_item_image_size"
+        android:layout_height="@dimen/search_item_image_size"
+        app:cardCornerRadius="@dimen/search_item_image_radius"
+        app:cardElevation="0dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <ImageView
+            android:id="@+id/image_item"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/cd_album_art"
+            android:src="@drawable/placeholder_album_art" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Item Type Icon (for differentiation) -->
+    <ImageView
+        android:id="@+id/image_type_icon"
+        android:layout_width="@dimen/icon_size_small"
+        android:layout_height="@dimen/icon_size_small"
+        android:layout_marginStart="@dimen/spacing_small"
+        android:tint="@color/text_secondary"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/card_item_image"
+        app:layout_constraintTop_toTopOf="@id/card_item_image"
+        tools:src="@drawable/ic_library"
+        tools:visibility="visible" />
+
+    <!-- Primary Text (Title/Name) -->
+    <TextView
+        android:id="@+id/text_primary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_small"
+        android:textSize="@dimen/text_size_body"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toEndOf="@id/card_item_image"
+        app:layout_constraintEnd_toStartOf="@id/btn_action"
+        app:layout_constraintTop_toTopOf="@id/card_item_image"
+        tools:text="Beautiful Sunset" />
+
+    <!-- Secondary Text (Artist/Description) -->
+    <TextView
+        android:id="@+id/text_secondary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_small"
+        android:layout_marginTop="@dimen/spacing_xs"
+        android:textSize="@dimen/text_size_footnote"
+        android:textColor="@color/text_secondary"
+        android:maxLines="1"
+        android:ellipsize="end"
+        app:layout_constraintStart_toEndOf="@id/card_item_image"
+        app:layout_constraintEnd_toStartOf="@id/btn_action"
+        app:layout_constraintTop_toBottomOf="@id/text_primary"
+        tools:text="Demo Artist • Ambient" />
+
+    <!-- Tertiary Text (Additional info like duration, song count, etc.) -->
+    <TextView
+        android:id="@+id/text_tertiary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/spacing_small"
+        android:layout_marginEnd="@dimen/spacing_small"
+        android:layout_marginTop="@dimen/spacing_xs"
+        android:textSize="@dimen/text_size_caption_1"
+        android:textColor="@color/text_tertiary"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@id/card_item_image"
+        app:layout_constraintEnd_toStartOf="@id/btn_action"
+        app:layout_constraintTop_toBottomOf="@id/text_secondary"
+        app:layout_constraintBottom_toBottomOf="@id/card_item_image"
+        tools:text="3:45"
+        tools:visibility="visible" />
+
+    <!-- Action Button (Play, Follow, etc.) -->
+    <ImageButton
+        android:id="@+id/btn_action"
+        android:layout_width="@dimen/min_touch_target"
+        android:layout_height="@dimen/min_touch_target"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_play"
+        android:contentDescription="@string/cd_mini_player_play_pause"
+        android:tint="@color/player_control_active"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

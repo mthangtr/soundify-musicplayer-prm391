@@ -86,19 +86,25 @@ public class FileUtils {
      */
     public static String copyFileToInternalStorage(Context context, Uri sourceUri, String fileName) {
         try {
-            // Create directory for audio files
-            File audioDir = new File(context.getFilesDir(), "audio");
-            if (!audioDir.exists()) {
-                audioDir.mkdirs();
+            // Determine directory based on file type
+            String dirName = "audio"; // default
+            if (fileName.toLowerCase().matches(".*\\.(jpg|jpeg|png|webp)$")) {
+                dirName = "images";
             }
-            
+
+            // Create directory
+            File targetDir = new File(context.getFilesDir(), dirName);
+            if (!targetDir.exists()) {
+                targetDir.mkdirs();
+            }
+
             // Create destination file
-            File destFile = new File(audioDir, fileName);
-            
+            File destFile = new File(targetDir, fileName);
+
             // Copy file
             try (InputStream inputStream = context.getContentResolver().openInputStream(sourceUri);
                  FileOutputStream outputStream = new FileOutputStream(destFile)) {
-                
+
                 if (inputStream != null) {
                     byte[] buffer = new byte[4096];
                     int bytesRead;
@@ -107,9 +113,9 @@ public class FileUtils {
                     }
                 }
             }
-            
+
             return destFile.getAbsolutePath();
-            
+
         } catch (IOException e) {
             Log.e(TAG, "Error copying file to internal storage", e);
             return null;

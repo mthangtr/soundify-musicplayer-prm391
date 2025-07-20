@@ -27,6 +27,42 @@
     <string name="comment_count_single">1 comment</string>
     <string name="comment_count_none">No comments</string>
 
+    <!-- Comments Screen -->
+    <string name="comments_title">Comments</string>
+    <string name="comments_empty">No comments yet</string>
+    <string name="comments_empty_subtitle">Be the first to comment on this song</string>
+    <string name="cd_comment_like_button">Like comment</string>
+    <string name="comment_likes_count">%d likes</string>
+    <string name="comment_likes_count_single">1 like</string>
+    <string name="comment_time_ago">%s ago</string>
+    <string name="just_now">Just now</string>
+    <string name="minutes_ago">%d minutes ago</string>
+    <string name="hours_ago">%d hours ago</string>
+    <string name="days_ago">%d days ago</string>
+
+    <!-- Mini Player -->
+    <string name="mini_player_expand">Expand player</string>
+    <string name="cd_mini_player_play_pause">Play or pause</string>
+    <string name="cd_mini_player_next">Next track</string>
+    <string name="cd_mini_player_expand">Expand to full player</string>
+    <string name="cd_mini_player_close">Close mini player</string>
+
+    <!-- Search Screen -->
+    <string name="search_title">Search</string>
+    <string name="search_hint">Search songs, artists, playlists...</string>
+    <string name="search_filter_all">All</string>
+    <string name="search_filter_songs">Songs</string>
+    <string name="search_filter_artists">Artists</string>
+    <string name="search_filter_playlists">Playlists</string>
+    <string name="search_empty_title">No results found</string>
+    <string name="search_empty_subtitle">Try searching for something else</string>
+    <string name="search_empty_query_title">Start searching</string>
+    <string name="search_empty_query_subtitle">Search for songs, artists, and playlists</string>
+    <string name="search_loading">Searching...</string>
+    <string name="search_results_count">%d results</string>
+    <string name="search_results_count_single">1 result</string>
+    <string name="cd_clear_search">Clear search</string>
+
     <!-- Actions -->
     <string name="action_follow_user">Follow %s</string>
     <string name="action_unfollow_user">Unfollow %s</string>
@@ -180,5 +216,166 @@
     <string name="cd_search_songs">Search songs</string>
     <string name="cd_filter_songs">Filter songs</string>
     <string name="cd_song_checkbox">Select song</string>
-    <string name="cd_clear_search">Clear search</string>
+
+    <!-- User Profile Screen -->
+    <string name="user_profile_title">Profile</string>
+    <string name="user_profile_follow">Follow</string>
+    <string name="user_profile_unfollow">Unfollow</string>
+    <string name="user_profile_following">Following</string>
+    <string name="user_profile_edit_profile">Edit Profile</string>
+
+    <!-- Profile Stats -->
+    <string name="profile_followers">Followers</string>
+    <string name="profile_following">Following</string>
+    <string name="profile_songs">Songs</string>
+    <string name="profile_followers_count">%d followers</string>
+    <string name="profile_followers_count_single">1 follower</string>
+    <string name="profile_followers_count_none">No followers</string>
+    <string name="profile_following_count">%d following</string>
+    <string name="profile_following_count_single">1 following</string>
+    <string name="profile_following_count_none">Not following anyone</string>
+    <string name="profile_songs_count">%d songs</string>
+    <string name="profile_songs_count_single">1 song</string>
+    <string name="profile_songs_count_none">No songs</string>
+
+    <!-- Profile Tabs -->
+    <string name="tab_songs">Songs</string>
+    <string name="tab_playlists">Playlists</string>
+
+    <!-- Profile Empty States -->
+    <string name="profile_no_songs_title">No public songs</string>
+    <string name="profile_no_songs_subtitle">This user hasn\'t shared any songs yet</string>
+    <string name="profile_no_playlists_title">No public playlists</string>
+    <string name="profile_no_playlists_subtitle">This user hasn\'t shared any playlists yet</string>
+    <string name="profile_own_no_songs_title">You haven\'t shared any songs</string>
+    <string name="profile_own_no_songs_subtitle">Upload and make your songs public to share them</string>
+    <string name="profile_own_no_playlists_title">You haven\'t shared any playlists</string>
+    <string name="profile_own_no_playlists_subtitle">Create and make your playlists public to share them</string>
+
+    <!-- Profile Actions -->
+    <string name="action_view_followers">View followers</string>
+    <string name="action_view_following">View following</string>
+
+    <!-- Profile Messages -->
+    <string name="toast_followed_user_profile">Now following %s</string>
+    <string name="toast_unfollowed_user_profile">Unfollowed %s</string>
+    <string name="error_loading_profile">Error loading profile</string>
+<!--    <string name="error_user_not_found">User not found</string>-->
+<!--    <string name="error_follow_action">Error updating follow status</string>-->
+
+    <!-- Follow Confirmation -->
+    <string name="unfollow_confirmation_title">Unfollow %s?</string>
+    <string name="unfollow_confirmation_message">You will no longer see their posts in your feed</string>
+    <string name="unfollow_confirm">Unfollow</string>
+
+    <!-- Content Descriptions for Profile -->
+    <string name="cd_user_avatar">User avatar</string>
+    <string name="cd_follow_button_profile">Follow user</string>
+    <string name="cd_unfollow_button">Unfollow user</string>
+    <string name="cd_edit_profile_button">Edit profile</string>
+    <string name="cd_followers_stat">Followers count</string>
+    <string name="cd_following_stat">Following count</string>
+    <string name="cd_songs_stat">Songs count</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile_title">Edit Profile</string>
+    <string name="change_profile_photo">Change Profile Photo</string>
+    <string name="basic_information">Basic Information</string>
+    <string name="display_name_hint">Display Name</string>
+    <string name="username_hint">Username</string>
+    <string name="email_hint">Email</string>
+    <string name="bio_hint">Bio (Optional)</string>
+    <string name="change_password">Change Password</string>
+    <string name="current_password_hint">Current Password</string>
+    <string name="new_password_hint">New Password</string>
+    <string name="confirm_password_hint">Confirm New Password</string>
+    <string name="button_save_changes">Save Changes</string>
+
+    <!-- Image Selection -->
+    <string name="select_profile_photo">Select Profile Photo</string>
+    <string name="select_from_camera">Take Photo</string>
+    <string name="select_from_gallery">Choose from Gallery</string>
+    <string name="permission_required_for_image">Permission required to access images</string>
+
+    <!-- Validation Errors -->
+    <string name="error_display_name_required">Display name is required</string>
+    <string name="error_display_name_too_long">Display name is too long (max 100 characters)</string>
+    <string name="error_username_required">Username is required</string>
+    <string name="error_username_invalid">Username must be 3-50 characters and contain only letters, numbers, and underscores</string>
+    <string name="error_username_taken">Username is already taken</string>
+    <string name="error_email_required">Email is required</string>
+    <string name="error_email_invalid">Please enter a valid email address</string>
+    <string name="error_email_taken">Email is already registered</string>
+    <string name="error_password_invalid">Password must be at least 6 characters</string>
+    <string name="error_confirm_password_required">Please confirm your new password</string>
+    <string name="error_passwords_not_match">Passwords do not match</string>
+    <string name="error_current_password_required">Current password is required to change password</string>
+    <string name="error_current_password_incorrect">Current password is incorrect</string>
+    <string name="error_fix_validation_errors">Please fix the validation errors</string>
+
+    <!-- Success/Error Messages -->
+    <string name="profile_updated_successfully">Profile updated successfully</string>
+    <string name="error_updating_profile">Error updating profile</string>
+    <string name="error_user_not_found">User not found</string>
+
+    <!-- Unsaved Changes Dialog -->
+    <string name="unsaved_changes_title">Unsaved Changes</string>
+    <string name="unsaved_changes_message">You have unsaved changes. Are you sure you want to leave?</string>
+    <string name="discard_changes">Discard Changes</string>
+    <string name="keep_editing">Keep Editing</string>
+
+    <!-- Followers/Following Screen -->
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
+    <string name="followers_tab_title">Followers (%d)</string>
+    <string name="following_tab_title">Following (%d)</string>
+    <string name="search_users_hint">Search users...</string>
+    <string name="loading_users">Loading users...</string>
+    <string name="button_retry">Retry</string>
+
+    <!-- Follow Actions -->
+    <string name="follow">Follow</string>
+    <string name="following_button">Following</string>
+    <string name="follows_you">Follows you</string>
+    <string name="followed_user">Now following %s</string>
+    <string name="unfollowed_user">Unfollowed %s</string>
+
+    <!-- Empty States -->
+    <string name="no_followers_title">No Followers</string>
+    <string name="no_followers_subtitle">When people follow this user, they\'ll appear here</string>
+    <string name="no_followers_subtitle_own">When people follow you, they\'ll appear here</string>
+    <string name="no_following_title">Not Following Anyone</string>
+    <string name="no_following_subtitle">This user isn\'t following anyone yet</string>
+    <string name="no_following_subtitle_own">You aren\'t following anyone yet. Find people to follow!</string>
+    <string name="no_users_title">No Users</string>
+    <string name="no_users_subtitle">No users found</string>
+    <string name="no_search_results_title">No Results</string>
+    <string name="no_search_results_subtitle">No users found for \"%s\"</string>
+
+    <!-- Error Messages -->
+    <string name="error_loading_users">Error loading users</string>
+    <string name="error_loading_user">Error loading user information</string>
+    <string name="error_follow_action">Error performing follow action</string>
+    <string name="error_not_logged_in">You must be logged in to follow users</string>
+    <string name="error_cannot_follow_self">You cannot follow yourself</string>
+    <string name="error_invalid_user">Invalid user</string>
+
+    <!-- Playlist Selection -->
+    <string name="cd_select_playlist">Select playlist</string>
+    <string name="cd_back_button">Back</string>
+
+    <!-- Queue -->
+    <string name="cd_currently_playing">Currently playing</string>
+
+    <!-- Library Screen -->
+    <string name="library_title">Your Library</string>
+    <string name="library_subtitle">Your music collection and playlists</string>
+    <string name="tab_my_songs">My Songs</string>
+    <string name="tab_my_playlists">My Playlists</string>
+    <string name="tab_liked_songs">Liked Songs</string>
+
+    <!-- Library Empty States -->
+    <string name="empty_state_title">Nothing here yet</string>
+    <string name="empty_state_subtitle">Start building your library</string>
+    <string name="cd_empty_state">Empty state illustration</string>
 </resources>

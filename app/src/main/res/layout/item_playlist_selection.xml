@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:paddingHorizontal="@dimen/spacing_lg"
+    android:paddingVertical="@dimen/spacing_md"
+    android:minHeight="@dimen/min_touch_target">
+
+    <!-- Playlist Cover Art -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/card_playlist_cover"
+        android:layout_width="@dimen/playlist_item_cover_size"
+        android:layout_height="@dimen/playlist_item_cover_size"
+        app:cardCornerRadius="@dimen/card_corner_radius_small"
+        app:cardElevation="@dimen/card_elevation_small"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_playlist_cover"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/cd_playlist_cover"
+            android:src="@drawable/placeholder_album_art" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Playlist Info Container -->
+    <LinearLayout
+        android:id="@+id/layout_playlist_info"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="@dimen/spacing_md"
+        android:layout_marginEnd="@dimen/spacing_sm"
+        app:layout_constraintTop_toTopOf="@id/card_playlist_cover"
+        app:layout_constraintBottom_toBottomOf="@id/card_playlist_cover"
+        app:layout_constraintStart_toEndOf="@id/card_playlist_cover"
+        app:layout_constraintEnd_toStartOf="@id/iv_arrow">
+
+        <!-- Playlist Name -->
+        <TextView
+            android:id="@+id/tv_playlist_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_body_large"
+            android:textColor="@color/text_primary"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginBottom="@dimen/spacing_xs"
+            tools:text="My Favorites" />
+
+        <!-- Playlist Description -->
+        <TextView
+            android:id="@+id/tv_playlist_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_body"
+            android:textColor="@color/text_secondary"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:layout_marginBottom="@dimen/spacing_xs"
+            tools:text="My personal favorite songs" />
+
+        <!-- Song Count -->
+        <TextView
+            android:id="@+id/tv_song_count"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/text_size_caption"
+            android:textColor="@color/text_tertiary"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="24 songs" />
+
+    </LinearLayout>
+
+    <!-- Arrow Icon -->
+    <ImageView
+        android:id="@+id/iv_arrow"
+        android:layout_width="@dimen/icon_size_small"
+        android:layout_height="@dimen/icon_size_small"
+        android:src="@drawable/ic_chevron_right"
+        android:contentDescription="@string/cd_select_playlist"
+        android:tint="@color/text_tertiary"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,24 +3,33 @@
     <!-- Apple-like Spacing System -->
     <!-- Base spacing unit: 8dp -->
     <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_extra_large">32dp</dimen>
+    <dimen name="spacing_xxl">48dp</dimen>
+
+    <!-- Legacy spacing names for compatibility -->
     <dimen name="spacing_sm">8dp</dimen>
     <dimen name="spacing_md">16dp</dimen>
     <dimen name="spacing_lg">24dp</dimen>
     <dimen name="spacing_xl">32dp</dimen>
-    <dimen name="spacing_xxl">48dp</dimen>
     
     <!-- Text Sizes -->
     <dimen name="text_size_large_title">34sp</dimen>
     <dimen name="text_size_title_1">28sp</dimen>
     <dimen name="text_size_title_2">22sp</dimen>
     <dimen name="text_size_title_3">20sp</dimen>
+    <dimen name="text_size_title">20sp</dimen>
     <dimen name="text_size_headline">17sp</dimen>
     <dimen name="text_size_body">17sp</dimen>
+    <dimen name="text_size_body_large">18sp</dimen>
     <dimen name="text_size_callout">16sp</dimen>
     <dimen name="text_size_subhead">15sp</dimen>
     <dimen name="text_size_footnote">13sp</dimen>
     <dimen name="text_size_caption_1">12sp</dimen>
     <dimen name="text_size_caption_2">11sp</dimen>
+    <dimen name="text_size_caption">12sp</dimen>
     
     <!-- Player Specific Dimensions -->
     <dimen name="player_header_height">80dp</dimen>
@@ -29,6 +38,18 @@
     <dimen name="player_play_button_size">64dp</dimen>
     <dimen name="player_progress_bar_height">4dp</dimen>
     <dimen name="player_bottom_bar_height">72dp</dimen>
+
+    <!-- Mini Player Dimensions -->
+    <dimen name="mini_player_height">64dp</dimen>
+    <dimen name="mini_player_album_art_size">48dp</dimen>
+    <dimen name="mini_player_album_art_radius">6dp</dimen>
+    <dimen name="mini_player_button_size">40dp</dimen>
+    <dimen name="mini_player_progress_height">2dp</dimen>
+    <dimen name="mini_player_elevation">4dp</dimen>
+
+    <!-- Search Screen Dimensions -->
+    <dimen name="search_item_image_size">56dp</dimen>
+    <dimen name="search_item_image_radius">8dp</dimen>
     
     <!-- Button Dimensions -->
     <dimen name="button_height_standard">44dp</dimen>
@@ -44,8 +65,13 @@
     
     <!-- Card and Container -->
     <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_corner_radius_small">8dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
+    <dimen name="card_elevation_small">1dp</dimen>
     <dimen name="container_padding">16dp</dimen>
+
+    <!-- Playlist Item Dimensions -->
+    <dimen name="playlist_item_cover_size">56dp</dimen>
     
     <!-- Input Fields -->
     <dimen name="input_field_height">44dp</dimen>

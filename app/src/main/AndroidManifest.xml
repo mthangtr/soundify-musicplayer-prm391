@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Permissions for file access -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -9,6 +13,9 @@
     <!-- Permission for media access on Android 13+ -->
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
+    <!-- Camera permission for profile photo -->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <application
         android:allowBackup="true"
@@ -19,29 +26,66 @@
         android:roundIcon="@drawable/splashi_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.Soundifymusicplayer">
-        <!-- Main launcher activity -->
-        <activity 
-            android:name=".SplashActivity"
+        <!-- Main launcher activity - SplashActivity for session check -->
+        <activity
+            android:name=".data.Activity.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        
-        <!-- Các activities khác KHÔNG có intent-filter MAIN -->
-        <activity android:name=".MainActivity" />
-        <activity android:name=".data.Activity.LoginActivity"/>
-        <activity android:name=".data.Activity.RegisterActivity"/>
-        <activity android:name=".ui.upload.UploadSongActivity" />
-        <activity android:name=".ui.player.PlayerDemoActivity"/>
+
+        <!-- Auth Activities -->
+        <activity
+            android:name=".data.Activity.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".data.Activity.RegisterActivity"
+            android:exported="false" />
+
+        <!-- Main Activity with Bottom Navigation and Mini Player -->
+        <activity
+            android:name=".data.Activity.MainActivity"
+            android:exported="false" />
+
+        <!-- Profile Activities -->
+        <activity
+            android:name=".ui.profile.UserProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.profile.EditProfileActivity"
+            android:parentActivityName=".ui.profile.UserProfileActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Soundifymusicplayer" />
+        <activity
+            android:name=".ui.profile.FollowersFollowingActivity"
+            android:parentActivityName=".ui.profile.UserProfileActivity"
+            android:exported="false" />
+
+        <!-- Upload Activity -->
+        <activity
+            android:name=".ui.upload.UploadSongActivity"
+            android:exported="false" />
+
+        <!-- Playlist Activities -->
         <activity
             android:name=".ui.playlist.PlaylistDetailActivity"
             android:exported="false" />
         <activity
             android:name=".ui.playlist.SelectSongsActivity"
             android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
-            android:theme="@style/Theme.Soundifymusicplayer"/>
+            android:exported="false" />
+        <activity
+            android:name=".ui.playlist.PlaylistSelectionActivity"
+            android:parentActivityName=".ui.player.PlayerDemoActivity"
+            android:exported="false" />
+
+        <!-- Full Player Demo Activity -->
+        <activity
+            android:name=".ui.player.PlayerDemoActivity"
+            android:exported="true"
+            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>

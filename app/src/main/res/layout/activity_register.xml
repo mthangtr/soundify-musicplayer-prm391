@@ -39,7 +39,28 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@android:color/white"
-            android:inputType="textEmailAddress"/>
+            android:inputType="text"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Display Name -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/inputDisplayName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="Enter Display Name"
+        android:textColorHint="@android:color/white"
+        app:boxBackgroundMode="none"
+        app:layout_constraintTop_toBottomOf="@id/inputUsername"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/edtDisplayName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white"
+            android:inputType="textPersonName"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Password -->
@@ -50,7 +71,7 @@
         android:hint="Enter Password"
         android:textColorHint="@android:color/white"
         app:boxBackgroundMode="none"
-        app:layout_constraintTop_toBottomOf="@id/inputUsername"
+        app:layout_constraintTop_toBottomOf="@id/inputDisplayName"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp">
@@ -84,6 +105,18 @@
             android:inputType="textPassword"/>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Loading Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:indeterminateTint="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/inputConfirmPassword"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"/>
+
     <!-- Register Button -->
     <Button
         android:id="@+id/btnRegister"
@@ -93,7 +126,7 @@
         android:textColor="@android:color/white"
         android:backgroundTint="#A020F0"
         android:background="@drawable/rounded_button"
-        app:layout_constraintTop_toBottomOf="@id/inputConfirmPassword"
+        app:layout_constraintTop_toBottomOf="@id/progressBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp"/>

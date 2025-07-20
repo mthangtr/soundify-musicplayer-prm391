@@ -65,6 +65,18 @@
             android:inputType="textPassword"/>
     </com.google.android.material.textfield.TextInputLayout>
 
+    <!-- Loading Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:indeterminateTint="@android:color/white"
+        app:layout_constraintTop_toBottomOf="@id/inputPasswordLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"/>
+
     <!-- Login button -->
     <Button
         android:id="@+id/btnLogin"
@@ -75,7 +87,7 @@
         android:textColor="@android:color/white"
         android:backgroundTint="#A020F0"
         android:background="@drawable/rounded_button"
-        app:layout_constraintTop_toBottomOf="@id/inputPasswordLayout"
+        app:layout_constraintTop_toBottomOf="@id/progressBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="24dp"/>
