@@ -90,13 +90,16 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     private void setupRecyclerView() {
         adapter = new SearchAdapter(requireContext());
         adapter.setOnSearchResultClickListener(this);
-        
+
         recyclerSearchResults.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerSearchResults.setAdapter(adapter);
     }
 
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
+
+        // Set current user ID in adapter
+        adapter.setCurrentUserId(viewModel.getCurrentUserId());
     }
 
     private void setupSearchInput() {
@@ -186,6 +189,20 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
                 showToast("Search error: " + error);
             }
         });
+
+        // Observe following user IDs
+        viewModel.getFollowingUserIds().observe(getViewLifecycleOwner(), followingIds -> {
+            if (followingIds != null) {
+                adapter.setFollowingUserIds(followingIds);
+            }
+        });
+
+        // Observe follow messages
+        viewModel.getFollowMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                showToast(message);
+            }
+        });
     }
 
     private void updateResultsCount(int count) {
@@ -254,16 +271,12 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
                 // Play song and optionally navigate to full player
                 if (result.getSong() != null && result.getUser() != null) {
                     MiniPlayerManager.getInstance().showMiniPlayer(result.getSong(), result.getUser());
-                    
+
                     // Navigate to full player
                     Intent intent = new Intent(getContext(), PlayerDemoActivity.class);
                     intent.putExtra("song_id", result.getSong().getId());
                     startActivity(intent);
                 }
-                break;
-            case ARTIST:
-                // Follow/unfollow artist
-                showToast("Follow: " + result.getPrimaryText());
                 break;
             case PLAYLIST:
                 // Play playlist
@@ -272,11 +285,26 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         }
     }
 
+    @Override
+    public void onFollowClick(SearchResult result, boolean isCurrentlyFollowing) {
+        if (result.getUser() != null) {
+            // Toggle follow status - optimistic UI update will handle immediate feedback
+            viewModel.toggleFollowStatus(result.getUser());
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh follow states when returning to search
+        if (viewModel != null) {
+            viewModel.refreshFollowingUsers();
+        }
+    }
+
     private void showToast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
     }
-
-
 }

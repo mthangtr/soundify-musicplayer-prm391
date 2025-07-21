@@ -62,8 +62,6 @@ public class FollowersFollowingActivity extends AppCompatActivity implements Use
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Use simple layout if SwipeRefreshLayout causes issues
-        // setContentView(R.layout.activity_followers_following_simple);
         setContentView(R.layout.activity_followers_following);
 
         authManager = new AuthManager(this);

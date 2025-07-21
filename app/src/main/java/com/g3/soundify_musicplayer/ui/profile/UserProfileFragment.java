@@ -53,6 +53,8 @@ public class UserProfileFragment extends Fragment {
     private TextView followingCount;
     private TextView songsCount;
     private TextView playlistsCount;
+    private LinearLayout followersContainer;
+    private LinearLayout followingContainer;
     private Button followButton;
     private Button editProfileButton;
     private Button logoutButton;
@@ -133,9 +135,9 @@ public class UserProfileFragment extends Fragment {
     public void onResume() {
         super.onResume();
         // Refresh data when returning to this fragment
-        if (viewModel != null && userId != -1) {
-            android.util.Log.d("UserProfileFragment", "onResume: Refreshing user profile for userId: " + userId);
-            viewModel.refreshUserProfile(userId);
+        if (viewModel != null) {
+            android.util.Log.d("UserProfileFragment", "onResume: Refreshing user profile data");
+            viewModel.refreshUserData();
         }
     }
     
@@ -149,9 +151,15 @@ public class UserProfileFragment extends Fragment {
         username = view.findViewById(R.id.username);
         bio = view.findViewById(R.id.bio);
         
-        // Stats
+        // Social Stats
         followersCount = view.findViewById(R.id.followers_count);
         followingCount = view.findViewById(R.id.following_count);
+
+        // Stats containers (for click listeners)
+        followersContainer = (LinearLayout) followersCount.getParent();
+        followingContainer = (LinearLayout) followingCount.getParent();
+
+        // Content counts (in tabs)
         songsCount = view.findViewById(R.id.songs_count);
         playlistsCount = view.findViewById(R.id.playlists_count);
         
@@ -221,6 +229,10 @@ public class UserProfileFragment extends Fragment {
         tabSongs.setOnClickListener(v -> switchTab(0));
         tabPlaylists.setOnClickListener(v -> switchTab(1));
         
+        // Stats clicks
+        followersContainer.setOnClickListener(v -> openFollowersList());
+        followingContainer.setOnClickListener(v -> openFollowingList());
+
         // Button clicks
         followButton.setOnClickListener(v -> toggleFollow());
         editProfileButton.setOnClickListener(v -> editProfile());
@@ -239,6 +251,32 @@ public class UserProfileFragment extends Fragment {
         
         // Observe follow status
         viewModel.getIsFollowing().observe(getViewLifecycleOwner(), this::updateFollowButton);
+
+        // Observe loading state
+        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            // Handle loading state if needed
+            // For now, we'll just disable click listeners during loading
+            if (isLoading != null) {
+                followersContainer.setEnabled(!isLoading);
+                followingContainer.setEnabled(!isLoading);
+            }
+        });
+
+        // Observe error messages
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
+            if (errorMessage != null && !errorMessage.isEmpty()) {
+                showToast(errorMessage);
+                viewModel.clearErrorMessage();
+            }
+        });
+
+        // Observe success messages
+        viewModel.getSuccessMessage().observe(getViewLifecycleOwner(), successMessage -> {
+            if (successMessage != null && !successMessage.isEmpty()) {
+                showToast(successMessage);
+                viewModel.clearSuccessMessage();
+            }
+        });
         
         // Observe user songs with uploader info
         viewModel.getPublicSongsWithUploaderInfo().observe(getViewLifecycleOwner(), songsWithInfo -> {
@@ -251,30 +289,30 @@ public class UserProfileFragment extends Fragment {
         viewModel.getPublicPlaylists().observe(getViewLifecycleOwner(), playlists -> {
             if (playlists != null) {
                 playlistsAdapter.updateData(playlists);
+                // Update playlists count
+                playlistsCount.setText(String.valueOf(playlists.size()));
             }
         });
         
         // Observe stats
         viewModel.getFollowersCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
-                followersCount.setText(String.valueOf(count));
+                followersCount.setText(viewModel.getFollowersCountString());
             }
         });
-        
+
         viewModel.getFollowingCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
-                followingCount.setText(String.valueOf(count));
+                followingCount.setText(viewModel.getFollowingCountString());
             }
         });
-        
+
         viewModel.getSongsCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
-                songsCount.setText(String.valueOf(count));
+                songsCount.setText(viewModel.getSongsCountString());
             }
         });
-        
-        // TODO: Implement playlists count observer when available
-        playlistsCount.setText("0");
+
     }
     
     /**
@@ -403,6 +441,42 @@ public class UserProfileFragment extends Fragment {
 
         // Finish current activity
         getActivity().finish();
+    }
+
+    /**
+     * Open followers list
+     */
+    private void openFollowersList() {
+        if (currentUser == null) {
+            showToast("User data not loaded");
+            return;
+        }
+
+        Intent intent = FollowersFollowingActivity.createIntent(
+            requireContext(),
+            currentUser.getId(),
+            currentUser.getUsername(),
+            FollowersFollowingActivity.TAB_FOLLOWERS
+        );
+        startActivity(intent);
+    }
+
+    /**
+     * Open following list
+     */
+    private void openFollowingList() {
+        if (currentUser == null) {
+            showToast("User data not loaded");
+            return;
+        }
+
+        Intent intent = FollowersFollowingActivity.createIntent(
+            requireContext(),
+            currentUser.getId(),
+            currentUser.getUsername(),
+            FollowersFollowingActivity.TAB_FOLLOWING
+        );
+        startActivity(intent);
     }
 
     /**
