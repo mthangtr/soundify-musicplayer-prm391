@@ -73,6 +73,7 @@ public interface SongDao {
     @Query("SELECT * FROM songs")
     List<Song> getAllSongsSync();
 
+
     // ========== JOIN QUERIES FOR SONG WITH UPLOADER ==========
 
     /**
@@ -110,4 +111,11 @@ public interface SongDao {
            "WHERE s.is_public = 1 AND (s.title LIKE '%' || :query || '%' OR s.genre LIKE '%' || :query || '%' OR u.display_name LIKE '%' || :query || '%') " +
            "ORDER BY s.created_at DESC")
     LiveData<List<SongWithUploaderInfo>> searchPublicSongsWithUploaderInfo(String query);
+
+    /**
+     * Get songs by genre (sync version for related songs)
+     */
+    @Query("SELECT * FROM songs WHERE genre = :genre AND is_public = 1 ORDER BY created_at DESC")
+    List<Song> getSongsByGenreSync(String genre);
+
 }

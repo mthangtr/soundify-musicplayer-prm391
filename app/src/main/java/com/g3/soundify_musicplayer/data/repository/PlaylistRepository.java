@@ -172,6 +172,96 @@ public class PlaylistRepository {
         return playlistAccessDao.getAllPlaylistAccess(userId);
     }
 
+    // Enhanced Playlist Operations for Song Detail Screen
+
+    /**
+     * Get user's playlists for "Add to Playlist" dialog
+     * Returns only playlists owned by the user
+     */
+    public Future<List<Playlist>> getUserPlaylistsForAddSong(long userId) {
+        return executor.submit(() -> playlistDao.getPlaylistsByOwnerSync(userId));
+    }
+
+    /**
+     * Add song to multiple playlists at once
+     */
+    public Future<Void> addSongToMultiplePlaylists(long songId, List<Long> playlistIds) {
+        return executor.submit(() -> {
+            for (Long playlistId : playlistIds) {
+                // Check if song is not already in playlist
+                if (playlistSongDao.checkSongInPlaylist(playlistId, songId) == 0) {
+                    Integer maxPosition = playlistSongDao.getMaxPositionInPlaylist(playlistId);
+                    int newPosition = (maxPosition == null) ? 1 : maxPosition + 1;
+                    PlaylistSong playlistSong = new PlaylistSong(playlistId, songId, newPosition);
+                    playlistSongDao.insert(playlistSong);
+                }
+            }
+            return null;
+        });
+    }
+
+    /**
+     * Get playlists that contain a specific song
+     * Useful for showing which playlists already have the song
+     */
+    public Future<List<Long>> getPlaylistIdsContainingSong(long songId, long userId) {
+        return executor.submit(() -> {
+            List<Playlist> userPlaylists = playlistDao.getPlaylistsByOwnerSync(userId);
+            List<Long> playlistsWithSong = new java.util.ArrayList<>();
+
+            for (Playlist playlist : userPlaylists) {
+                if (playlistSongDao.checkSongInPlaylist(playlist.getId(), songId) > 0) {
+                    playlistsWithSong.add(playlist.getId());
+                }
+            }
+            return playlistsWithSong;
+        });
+    }
+
+    /**
+     * Create a new playlist and add song to it
+     */
+    public Future<Long> createPlaylistWithSong(String playlistName, String description, boolean isPublic, long ownerId, long songId) {
+        return executor.submit(() -> {
+            // Create playlist
+            Playlist playlist = new Playlist(ownerId, playlistName);
+            playlist.setDescription(description);
+            playlist.setPublic(isPublic);
+            long playlistId = playlistDao.insert(playlist);
+
+            // Add song to playlist
+            PlaylistSong playlistSong = new PlaylistSong(playlistId, songId, 1);
+            playlistSongDao.insert(playlistSong);
+
+            return playlistId;
+        });
+    }
+
+    /**
+     * Get playlist info with song count for display
+     */
+    public Future<PlaylistInfo> getPlaylistInfo(long playlistId) {
+        return executor.submit(() -> {
+            Playlist playlist = playlistDao.getPlaylistByIdSync(playlistId);
+            if (playlist == null) {
+                return null;
+            }
+            int songCount = playlistSongDao.getSongCountInPlaylist(playlistId);
+            return new PlaylistInfo(playlist, songCount);
+        });
+    }
+
+    // Helper class for returning playlist with metadata
+    public static class PlaylistInfo {
+        public final Playlist playlist;
+        public final int songCount;
+
+        public PlaylistInfo(Playlist playlist, int songCount) {
+            this.playlist = playlist;
+            this.songCount = songCount;
+        }
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();

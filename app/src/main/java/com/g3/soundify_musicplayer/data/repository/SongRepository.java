@@ -178,6 +178,58 @@ public class SongRepository {
      */
     public LiveData<List<SongWithUploaderInfo>> searchPublicSongsWithUploaderInfo(String query) {
         return songDao.searchPublicSongsWithUploaderInfo(query);
+
+    // Song Detail specific methods
+
+    /**
+     * Get song with additional metadata for song detail screen
+     * This method can be extended to include like count, comment count, etc.
+     */
+    public Future<Song> getSongWithMetadata(long songId) {
+        return executor.submit(() -> {
+            // For now, just return the song. Can be extended to include metadata
+            return songDao.getSongByIdSync(songId);
+        });
+    }
+
+    /**
+     * Check if song exists and is accessible by user
+     */
+    public Future<Boolean> isSongAccessible(long songId, long userId) {
+        return executor.submit(() -> {
+            Song song = songDao.getSongByIdSync(songId);
+            if (song == null) {
+                return false;
+            }
+            // Song is accessible if it's public or user is the uploader
+            return song.isPublic() || song.getUploaderId() == userId;
+        });
+    }
+
+    /**
+     * Get songs by the same uploader (for "More from this artist" section)
+     */
+    public Future<List<Song>> getMoreSongsByUploader(long uploaderId, long excludeSongId, int limit) {
+        return executor.submit(() -> {
+            List<Song> allSongs = songDao.getPublicSongsByUploaderSync(uploaderId);
+            return allSongs.stream()
+                    .filter(song -> song.getId() != excludeSongId)
+                    .limit(limit)
+                    .collect(java.util.stream.Collectors.toList());
+        });
+    }
+
+    /**
+     * Get related songs by genre (for "You might also like" section)
+     */
+    public Future<List<Song>> getRelatedSongsByGenre(String genre, long excludeSongId, int limit) {
+        return executor.submit(() -> {
+            List<Song> allSongs = songDao.getSongsByGenreSync(genre);
+            return allSongs.stream()
+                    .filter(song -> song.getId() != excludeSongId && song.isPublic())
+                    .limit(limit)
+                    .collect(java.util.stream.Collectors.toList());
+        });
     }
 
     public void shutdown() {
