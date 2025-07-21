@@ -6,19 +6,23 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.repository.SongRepository;
+import com.g3.soundify_musicplayer.data.repository.UserRepository;
+import com.g3.soundify_musicplayer.data.repository.PlaylistRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * ViewModel for the Search screen.
- * 100% MOCK DATA - No backend, no network, no database
- * Pure UI testing with hardcoded data for demo purposes
- * SIMPLE LOGIC - Instant filtering, no loading states
+ * Updated to use real database data instead of mock data
  */
 public class SearchViewModel extends AndroidViewModel {
 
@@ -32,14 +36,25 @@ public class SearchViewModel extends AndroidViewModel {
     private final MutableLiveData<FilterType> currentFilter = new MutableLiveData<>(FilterType.ALL);
     private final MutableLiveData<String> currentQuery = new MutableLiveData<>("");
 
-    private List<SearchResult> allResults;
+    // Repositories
+    private SongRepository songRepository;
+    private UserRepository userRepository;
+    private PlaylistRepository playlistRepository;
+    private ExecutorService executor;
+
     private String lastQuery = "";
 
     public SearchViewModel(@NonNull Application application) {
         super(application);
-        initializeMockData();
-        // Initialize with all results visible
-        searchResults.setValue(allResults);
+
+        // Initialize repositories
+        songRepository = new SongRepository(application);
+        userRepository = new UserRepository(application);
+        playlistRepository = new PlaylistRepository(application);
+        executor = Executors.newFixedThreadPool(2);
+
+        // Initialize with empty results
+        searchResults.setValue(new ArrayList<>());
     }
 
     // Public methods for Fragment to call
@@ -49,32 +64,59 @@ public class SearchViewModel extends AndroidViewModel {
         currentQuery.setValue(query);
         lastQuery = query.trim();
 
-        // Always apply current filter
-        applyCurrentFilter();
+        if (lastQuery.isEmpty()) {
+            // Show empty results when query is empty
+            searchResults.setValue(new ArrayList<>());
+            return;
+        }
+
+        // Perform real database search
+        performDatabaseSearch(lastQuery);
     }
 
     public void setFilter(FilterType filter) {
         currentFilter.setValue(filter);
 
-        // Re-apply search with new filter - always apply filter even with empty query
-        applyCurrentFilter();
+        // Re-apply search with new filter
+        if (!lastQuery.isEmpty()) {
+            performDatabaseSearch(lastQuery);
+        }
     }
 
-    private void applyCurrentFilter() {
-        FilterType filter = currentFilter.getValue();
-        if (filter == null) filter = FilterType.ALL;
+    private void performDatabaseSearch(String query) {
+        isLoading.setValue(true);
+        error.setValue(null);
 
-        List<SearchResult> filteredResults;
+        executor.execute(() -> {
+            try {
+                List<SearchResult> results = new ArrayList<>();
+                FilterType filter = currentFilter.getValue();
+                if (filter == null) filter = FilterType.ALL;
 
-        if (lastQuery.isEmpty()) {
-            // When query is empty, show filtered results from all data
-            filteredResults = filterByType(allResults, filter);
-        } else {
-            // When query exists, filter by both text and type
-            filteredResults = filterResults(lastQuery, filter);
-        }
+                // Search songs
+                if (filter == FilterType.ALL || filter == FilterType.SONGS) {
+                    searchSongs(query, results);
+                }
 
-        searchResults.setValue(filteredResults);
+                // Search users/artists
+                if (filter == FilterType.ALL || filter == FilterType.ARTISTS) {
+                    searchUsers(query, results);
+                }
+
+                // Search playlists
+                if (filter == FilterType.ALL || filter == FilterType.PLAYLISTS) {
+                    searchPlaylists(query, results);
+                }
+
+                // Update UI on main thread
+                searchResults.postValue(results);
+                isLoading.postValue(false);
+
+            } catch (Exception e) {
+                error.postValue("Search failed: " + e.getMessage());
+                isLoading.postValue(false);
+            }
+        });
     }
 
     // LiveData getters
@@ -98,168 +140,171 @@ public class SearchViewModel extends AndroidViewModel {
         return currentQuery;
     }
 
-    // Private methods
-    private void initializeMockData() {
-        allResults = new ArrayList<>();
-        
-        // Create mock songs with artists
-        allResults.addAll(createMockSongs());
-        
-        // Create mock artists
-        allResults.addAll(createMockArtists());
-        
-        // Create mock playlists
-        allResults.addAll(createMockPlaylists());
-    }
+    // Private methods for database search
+    private void searchSongs(String query, List<SearchResult> results) {
+        try {
+            // Use the existing searchPublicSongs method from SongRepository
+            // Since we're in background thread, we need to get data synchronously
+            LiveData<List<Song>> songsLiveData = songRepository.searchPublicSongs(query);
 
-    private List<SearchResult> createMockSongs() {
-        List<SearchResult> songs = new ArrayList<>();
-        
-        // Mock artists
-        User artist1 = createMockUser(1L, "luna_beats", "Luna Martinez");
-        User artist2 = createMockUser(2L, "echo_sound", "Echo Thompson");
-        User artist3 = createMockUser(3L, "wave_music", "Wave Studios");
-        User artist4 = createMockUser(4L, "dream_audio", "Dream Audio");
-        User artist5 = createMockUser(5L, "star_tunes", "Star Tunes");
+            // For now, we'll use a simple approach - get all public songs and filter
+            LiveData<List<Song>> allSongsLiveData = songRepository.getPublicSongs();
 
-        // Mock songs
-        songs.add(new SearchResult(createMockSong(1L, "Beautiful Sunset", "Ambient", 225000, artist1.getId()), artist1));
-        songs.add(new SearchResult(createMockSong(2L, "Ocean Waves", "Chill", 195000, artist2.getId()), artist2));
-        songs.add(new SearchResult(createMockSong(3L, "City Lights", "Electronic", 210000, artist3.getId()), artist3));
-        songs.add(new SearchResult(createMockSong(4L, "Forest Path", "Acoustic", 180000, artist4.getId()), artist4));
-        songs.add(new SearchResult(createMockSong(5L, "Starry Night", "Lofi", 240000, artist5.getId()), artist5));
-        songs.add(new SearchResult(createMockSong(6L, "Morning Coffee", "Jazz", 165000, artist1.getId()), artist1));
-        songs.add(new SearchResult(createMockSong(7L, "Rainy Day", "Ambient", 200000, artist2.getId()), artist2));
-        songs.add(new SearchResult(createMockSong(8L, "Summer Breeze", "Pop", 185000, artist3.getId()), artist3));
-        
-        return songs;
-    }
+            // Note: In a real implementation, you'd want to create sync versions of these methods
+            // For now, we'll create some demo songs that match the query
+            List<Song> songs = createFilteredSongsFromDatabase(query);
 
-    private List<SearchResult> createMockArtists() {
-        List<SearchResult> artists = new ArrayList<>();
-        
-        artists.add(new SearchResult(createMockUser(1L, "luna_beats", "Luna Martinez"), 12));
-        artists.add(new SearchResult(createMockUser(2L, "echo_sound", "Echo Thompson"), 8));
-        artists.add(new SearchResult(createMockUser(3L, "wave_music", "Wave Studios"), 15));
-        artists.add(new SearchResult(createMockUser(4L, "dream_audio", "Dream Audio"), 6));
-        artists.add(new SearchResult(createMockUser(5L, "star_tunes", "Star Tunes"), 20));
-        artists.add(new SearchResult(createMockUser(6L, "melody_maker", "Melody Maker"), 9));
-        
-        return artists;
-    }
-
-    private List<SearchResult> createMockPlaylists() {
-        List<SearchResult> playlists = new ArrayList<>();
-        
-        User owner1 = createMockUser(1L, "luna_beats", "Luna Martinez");
-        User owner2 = createMockUser(2L, "echo_sound", "Echo Thompson");
-        User owner3 = createMockUser(3L, "wave_music", "Wave Studios");
-        
-        playlists.add(new SearchResult(createMockPlaylist(1L, "Chill Vibes", "Relaxing songs for any time", owner1.getId()), owner1, 25));
-        playlists.add(new SearchResult(createMockPlaylist(2L, "Study Focus", "Perfect background music for studying", owner2.getId()), owner2, 18));
-        playlists.add(new SearchResult(createMockPlaylist(3L, "Morning Energy", "Start your day with these upbeat tracks", owner3.getId()), owner3, 30));
-        playlists.add(new SearchResult(createMockPlaylist(4L, "Night Drive", "Late night driving playlist", owner1.getId()), owner1, 22));
-        playlists.add(new SearchResult(createMockPlaylist(5L, "Workout Beats", "High energy songs for your workout", owner2.getId()), owner2, 35));
-        
-        return playlists;
-    }
-
-    private List<SearchResult> filterResults(String query, FilterType filter) {
-        List<SearchResult> filtered = new ArrayList<>();
-        
-        for (SearchResult result : allResults) {
-            // Apply text filter
-            if (!result.matchesQuery(query)) {
-                continue;
+            for (Song song : songs) {
+                // Get artist info
+                User artist = getUserById(song.getUploaderId());
+                results.add(new SearchResult(song, artist));
             }
-            
-            // Apply type filter
-            switch (filter) {
-                case ALL:
-                    filtered.add(result);
-                    break;
-                case SONGS:
-                    if (result.getType() == SearchResult.Type.SONG) {
-                        filtered.add(result);
-                    }
-                    break;
-                case ARTISTS:
-                    if (result.getType() == SearchResult.Type.ARTIST) {
-                        filtered.add(result);
-                    }
-                    break;
-                case PLAYLISTS:
-                    if (result.getType() == SearchResult.Type.PLAYLIST) {
-                        filtered.add(result);
-                    }
-                    break;
-            }
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error searching songs", e);
         }
-        
-        return filtered;
     }
 
-    private List<SearchResult> filterByType(List<SearchResult> results, FilterType filter) {
-        if (filter == FilterType.ALL) {
-            return new ArrayList<>(results);
+    private void searchUsers(String query, List<SearchResult> results) {
+        try {
+            // Search for users by username or display name
+            List<User> users = searchUsersFromDatabase(query);
+
+            for (User user : users) {
+                // Get song count for this user
+                int songCount = getSongCountForUser(user.getId());
+                results.add(new SearchResult(user, songCount));
+            }
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error searching users", e);
+        }
+    }
+
+    private void searchPlaylists(String query, List<SearchResult> results) {
+        try {
+            // Search for public playlists
+            List<Playlist> playlists = searchPlaylistsFromDatabase(query);
+
+            for (Playlist playlist : playlists) {
+                // Get owner info and song count
+                User owner = getUserById(playlist.getOwnerId());
+                int songCount = getSongCountForPlaylist(playlist.getId());
+                results.add(new SearchResult(playlist, owner, songCount));
+            }
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error searching playlists", e);
+        }
+    }
+
+    // Helper methods to get data from database
+    private List<Song> createFilteredSongsFromDatabase(String query) {
+        List<Song> filteredSongs = new ArrayList<>();
+
+        try {
+            // Get all songs from database synchronously
+            List<Song> allSongs = songRepository.getAllSongsSync().get();
+
+            // Filter songs that match the query
+            String lowerQuery = query.toLowerCase();
+            for (Song song : allSongs) {
+                if (song.isPublic() &&
+                    (song.getTitle().toLowerCase().contains(lowerQuery) ||
+                     (song.getGenre() != null && song.getGenre().toLowerCase().contains(lowerQuery)) ||
+                     (song.getDescription() != null && song.getDescription().toLowerCase().contains(lowerQuery)))) {
+                    filteredSongs.add(song);
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error filtering songs", e);
         }
 
-        List<SearchResult> filtered = new ArrayList<>();
-        for (SearchResult result : results) {
-            switch (filter) {
-                case SONGS:
-                    if (result.getType() == SearchResult.Type.SONG) {
-                        filtered.add(result);
-                    }
-                    break;
-                case ARTISTS:
-                    if (result.getType() == SearchResult.Type.ARTIST) {
-                        filtered.add(result);
-                    }
-                    break;
-                case PLAYLISTS:
-                    if (result.getType() == SearchResult.Type.PLAYLIST) {
-                        filtered.add(result);
-                    }
-                    break;
+        return filteredSongs;
+    }
+
+    private List<User> searchUsersFromDatabase(String query) {
+        List<User> filteredUsers = new ArrayList<>();
+
+        try {
+            // Get all users from database synchronously
+            List<User> allUsers = userRepository.getAllUsersSync().get();
+
+            // Filter users that match the query
+            String lowerQuery = query.toLowerCase();
+            for (User user : allUsers) {
+                if (user.getUsername().toLowerCase().contains(lowerQuery) ||
+                    (user.getDisplayName() != null && user.getDisplayName().toLowerCase().contains(lowerQuery))) {
+                    filteredUsers.add(user);
+                }
             }
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error filtering users", e);
         }
-        return filtered;
+
+        return filteredUsers;
     }
 
-    // Helper methods to create mock data
-    private Song createMockSong(long id, String title, String genre, int durationMs, long uploaderId) {
-        Song song = new Song();
-        song.setId(id);
-        song.setTitle(title);
-        song.setDescription("A beautiful " + genre.toLowerCase() + " track");
-        song.setUploaderId(uploaderId);
-        song.setGenre(genre);
-        song.setDurationMs(durationMs);
-        song.setPublic(true);
-        song.setCreatedAt(System.currentTimeMillis() - (id * 86400000L));
-        song.setAudioUrl("mock://audio/" + title.toLowerCase().replace(" ", "_") + ".mp3");
-        song.setCoverArtUrl("mock://images/" + title.toLowerCase().replace(" ", "_") + "_cover.jpg");
-        return song;
+    private List<Playlist> searchPlaylistsFromDatabase(String query) {
+        List<Playlist> filteredPlaylists = new ArrayList<>();
+
+        try {
+            // Get all public playlists from database synchronously
+            List<Playlist> allPlaylists = playlistRepository.getAllPublicPlaylistsSync().get();
+
+            // Filter playlists that match the query
+            String lowerQuery = query.toLowerCase();
+            for (Playlist playlist : allPlaylists) {
+                if (playlist.getName().toLowerCase().contains(lowerQuery) ||
+                    (playlist.getDescription() != null && playlist.getDescription().toLowerCase().contains(lowerQuery))) {
+                    filteredPlaylists.add(playlist);
+                }
+            }
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error filtering playlists", e);
+        }
+
+        return filteredPlaylists;
     }
 
-    private User createMockUser(long id, String username, String displayName) {
-        User user = new User();
-        user.setId(id);
-        user.setUsername(username);
-        user.setDisplayName(displayName);
-        user.setBio("Music creator and artist");
-        user.setAvatarUrl("mock://avatar/" + username + ".jpg");
-        user.setCreatedAt(System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000));
-        return user;
+    // Helper methods to get additional data
+    private User getUserById(long userId) {
+        try {
+            return userRepository.getUserByIdSync(userId).get();
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error getting user", e);
+            return null;
+        }
     }
 
-    private Playlist createMockPlaylist(long id, String name, String description, long ownerId) {
-        Playlist playlist = new Playlist(ownerId, name);
-        playlist.setId(id);
-        playlist.setDescription(description);
-        playlist.setPublic(true);
-        playlist.setCreatedAt(System.currentTimeMillis() - (id * 86400000L));
-        return playlist;
+    private int getSongCountForUser(long userId) {
+        try {
+            List<Song> songs = songRepository.getSongsByUploaderSync(userId).get();
+            return songs != null ? songs.size() : 0;
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error getting song count", e);
+            return 0;
+        }
+    }
+
+    private int getSongCountForPlaylist(long playlistId) {
+        try {
+            List<Song> songs = playlistRepository.getSongsInPlaylistSync(playlistId).get();
+            return songs != null ? songs.size() : 0;
+        } catch (Exception e) {
+            android.util.Log.e("SearchViewModel", "Error getting playlist song count", e);
+            return 0;
+        }
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (executor != null) {
+            executor.shutdown();
+        }
+        if (songRepository != null) {
+            songRepository.shutdown();
+        }
+        if (playlistRepository != null) {
+            playlistRepository.shutdown();
+        }
     }
 }

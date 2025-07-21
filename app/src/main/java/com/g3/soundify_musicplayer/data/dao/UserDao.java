@@ -49,4 +49,7 @@ public interface UserDao {
     
     @Query("SELECT COUNT(*) FROM users WHERE email = :email")
     int checkEmailExists(String email);
-} 
+
+    @Query("SELECT * FROM users ORDER BY created_at DESC")
+    List<User> getAllUsersSync();
+}

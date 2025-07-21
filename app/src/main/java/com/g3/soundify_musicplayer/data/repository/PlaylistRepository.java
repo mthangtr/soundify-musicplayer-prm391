@@ -12,6 +12,7 @@ import com.g3.soundify_musicplayer.data.entity.PlaylistSong;
 import com.g3.soundify_musicplayer.data.entity.PlaylistAccess;
 import com.g3.soundify_musicplayer.data.entity.Song;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -170,6 +171,23 @@ public class PlaylistRepository {
      */
     public LiveData<List<PlaylistAccess>> getAllPlaylistAccess(long userId) {
         return playlistAccessDao.getAllPlaylistAccess(userId);
+    }
+
+    /**
+     * Get all public playlists synchronously for search
+     */
+    public Future<List<Playlist>> getAllPublicPlaylistsSync() {
+        return executor.submit(() -> {
+            // Get all playlists and filter public ones
+            List<Playlist> allPlaylists = playlistDao.getAllPlaylistsSync();
+            List<Playlist> publicPlaylists = new ArrayList<>();
+            for (Playlist playlist : allPlaylists) {
+                if (playlist.isPublic()) {
+                    publicPlaylists.add(playlist);
+                }
+            }
+            return publicPlaylists;
+        });
     }
 
     public void shutdown() {

@@ -81,10 +81,17 @@ public class UserRepository {
     public Future<Boolean> isEmailExists(String email) {
         return executor.submit(() -> userDao.checkEmailExists(email) > 0);
     }
-    
+
+    /**
+     * Get all users synchronously for search
+     */
+    public Future<List<User>> getAllUsersSync() {
+        return executor.submit(() -> userDao.getAllUsersSync());
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();
         }
     }
-} 
+}

@@ -148,6 +148,13 @@ public class SongRepository {
         return songDao.getRandomSongs(10);
     }
 
+    /**
+     * Get all songs synchronously for search
+     */
+    public Future<List<Song>> getAllSongsSync() {
+        return executor.submit(() -> songDao.getAllSongsSync());
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();

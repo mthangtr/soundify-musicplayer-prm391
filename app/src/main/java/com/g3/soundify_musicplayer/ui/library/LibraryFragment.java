@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,9 +31,7 @@ import java.util.List;
 
 /**
  * Library Fragment - Contains 3 sub-tabs: My Songs, My Playlists, Liked Songs
- * 100% MOCK DATA - No backend, no database, no network calls
- * SIMPLE UI TESTING - Hardcoded lists for demo purposes
- * Perfect for academic presentation and UI testing
+ * Updated to use real database data through LibraryViewModel
  */
 public class LibraryFragment extends Fragment {
 
@@ -45,15 +44,11 @@ public class LibraryFragment extends Fragment {
     private TextView emptyStateTitle;
     private TextView emptyStateSubtitle;
 
-    // Adapters and Data
+    // Adapters and ViewModel
     private SongAdapter mySongsAdapter;
     private PlaylistAdapter myPlaylistsAdapter;
     private SongAdapter likedSongsAdapter;
-
-    // Mock data
-    private List<Song> mySongs;
-    private List<Playlist> myPlaylists;
-    private List<Song> likedSongs;
+    private LibraryViewModel libraryViewModel;
 
     // Current tab state
     private int currentTab = 0; // 0: My Songs, 1: My Playlists, 2: Liked Songs
@@ -73,10 +68,14 @@ public class LibraryFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
+        // Initialize ViewModel
+        libraryViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
+
         initViews(view);
         setupTabs();
         setupRecyclerViews();
+        observeViewModel();
 
         // Show initial tab
         switchTab(TAB_MY_SONGS);
@@ -92,43 +91,7 @@ public class LibraryFragment extends Fragment {
         emptyStateSubtitle = view.findViewById(R.id.empty_state_subtitle);
     }
 
-    private void createMockData() {
-        // SIMPLE MOCK DATA - No backend, no database, just hardcoded lists for UI testing
 
-        // My Songs - Songs I uploaded
-        mySongs = Arrays.asList(
-            createMockSong(101L, "My Original Track", "Electronic"),
-            createMockSong(102L, "Acoustic Cover", "Acoustic"),
-            createMockSong(103L, "Beat Drop", "EDM"),
-            createMockSong(104L, "Midnight Jazz", "Jazz"),
-            createMockSong(105L, "Summer Vibes", "Pop"),
-            createMockSong(106L, "Guitar Solo", "Rock"),
-            createMockSong(107L, "Piano Dreams", "Classical")
-        );
-
-        // My Playlists - Playlists I created
-        myPlaylists = Arrays.asList(
-            createMockPlaylist(201L, "My Workout Mix", "High energy songs for gym sessions"),
-            createMockPlaylist(202L, "Study Focus", "Instrumental and ambient music"),
-            createMockPlaylist(203L, "Road Trip Classics", "Perfect songs for long drives"),
-            createMockPlaylist(204L, "Chill Evening", "Relaxing songs for winding down"),
-            createMockPlaylist(205L, "Party Hits", "Upbeat songs for celebrations"),
-            createMockPlaylist(206L, "Sleep Sounds", "Peaceful music for bedtime")
-        );
-
-        // Liked Songs - Songs I liked from other artists
-        likedSongs = Arrays.asList(
-            createMockSong(301L, "Starlight Dreams", "Indie Pop"),
-            createMockSong(302L, "Thunder Road", "Rock"),
-            createMockSong(303L, "Ocean Waves", "Ambient"),
-            createMockSong(304L, "City Lights", "Hip-Hop"),
-            createMockSong(305L, "Morning Coffee", "Jazz"),
-            createMockSong(306L, "Digital Love", "Synthwave"),
-            createMockSong(307L, "Forest Path", "Folk"),
-            createMockSong(308L, "Neon Nights", "Electronic"),
-            createMockSong(309L, "Vintage Soul", "Soul")
-        );
-    }
 
     private void setupTabs() {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.tab_my_songs));
@@ -151,12 +114,9 @@ public class LibraryFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
-        // Create mock data directly
-        createMockData();
-
         // Setup My Songs RecyclerView
         mySongsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mySongsAdapter = new SongAdapter(mySongs, new SongAdapter.OnSongClick() {
+        mySongsAdapter = new SongAdapter(new ArrayList<>(), new SongAdapter.OnSongClick() {
             @Override
             public void onPlay(Song song) {
                 showToast("Playing: " + song.getTitle());
@@ -172,7 +132,7 @@ public class LibraryFragment extends Fragment {
 
         // Setup My Playlists RecyclerView
         myPlaylistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        myPlaylistsAdapter = new PlaylistAdapter(myPlaylists, new PlaylistAdapter.OnPlaylistClickListener() {
+        myPlaylistsAdapter = new PlaylistAdapter(new ArrayList<>(), new PlaylistAdapter.OnPlaylistClickListener() {
             @Override
             public void onPlaylistClick(Playlist playlist) {
                 showToast("Open playlist: " + playlist.getName());
@@ -187,7 +147,7 @@ public class LibraryFragment extends Fragment {
 
         // Setup Liked Songs RecyclerView
         likedSongsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        likedSongsAdapter = new SongAdapter(likedSongs, new SongAdapter.OnSongClick() {
+        likedSongsAdapter = new SongAdapter(new ArrayList<>(), new SongAdapter.OnSongClick() {
             @Override
             public void onPlay(Song song) {
                 showToast("Playing liked song: " + song.getTitle());
@@ -202,7 +162,40 @@ public class LibraryFragment extends Fragment {
         likedSongsRecyclerView.setAdapter(likedSongsAdapter);
     }
 
+    private void observeViewModel() {
+        // Observe My Songs
+        libraryViewModel.getMySongs().observe(getViewLifecycleOwner(), songs -> {
+            if (songs != null) {
+                mySongsAdapter.updateData(songs);
+                // Update empty state if this is the current tab
+                if (currentTab == TAB_MY_SONGS) {
+                    updateEmptyState(songs.isEmpty(), "No songs uploaded", "Upload your first song to see it here");
+                }
+            }
+        });
 
+        // Observe My Playlists
+        libraryViewModel.getMyPlaylists().observe(getViewLifecycleOwner(), playlists -> {
+            if (playlists != null) {
+                myPlaylistsAdapter.updateData(playlists);
+                // Update empty state if this is the current tab
+                if (currentTab == TAB_MY_PLAYLISTS) {
+                    updateEmptyState(playlists.isEmpty(), "No playlists created", "Create your first playlist to organize your music");
+                }
+            }
+        });
+
+        // Observe Liked Songs
+        libraryViewModel.getLikedSongs().observe(getViewLifecycleOwner(), songs -> {
+            if (songs != null) {
+                likedSongsAdapter.updateData(songs);
+                // Update empty state if this is the current tab
+                if (currentTab == TAB_LIKED_SONGS) {
+                    updateEmptyState(songs.isEmpty(), "No liked songs", "Like songs to see them here");
+                }
+            }
+        });
+    }
 
     private void switchTab(int tabIndex) {
         // Hide all RecyclerViews
@@ -211,16 +204,39 @@ public class LibraryFragment extends Fragment {
         likedSongsRecyclerView.setVisibility(View.GONE);
         emptyStateLayout.setVisibility(View.GONE);
 
-        // Show the selected tab's RecyclerView
+        // Show the selected tab's RecyclerView and check empty state
         switch (tabIndex) {
             case TAB_MY_SONGS:
                 mySongsRecyclerView.setVisibility(View.VISIBLE);
+                checkEmptyStateForCurrentTab();
                 break;
             case TAB_MY_PLAYLISTS:
                 myPlaylistsRecyclerView.setVisibility(View.VISIBLE);
+                checkEmptyStateForCurrentTab();
                 break;
             case TAB_LIKED_SONGS:
                 likedSongsRecyclerView.setVisibility(View.VISIBLE);
+                checkEmptyStateForCurrentTab();
+                break;
+        }
+    }
+
+    private void checkEmptyStateForCurrentTab() {
+        switch (currentTab) {
+            case TAB_MY_SONGS:
+                if (mySongsAdapter.getItemCount() == 0) {
+                    updateEmptyState(true, "No songs uploaded", "Upload your first song to see it here");
+                }
+                break;
+            case TAB_MY_PLAYLISTS:
+                if (myPlaylistsAdapter.getItemCount() == 0) {
+                    updateEmptyState(true, "No playlists created", "Create your first playlist to organize your music");
+                }
+                break;
+            case TAB_LIKED_SONGS:
+                if (likedSongsAdapter.getItemCount() == 0) {
+                    updateEmptyState(true, "No liked songs", "Like songs to see them here");
+                }
                 break;
         }
     }
@@ -255,23 +271,5 @@ public class LibraryFragment extends Fragment {
 
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-    }
-
-    private Song createMockSong(long id, String title, String genre) {
-        Song song = new Song(1L, title, "file:///android_asset/" + title.toLowerCase().replace(" ", "_") + ".mp3");
-        song.setId(id);
-        song.setGenre(genre);
-        song.setDurationMs(180000 + (int)(Math.random() * 120000)); // 3-5 minutes
-        song.setCoverArtUrl(""); // Empty like HomeFragment
-        return song;
-    }
-
-    private Playlist createMockPlaylist(long id, String name, String description) {
-        Playlist playlist = new Playlist(1L, name);
-        playlist.setId(id);
-        playlist.setDescription(description);
-        playlist.setPublic(true);
-        playlist.setCreatedAt(System.currentTimeMillis() - (id * 86400000L));
-        return playlist;
     }
 }
