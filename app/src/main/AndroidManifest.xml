@@ -80,12 +80,6 @@
             android:name=".ui.playlist.PlaylistSelectionActivity"
             android:parentActivityName=".ui.player.PlayerDemoActivity"
             android:exported="false" />
-
-        <!-- Full Player Demo Activity -->
-        <activity
-            android:name=".ui.player.PlayerDemoActivity"
-            android:exported="true"
-            android:parentActivityName=".MainActivity" />
     </application>
 
 </manifest>
