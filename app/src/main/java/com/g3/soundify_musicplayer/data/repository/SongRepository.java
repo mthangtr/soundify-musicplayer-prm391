@@ -8,6 +8,8 @@ import com.g3.soundify_musicplayer.data.dao.SongDao;
 import com.g3.soundify_musicplayer.data.dao.RecentlyPlayedDao;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.RecentlyPlayed;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -153,6 +155,89 @@ public class SongRepository {
      */
     public Future<List<Song>> getAllSongsSync() {
         return executor.submit(() -> songDao.getAllSongsSync());
+    }
+
+    // ========== METHODS WITH UPLOADER INFORMATION ==========
+
+    /**
+     * Get 10 random suggested songs with uploader information
+     */
+    public LiveData<List<SongWithUploaderInfo>> getSuggestedSongsWithUploaderInfo() {
+        return songDao.getRandomSongsWithUploaderInfo(10);
+    }
+
+    /**
+     * Get 6 most recent songs with uploader information for current user
+     */
+    public LiveData<List<SongWithUploaderInfo>> getRecentSongsWithUploaderInfo(long userId) {
+        return recentlyPlayedDao.getRecentSongsWithUploaderInfo(userId);
+    }
+
+    /**
+     * Get all public songs with uploader information
+     */
+    public LiveData<List<SongWithUploaderInfo>> getPublicSongsWithUploaderInfo() {
+        return songDao.getPublicSongsWithUploaderInfo();
+    }
+
+    /**
+     * Search public songs with uploader information
+     */
+    public LiveData<List<SongWithUploaderInfo>> searchPublicSongsWithUploaderInfo(String query) {
+        return songDao.searchPublicSongsWithUploaderInfo(query);
+    }
+
+    // Song Detail specific methods
+
+    /**
+     * Get song with additional metadata for song detail screen
+     * This method can be extended to include like count, comment count, etc.
+     */
+    public Future<Song> getSongWithMetadata(long songId) {
+        return executor.submit(() -> {
+            // For now, just return the song. Can be extended to include metadata
+            return songDao.getSongByIdSync(songId);
+        });
+    }
+
+    /**
+     * Check if song exists and is accessible by user
+     */
+    public Future<Boolean> isSongAccessible(long songId, long userId) {
+        return executor.submit(() -> {
+            Song song = songDao.getSongByIdSync(songId);
+            if (song == null) {
+                return false;
+            }
+            // Song is accessible if it's public or user is the uploader
+            return song.isPublic() || song.getUploaderId() == userId;
+        });
+    }
+
+    /**
+     * Get songs by the same uploader (for "More from this artist" section)
+     */
+    public Future<List<Song>> getMoreSongsByUploader(long uploaderId, long excludeSongId, int limit) {
+        return executor.submit(() -> {
+            List<Song> allSongs = songDao.getPublicSongsByUploaderSync(uploaderId);
+            return allSongs.stream()
+                    .filter(song -> song.getId() != excludeSongId)
+                    .limit(limit)
+                    .collect(java.util.stream.Collectors.toList());
+        });
+    }
+
+    /**
+     * Get related songs by genre (for "You might also like" section)
+     */
+    public Future<List<Song>> getRelatedSongsByGenre(String genre, long excludeSongId, int limit) {
+        return executor.submit(() -> {
+            List<Song> allSongs = songDao.getSongsByGenreSync(genre);
+            return allSongs.stream()
+                    .filter(song -> song.getId() != excludeSongId && song.isPublic())
+                    .limit(limit)
+                    .collect(java.util.stream.Collectors.toList());
+        });
     }
 
     public void shutdown() {

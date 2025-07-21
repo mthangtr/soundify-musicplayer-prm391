@@ -168,10 +168,102 @@ public class MusicPlayerRepository {
     public LiveData<List<User>> getUsersWhoLikedSong(long songId) {
         return songLikeDao.getUsersWhoLikedSong(songId);
     }
-    
+
+    // Enhanced Song Like Operations for Song Detail Screen
+
+    /**
+     * Toggle song like status (like if not liked, unlike if liked)
+     * Returns the new like status
+     */
+    public Future<Boolean> toggleSongLike(long songId, long userId) {
+        return executor.submit(() -> {
+            boolean isCurrentlyLiked = songLikeDao.isSongLikedByUser(songId, userId) > 0;
+            if (isCurrentlyLiked) {
+                songLikeDao.unlikeSong(songId, userId);
+                return false;
+            } else {
+                SongLike songLike = new SongLike(songId, userId);
+                songLikeDao.insert(songLike);
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Get song like status and count in one call for efficiency
+     */
+    public Future<SongLikeInfo> getSongLikeInfo(long songId, long userId) {
+        return executor.submit(() -> {
+            boolean isLiked = songLikeDao.isSongLikedByUser(songId, userId) > 0;
+            int likeCount = songLikeDao.getLikeCountForSong(songId);
+            return new SongLikeInfo(isLiked, likeCount);
+        });
+    }
+
+    // Enhanced Comment Operations for Song Detail Screen
+
+    /**
+     * Get comment with like info for display
+     */
+    public Future<CommentLikeInfo> getCommentLikeInfo(long commentId, long userId) {
+        return executor.submit(() -> {
+            boolean isLiked = commentLikeDao.isCommentLikedByUser(commentId, userId) > 0;
+            int likeCount = commentLikeDao.getLikeCountForComment(commentId);
+            return new CommentLikeInfo(isLiked, likeCount);
+        });
+    }
+
+    /**
+     * Toggle comment like status
+     */
+    public Future<Boolean> toggleCommentLike(long commentId, long userId) {
+        return executor.submit(() -> {
+            boolean isCurrentlyLiked = commentLikeDao.isCommentLikedByUser(commentId, userId) > 0;
+            if (isCurrentlyLiked) {
+                commentLikeDao.unlikeComment(commentId, userId);
+                return false;
+            } else {
+                CommentLike commentLike = new CommentLike(commentId, userId);
+                commentLikeDao.insert(commentLike);
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Delete comment by ID (convenience method)
+     */
+    public Future<Void> deleteCommentById(long commentId) {
+        return executor.submit(() -> {
+            commentDao.deleteCommentById(commentId);
+            return null;
+        });
+    }
+
+    // Helper classes for returning multiple values
+    public static class SongLikeInfo {
+        public final boolean isLiked;
+        public final int likeCount;
+
+        public SongLikeInfo(boolean isLiked, int likeCount) {
+            this.isLiked = isLiked;
+            this.likeCount = likeCount;
+        }
+    }
+
+    public static class CommentLikeInfo {
+        public final boolean isLiked;
+        public final int likeCount;
+
+        public CommentLikeInfo(boolean isLiked, int likeCount) {
+            this.isLiked = isLiked;
+            this.likeCount = likeCount;
+        }
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();
         }
     }
-} 
+}
