@@ -16,6 +16,7 @@ import com.g3.soundify_musicplayer.ui.base.BaseActivity;
 import com.g3.soundify_musicplayer.ui.search.SearchFragment;
 import com.g3.soundify_musicplayer.ui.library.LibraryFragment;
 import com.g3.soundify_musicplayer.ui.upload.UploadSongActivity;
+import com.g3.soundify_musicplayer.ui.upload.UploadSongFragment;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
 public class MainActivity extends BaseActivity {
@@ -72,7 +73,7 @@ public class MainActivity extends BaseActivity {
                     .commit();
                 return true;
             } else if (itemId == R.id.nav_upload) {
-                // Navigate to UploadSongActivity
+                // Navigate to UploadSongFragment
                 navigateToUploadSong();
                 return true;
             } else if (itemId == R.id.nav_logout) {
@@ -104,6 +105,9 @@ public class MainActivity extends BaseActivity {
                 bottomNav.setSelectedItemId(R.id.nav_search);
             } else if (currentFragment instanceof LibraryFragment) {
                 bottomNav.setSelectedItemId(R.id.nav_library);
+            } else if (currentFragment instanceof UploadSongFragment) {
+                // Don't change navigation for upload fragment
+                // Keep the previous selection
             } else {
                 // Default to home if unknown fragment
                 bottomNav.setSelectedItemId(R.id.nav_home);
@@ -112,14 +116,55 @@ public class MainActivity extends BaseActivity {
     }
 
     /**
-     * Navigate to UploadSongActivity for new song upload
+     * Navigate to UploadSongFragment for new song upload
      */
     private void navigateToUploadSong() {
-        Intent intent = UploadSongActivity.createUploadIntent(this);
-        startActivity(intent);
+        UploadSongFragment uploadFragment = UploadSongFragment.newInstanceForUpload();
 
-        // Add smooth transition animation
-        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        R.anim.slide_in_right,  // enter
+                        R.anim.slide_out_left,  // exit
+                        R.anim.slide_in_left,   // popEnter
+                        R.anim.slide_out_right  // popExit
+                )
+                .replace(R.id.fragment_container, uploadFragment)
+                .addToBackStack("upload_song")
+                .commit();
+
+        android.util.Log.d("MainActivity", "Navigating to UploadSongFragment");
+    }
+
+    /**
+     * Navigate to UploadSongFragment for editing an existing song
+     */
+    public void navigateToEditSong(long songId) {
+        UploadSongFragment uploadFragment = UploadSongFragment.newInstanceForEdit(songId);
+
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        R.anim.slide_in_right,  // enter
+                        R.anim.slide_out_left,  // exit
+                        R.anim.slide_in_left,   // popEnter
+                        R.anim.slide_out_right  // popExit
+                )
+                .replace(R.id.fragment_container, uploadFragment)
+                .addToBackStack("edit_song")
+                .commit();
+
+        android.util.Log.d("MainActivity", "Navigating to UploadSongFragment for edit, songId: " + songId);
+    }
+
+    @Override
+    public void onBackPressed() {
+        // Check if there are fragments in the back stack
+        if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            // Pop the fragment from back stack
+            getSupportFragmentManager().popBackStack();
+        } else {
+            // No fragments in back stack, handle normal back press
+            super.onBackPressed();
+        }
     }
 
     private void logout() {
