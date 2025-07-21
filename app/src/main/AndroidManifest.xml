@@ -58,9 +58,6 @@
 
         <!-- Playlist Activities -->
         <activity
-            android:name=".ui.playlist.PlaylistDetailActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.playlist.PlaylistSelectionActivity"
             android:parentActivityName=".ui.player.PlayerDemoActivity"
             android:exported="false" />

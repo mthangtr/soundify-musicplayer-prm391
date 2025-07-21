@@ -18,12 +18,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
+import com.g3.soundify_musicplayer.data.Adapter.PlaylistWithSongCountAdapter;
 import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
-import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
@@ -48,7 +49,7 @@ public class LibraryFragment extends Fragment {
 
     // Adapters and ViewModel
     private SongAdapter mySongsAdapter;
-    private PlaylistAdapter myPlaylistsAdapter;
+    private PlaylistWithSongCountAdapter myPlaylistsAdapter;
     private SongAdapter likedSongsAdapter;
     private LibraryViewModel libraryViewModel;
 
@@ -136,19 +137,25 @@ public class LibraryFragment extends Fragment {
         });
         mySongsRecyclerView.setAdapter(mySongsAdapter);
 
-        // Setup My Playlists RecyclerView
+        // Setup My Playlists RecyclerView with Song Count
         myPlaylistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        myPlaylistsAdapter = new PlaylistAdapter(new ArrayList<>(), new PlaylistAdapter.OnPlaylistClickListener() {
-            @Override
-            public void onPlaylistClick(Playlist playlist) {
-                showToast("Open playlist: " + playlist.getName());
-            }
+        myPlaylistsAdapter = new PlaylistWithSongCountAdapter(new ArrayList<>(),
+            new PlaylistWithSongCountAdapter.OnPlaylistClickListener() {
+                @Override
+                public void onPlaylistClick(PlaylistWithSongCount playlistWithSongCount) {
+                    navigateToPlaylistDetail(playlistWithSongCount.getId());
+                }
 
-            @Override
-            public void onPlayButtonClick(Playlist playlist) {
-                showToast("Play playlist: " + playlist.getName());
-            }
-        });
+                @Override
+                public void onPlayButtonClick(PlaylistWithSongCount playlistWithSongCount) {
+                    if (playlistWithSongCount.getSongCount() > 0) {
+                        showToast("Play playlist: " + playlistWithSongCount.getName());
+                        // TODO: Start playing playlist
+                    } else {
+                        showToast("Playlist is empty");
+                    }
+                }
+            });
         myPlaylistsRecyclerView.setAdapter(myPlaylistsAdapter);
 
         // Setup Liked Songs RecyclerView
@@ -180,13 +187,13 @@ public class LibraryFragment extends Fragment {
             }
         });
 
-        // Observe My Playlists
-        libraryViewModel.getMyPlaylists().observe(getViewLifecycleOwner(), playlists -> {
-            if (playlists != null) {
-                myPlaylistsAdapter.updateData(playlists);
+        // Observe My Playlists with Song Count
+        libraryViewModel.getMyPlaylistsWithSongCount().observe(getViewLifecycleOwner(), playlistsWithSongCount -> {
+            if (playlistsWithSongCount != null) {
+                myPlaylistsAdapter.updateData(playlistsWithSongCount);
                 // Update empty state if this is the current tab
                 if (currentTab == TAB_MY_PLAYLISTS) {
-                    updateEmptyState(playlists.isEmpty(), "No playlists created", "Create your first playlist to organize your music");
+                    updateEmptyState(playlistsWithSongCount.isEmpty(), "No playlists created", "Create your first playlist to organize your music");
                 }
             }
         });
@@ -199,6 +206,34 @@ public class LibraryFragment extends Fragment {
                 if (currentTab == TAB_LIKED_SONGS) {
                     updateEmptyState(songs.isEmpty(), "No liked songs", "Like songs to see them here");
                 }
+            }
+        });
+
+        // Observe loading state
+        libraryViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading != null && isLoading) {
+                // Show loading indicator - disable create button and show loading text
+                buttonCreatePlaylist.setEnabled(false);
+                buttonCreatePlaylist.setText("Creating...");
+            } else {
+                buttonCreatePlaylist.setEnabled(true);
+                buttonCreatePlaylist.setText(getString(R.string.create_playlist));
+            }
+        });
+
+        // Observe error messages
+        libraryViewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
+            if (errorMessage != null && !errorMessage.isEmpty()) {
+                showToast(errorMessage);
+                libraryViewModel.clearErrorMessage();
+            }
+        });
+
+        // Observe success messages
+        libraryViewModel.getSuccessMessage().observe(getViewLifecycleOwner(), successMessage -> {
+            if (successMessage != null && !successMessage.isEmpty()) {
+                showToast(successMessage);
+                libraryViewModel.clearSuccessMessage();
             }
         });
     }
@@ -339,12 +374,31 @@ public class LibraryFragment extends Fragment {
      * Create new playlist with given name
      */
     private void createNewPlaylist(String playlistName) {
-        // TODO: Implement playlist creation through repository
-        // For now, just show a toast
-        showToast("Creating playlist: " + playlistName);
+        if (libraryViewModel != null) {
+            libraryViewModel.createPlaylist(playlistName);
+        } else {
+            showToast("Error: ViewModel not initialized");
+        }
+    }
 
-        // Here you would typically call:
-        // libraryViewModel.createPlaylist(playlistName);
-        // or use PlaylistRepository directly
+    /**
+     * Navigate to playlist detail fragment
+     */
+    private void navigateToPlaylistDetail(long playlistId) {
+        if (getActivity() == null) return;
+
+        PlaylistDetailFragment fragment = PlaylistDetailFragment.newInstance(playlistId);
+
+        getActivity().getSupportFragmentManager()
+            .beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in_right,  // enter
+                R.anim.slide_out_left,  // exit
+                R.anim.slide_in_left,   // popEnter
+                R.anim.slide_out_right  // popExit
+            )
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack("playlist_detail")
+            .commit();
     }
 }

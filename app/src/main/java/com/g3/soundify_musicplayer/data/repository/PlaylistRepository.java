@@ -11,6 +11,7 @@ import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.PlaylistSong;
 import com.g3.soundify_musicplayer.data.entity.PlaylistAccess;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,9 +113,43 @@ public class PlaylistRepository {
     public LiveData<List<Song>> getSongsInPlaylist(long playlistId) {
         return playlistSongDao.getSongsInPlaylist(playlistId);
     }
-    
+
     public Future<List<Song>> getSongsInPlaylistSync(long playlistId) {
         return executor.submit(() -> playlistSongDao.getSongsInPlaylistSync(playlistId));
+    }
+
+    /**
+     * Get song count for playlist synchronously (for adapter use)
+     */
+    public int getSongCountInPlaylistSync(long playlistId) {
+        try {
+            return playlistSongDao.getSongCountInPlaylist(playlistId);
+        } catch (Exception e) {
+            android.util.Log.e("PlaylistRepository", "Error getting song count for playlist " + playlistId, e);
+            return 0;
+        }
+    }
+
+    /**
+     * Get playlists by owner with song counts
+     */
+    public Future<List<PlaylistWithSongCount>> getPlaylistsByOwnerWithSongCount(long ownerId) {
+        return executor.submit(() -> {
+            try {
+                List<Playlist> playlists = playlistDao.getPlaylistsByOwnerSync(ownerId);
+                List<PlaylistWithSongCount> playlistsWithCount = new java.util.ArrayList<>();
+
+                for (Playlist playlist : playlists) {
+                    int songCount = playlistSongDao.getSongCountInPlaylist(playlist.getId());
+                    playlistsWithCount.add(new PlaylistWithSongCount(playlist, songCount));
+                }
+
+                return playlistsWithCount;
+            } catch (Exception e) {
+                android.util.Log.e("PlaylistRepository", "Error getting playlists with song count", e);
+                return new java.util.ArrayList<>();
+            }
+        });
     }
     
     public LiveData<List<Playlist>> getPlaylistsContainingSong(long songId) {

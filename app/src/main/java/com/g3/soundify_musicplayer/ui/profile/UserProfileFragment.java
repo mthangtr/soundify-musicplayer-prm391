@@ -22,7 +22,7 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailActivity;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
 import com.g3.soundify_musicplayer.data.Adapter.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;

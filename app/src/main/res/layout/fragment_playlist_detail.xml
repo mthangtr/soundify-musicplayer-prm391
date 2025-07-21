@@ -5,30 +5,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.playlist.PlaylistDetailActivity">
+    tools:context=".ui.playlist.PlaylistDetailFragment">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar_layout"
+    <!-- Main Content -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:layout_height="match_parent">
 
-        <com.google.android.material.appbar.CollapsingToolbarLayout
-            android:id="@+id/collapsing_toolbar"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="300dp"
-            app:contentScrim="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
-            app:titleEnabled="false">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <!-- Playlist Header -->
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="24dp"
                 android:gravity="center"
-                app:layout_collapseMode="parallax">
+                android:background="?attr/colorPrimary">
 
                 <!-- Playlist Cover Art -->
                 <com.google.android.material.imageview.ShapeableImageView
@@ -69,29 +65,6 @@
                     tools:text="Created by John Doe • 15 songs • 1h 23m" />
 
             </LinearLayout>
-
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:navigationIcon="?attr/homeAsUpIndicator"
-                app:title="@string/playlist_detail_title" />
-
-        </com.google.android.material.appbar.CollapsingToolbarLayout>
-
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <!-- Main Content -->
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
 
             <!-- Action Buttons -->
             <LinearLayout
@@ -157,8 +130,6 @@
                     tools:text="15 songs" />
 
                 <!-- Songs RecyclerView -->
-
-                <!-- Empty State -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_view_songs"
                     android:layout_width="match_parent"
@@ -167,6 +138,7 @@
                     tools:itemCount="5"
                     tools:listitem="@layout/item_playlist_song" />
 
+                <!-- Empty State -->
                 <LinearLayout
                     android:id="@+id/layout_empty_state"
                     android:layout_width="match_parent"
@@ -204,6 +176,11 @@
                 </LinearLayout>
 
             </LinearLayout>
+
+            <!-- Bottom padding for FAB -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="80dp" />
 
         </LinearLayout>
 
