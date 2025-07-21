@@ -7,6 +7,7 @@ import com.g3.soundify_musicplayer.data.entity.Comment;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -60,6 +61,13 @@ public class SongDetailRepository {
      */
     public Future<List<Song>> getRelatedSongsByGenre(String genre, long excludeSongId, int limit) {
         return songRepository.getRelatedSongsByGenre(genre, excludeSongId, limit);
+    }
+
+    /**
+     * Get song by ID synchronously
+     */
+    public Future<Song> getSongByIdSync(long songId) {
+        return songRepository.getSongByIdSync(songId);
     }
     
     // ========== SONG LIKE OPERATIONS ==========
