@@ -211,34 +211,9 @@
     <string name="cd_song_menu">Song options</string>
     <string name="cd_drag_handle">Drag to reorder</string>
 
-    <!-- Select Songs Screen -->
-    <string name="select_songs_title">Add Songs</string>
-    <string name="select_songs_search_hint">Search songs…</string>
-    <string name="select_songs_done">Done</string>
-    <string name="select_songs_cancel">Cancel</string>
-    <string name="select_songs_selected_count">%d selected</string>
-    <string name="select_songs_selected_count_single">1 selected</string>
-    <string name="select_songs_selected_count_none">None selected</string>
 
-    <!-- Filter Options -->
-    <string name="filter_all_songs">All Songs</string>
-    <string name="filter_my_songs">My Songs</string>
-    <string name="filter_public_songs">Public Songs</string>
 
-    <!-- Select Songs Messages -->
-    <string name="select_songs_empty_message">No songs found</string>
-    <string name="select_songs_empty_subtitle">Try adjusting your search or filter</string>
-    <string name="select_songs_no_results">No results for \"%s\"</string>
-    <string name="select_songs_loading">Loading songs…</string>
-    <string name="toast_songs_added">%d songs added to playlist</string>
-    <string name="toast_songs_added_single">1 song added to playlist</string>
-    <string name="error_loading_songs">Error loading songs</string>
-    <string name="error_adding_songs">Error adding songs to playlist</string>
 
-    <!-- Content Descriptions for Select Songs -->
-    <string name="cd_search_songs">Search songs</string>
-    <string name="cd_filter_songs">Filter songs</string>
-    <string name="cd_song_checkbox">Select song</string>
 
     <!-- User Profile Screen -->
     <string name="user_profile_title">Profile</string>

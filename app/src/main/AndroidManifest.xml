@@ -54,20 +54,11 @@
             android:name=".ui.profile.FollowersFollowingActivity"
             android:exported="false" />
 
-        <!-- Upload Activity -->
-        <activity
-            android:name=".ui.upload.UploadSongActivity"
-            android:parentActivityName=".data.Activity.MainActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Soundifymusicplayer" />
+
 
         <!-- Playlist Activities -->
         <activity
             android:name=".ui.playlist.PlaylistDetailActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.playlist.SelectSongsActivity"
-            android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
             android:exported="false" />
         <activity
             android:name=".ui.playlist.PlaylistSelectionActivity"
