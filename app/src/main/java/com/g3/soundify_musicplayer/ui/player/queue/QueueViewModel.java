@@ -1,4 +1,4 @@
-package com.g3.soundify_musicplayer.ui.player;
+package com.g3.soundify_musicplayer.ui.player.queue;
 
 import android.app.Application;
 
@@ -9,7 +9,6 @@ import androidx.lifecycle.MutableLiveData;
 import com.g3.soundify_musicplayer.data.entity.Song;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**

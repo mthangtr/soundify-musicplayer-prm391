@@ -23,7 +23,7 @@ import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.google.android.material.tabs.TabLayout;
 
@@ -52,6 +52,7 @@ public class LibraryFragment extends Fragment {
     private PlaylistWithSongCountAdapter myPlaylistsAdapter;
     private SongAdapter likedSongsAdapter;
     private LibraryViewModel libraryViewModel;
+    private SongDetailViewModel songDetailViewModel; // UNIFIED ViewModel for mini player
 
     // Current tab state
     private int currentTab = 0; // 0: My Songs, 1: My Playlists, 2: Liked Songs
@@ -72,8 +73,10 @@ public class LibraryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize ViewModel
+        // Initialize ViewModels
         libraryViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
+        // Initialize ViewModel THỐNG NHẤT - Activity-scoped SongDetailViewModel
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
 
         initViews(view);
         setupTabs();
@@ -305,9 +308,9 @@ public class LibraryFragment extends Fragment {
     private void showMiniPlayer(Song song) {
         // Create a mock artist for the song
         User mockArtist = createMockArtist(song.getUploaderId());
-        
-        // Show mini player using the global manager
-        MiniPlayerManager.getInstance().showMiniPlayer(song, mockArtist);
+
+        // Show mini player using UNIFIED SongDetailViewModel
+        songDetailViewModel.playSong(song, mockArtist);
     }
 
     private User createMockArtist(long artistId) {

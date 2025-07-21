@@ -1,4 +1,4 @@
-package com.g3.soundify_musicplayer.ui.player;
+package com.g3.soundify_musicplayer.ui.player.comment;
 
 import android.content.Context;
 import android.view.LayoutInflater;
