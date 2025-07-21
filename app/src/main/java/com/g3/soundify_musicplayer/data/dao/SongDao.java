@@ -70,4 +70,10 @@ public interface SongDao {
      */
     @Query("SELECT * FROM songs")
     List<Song> getAllSongsSync();
+
+    /**
+     * Get songs by genre (sync version for related songs)
+     */
+    @Query("SELECT * FROM songs WHERE genre = :genre AND is_public = 1 ORDER BY created_at DESC")
+    List<Song> getSongsByGenreSync(String genre);
 }
