@@ -15,7 +15,6 @@ import com.g3.soundify_musicplayer.data.Fragment.HomeFragment;
 import com.g3.soundify_musicplayer.ui.base.BaseActivity;
 import com.g3.soundify_musicplayer.ui.search.SearchFragment;
 import com.g3.soundify_musicplayer.ui.library.LibraryFragment;
-import com.g3.soundify_musicplayer.ui.upload.UploadSongActivity;
 import com.g3.soundify_musicplayer.ui.upload.UploadSongFragment;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 

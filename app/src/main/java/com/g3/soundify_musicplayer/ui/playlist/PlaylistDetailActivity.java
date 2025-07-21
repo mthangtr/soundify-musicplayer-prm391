@@ -40,8 +40,7 @@ public class PlaylistDetailActivity extends AppCompatActivity implements Playlis
     private PlaylistDetailViewModel viewModel;
     private PlaylistSongAdapter adapter;
 
-    // Activity result launcher for selecting songs
-    private ActivityResultLauncher<Intent> selectSongsLauncher;
+
     
     // UI Components
     private Toolbar toolbar;
@@ -67,8 +66,7 @@ public class PlaylistDetailActivity extends AppCompatActivity implements Playlis
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(PlaylistDetailViewModel.class);
 
-        // Setup activity result launcher
-        setupActivityResultLauncher();
+
 
         // Initialize UI
         initializeViews();
@@ -81,25 +79,7 @@ public class PlaylistDetailActivity extends AppCompatActivity implements Playlis
         handleIntent();
     }
 
-    /**
-     * Setup activity result launcher for selecting songs
-     */
-    private void setupActivityResultLauncher() {
-        selectSongsLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                    int addedCount = result.getData().getIntExtra(SelectSongsActivity.RESULT_ADDED_COUNT, 0);
-                    if (addedCount > 0) {
-                        String message = addedCount == 1 ?
-                            "1 song added to playlist" :
-                            addedCount + " songs added to playlist";
-                        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        );
-    }
+
     
     /**
      * Initialize all UI components
@@ -306,15 +286,11 @@ public class PlaylistDetailActivity extends AppCompatActivity implements Playlis
     
     /**
      * Add songs to playlist (owner only)
+     * TODO: Implement alternative method for adding songs to playlist
      */
     private void addSongsToPlaylist() {
-        Playlist playlist = viewModel.getCurrentPlaylist().getValue();
-        if (playlist != null) {
-            Intent intent = SelectSongsActivity.createIntent(this, playlist.getId(), playlist.getName());
-            selectSongsLauncher.launch(intent);
-        } else {
-            Toast.makeText(this, "Playlist not loaded", Toast.LENGTH_SHORT).show();
-        }
+        // Functionality removed - Select Songs feature has been removed
+        Toast.makeText(this, "Add songs functionality not available", Toast.LENGTH_SHORT).show();
     }
     
     /**
