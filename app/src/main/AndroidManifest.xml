@@ -1,11 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions for file access -->
+    <!-- Hardware features -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
 
+    <!-- Network permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <!-- Storage permissions -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -17,11 +26,22 @@
     <!-- Camera permission for profile photo -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Audio permissions -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <!-- Foreground service permission for media playback -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
 
+    <!-- Wake lock for background playback -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+
+    <!-- Notification permission for Android 13+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <application
+        android:name=".SoundifyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -29,7 +49,10 @@
         android:label="@string/app_name"
         android:roundIcon="@drawable/splashi_icon"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Soundifymusicplayer">
+        android:theme="@style/Theme.Soundifymusicplayer"
+        android:hardwareAccelerated="true"
+        android:largeHeap="true"
+        tools:targetApi="31">
         <!-- Main launcher activity - SplashActivity for session check -->
         <activity
             android:name=".data.Activity.SplashActivity"
@@ -54,15 +77,34 @@
             android:exported="false" />
 
         <!-- Profile Activities -->
+        <activity
+            android:name=".ui.profile.FollowersFollowingActivity"
+            android:parentActivityName=".data.Activity.MainActivity"
+            android:exported="false" />
 
-        <!-- Upload Activity -->
+        <!-- Full Player Activity - Full-screen music player -->
+        <activity
+            android:name=".ui.player.FullPlayerActivity"
+            android:parentActivityName=".data.Activity.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Soundifymusicplayer.FullScreen" />
+
+        <!-- Playlist Activities -->
+        <activity
+            android:name=".ui.playlist.PlaylistSelectionActivity"
+            android:parentActivityName=".data.Activity.MainActivity"
+            android:exported="false" />
 
 
         <!-- Media Playback Service -->
         <service
             android:name=".service.MediaPlaybackService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback" />
+            android:foregroundServiceType="mediaPlayback"
+            android:enabled="true" />
+
+
+
     </application>
 
 </manifest>
