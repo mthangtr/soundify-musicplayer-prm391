@@ -1,12 +1,13 @@
 package com.g3.soundify_musicplayer.data.model;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Navigation context data classes để quản lý các loại navigation khác nhau
  * khi user mở Song Detail screen từ các nguồn khác nhau
  */
-public class NavigationContext {
+public class NavigationContext implements Serializable {
     
     /**
      * Enum định nghĩa các loại navigation context

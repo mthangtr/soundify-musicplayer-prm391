@@ -1,4 +1,4 @@
-package com.g3.soundify_musicplayer.ui.player;
+package com.g3.soundify_musicplayer.ui.player.comment;
 
 import com.g3.soundify_musicplayer.data.entity.Comment;
 import com.g3.soundify_musicplayer.data.entity.User;

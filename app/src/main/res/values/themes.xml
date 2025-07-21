@@ -7,6 +7,18 @@
 
     <style name="Theme.Soundifymusicplayer" parent="Base.Theme.Soundifymusicplayer" />
 
+    <!-- Full Screen Theme for FullPlayerActivity -->
+    <style name="Theme.Soundifymusicplayer.FullScreen" parent="Theme.Soundifymusicplayer">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="p">shortEdges</item>
+    </style>
+
     <!-- Circle Image View Style -->
     <style name="CircleImageView">
         <item name="cornerFamily">rounded</item>

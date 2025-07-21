@@ -21,7 +21,8 @@ import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
@@ -45,7 +46,8 @@ public class LibraryFragment extends Fragment {
     private TextView emptyStateTitle;
     private TextView emptyStateSubtitle;
 
-    // Adapters and Data
+    // ViewModels and Adapters - THỐNG NHẤT ARCHITECTURE
+    private SongDetailViewModel songDetailViewModel;
     private SongAdapter mySongsAdapter;
     private PlaylistAdapter myPlaylistsAdapter;
     private SongAdapter likedSongsAdapter;
@@ -73,7 +75,10 @@ public class LibraryFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
+        // Initialize ViewModel THỐNG NHẤT - Activity-scoped SongDetailViewModel
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+
         initViews(view);
         setupTabs();
         setupRecyclerViews();
@@ -238,9 +243,9 @@ public class LibraryFragment extends Fragment {
     private void showMiniPlayer(Song song) {
         // Create a mock artist for the song
         User mockArtist = createMockArtist(song.getUploaderId());
-        
-        // Show mini player using the global manager
-        MiniPlayerManager.getInstance().showMiniPlayer(song, mockArtist);
+
+        // Show mini player using UNIFIED SongDetailViewModel
+        songDetailViewModel.playSong(song, mockArtist);
     }
 
     private User createMockArtist(long artistId) {

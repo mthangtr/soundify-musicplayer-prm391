@@ -17,6 +17,10 @@
     <!-- Camera permission for profile photo -->
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Foreground service permission for media playback -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -70,6 +74,13 @@
             android:exported="false"
             android:theme="@style/Theme.Soundifymusicplayer" />
 
+        <!-- Full Player Activity - Full-screen music player -->
+        <activity
+            android:name=".ui.player.FullPlayerActivity"
+            android:parentActivityName=".data.Activity.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Soundifymusicplayer.FullScreen" />
+
         <!-- Playlist Activities -->
         <activity
             android:name=".ui.playlist.PlaylistDetailActivity"
@@ -78,10 +89,12 @@
             android:name=".ui.playlist.SelectSongsActivity"
             android:parentActivityName=".ui.playlist.PlaylistDetailActivity"
             android:exported="false" />
-        <activity
-            android:name=".ui.playlist.PlaylistSelectionActivity"
-            android:parentActivityName=".ui.player.PlayerDemoActivity"
-            android:exported="false" />
+
+        <!-- Media Playback Service -->
+        <service
+            android:name=".service.MediaPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
     </application>
 
 </manifest>
