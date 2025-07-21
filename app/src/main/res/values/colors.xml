@@ -42,4 +42,8 @@
     <color name="black_overlay_30">#4D000000</color>
     <color name="black_overlay_50">#80000000</color>
 
+    <!-- Surface colors -->
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_variant">#F5F5F5</color>
+
 </resources>

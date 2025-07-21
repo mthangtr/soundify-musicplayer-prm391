@@ -79,4 +79,8 @@
     
     <!-- Minimum Touch Target -->
     <dimen name="min_touch_target">44dp</dimen>
+
+    <!-- Toolbar Dimensions -->
+    <dimen name="toolbar_height_extended">64dp</dimen>
+    <dimen name="toolbar_navigation_padding">8dp</dimen>
 </resources>

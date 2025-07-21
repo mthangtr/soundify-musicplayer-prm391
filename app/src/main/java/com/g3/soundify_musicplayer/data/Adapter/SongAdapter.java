@@ -42,7 +42,13 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongVH> {
     @Override public void onBindViewHolder(@NonNull SongVH h, int i) {
         Song s = data.get(i);
         h.tvTitle.setText(s.getTitle());
-        h.tvUploader.setText("Uploader ID: " + s.getUploaderId());
+
+        // Display uploader name instead of ID
+        if (s.getUploaderName() != null && !s.getUploaderName().isEmpty()) {
+            h.tvUploader.setText(s.getUploaderName());
+        } else {
+            h.tvUploader.setText("Unknown Artist");
+        }
 
         // load cover: nếu null -> placeholder
         if (s.getCoverArtUrl() != null && !s.getCoverArtUrl().isEmpty()) {

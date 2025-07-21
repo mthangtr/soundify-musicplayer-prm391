@@ -27,6 +27,9 @@ public class Song {
     @ColumnInfo(name = "uploader_id")
     private long uploaderId;
 
+    // Transient field for uploader name (not stored in DB, populated via JOIN)
+    private String uploaderName;
+
     @ColumnInfo(name = "title")
     private String title;
 
@@ -142,4 +145,12 @@ public class Song {
     public void setCreatedAt(long createdAt) {
         this.createdAt = createdAt;
     }
-} 
+
+    public String getUploaderName() {
+        return uploaderName;
+    }
+
+    public void setUploaderName(String uploaderName) {
+        this.uploaderName = uploaderName;
+    }
+}

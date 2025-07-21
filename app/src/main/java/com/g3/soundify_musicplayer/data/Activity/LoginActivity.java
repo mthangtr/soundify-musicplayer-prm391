@@ -12,7 +12,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.g3.soundify_musicplayer.data.Activity.MainActivity;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.viewmodel.AuthViewModel;
 import com.g3.soundify_musicplayer.utils.DatabaseTestHelper;

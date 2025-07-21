@@ -113,6 +113,30 @@ public interface SongDao {
     LiveData<List<SongWithUploaderInfo>> searchPublicSongsWithUploaderInfo(String query);
 
     /**
+     * Get public songs by uploader with uploader information (sync)
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE s.uploader_id = :uploaderId AND s.is_public = 1 " +
+           "ORDER BY s.created_at DESC")
+    List<SongWithUploaderInfo> getPublicSongsByUploaderWithInfoSync(long uploaderId);
+
+    /**
+     * Get all songs by uploader with uploader information (sync) - for own profile
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE s.uploader_id = :uploaderId " +
+           "ORDER BY s.created_at DESC")
+    List<SongWithUploaderInfo> getSongsByUploaderWithInfoSync(long uploaderId);
+
+    /**
      * Get songs by genre (sync version for related songs)
      */
     @Query("SELECT * FROM songs WHERE genre = :genre AND is_public = 1 ORDER BY created_at DESC")

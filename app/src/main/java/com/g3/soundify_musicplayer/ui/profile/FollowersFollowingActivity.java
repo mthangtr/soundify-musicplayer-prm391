@@ -358,8 +358,9 @@ public class FollowersFollowingActivity extends AppCompatActivity implements Use
     @Override
     public void onUserClick(User user, int position) {
         // Navigate to user profile
-        Intent intent = UserProfileActivity.createIntent(this, user.getId(), user.getUsername());
-        startActivity(intent);
+        // TODO: Navigate to UserProfileFragment in MainActivity
+        // For now, just show a toast
+        Toast.makeText(this, "Navigate to " + user.getUsername() + "'s profile", Toast.LENGTH_SHORT).show();
     }
 
     @Override

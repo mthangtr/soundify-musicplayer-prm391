@@ -66,10 +66,12 @@ public class SearchViewModel extends AndroidViewModel {
 
         if (lastQuery.isEmpty()) {
             // Show empty results when query is empty
+            android.util.Log.d("SearchViewModel", "Empty query, showing empty results");
             searchResults.setValue(new ArrayList<>());
             return;
         }
 
+        android.util.Log.d("SearchViewModel", "Searching for: " + lastQuery);
         // Perform real database search
         performDatabaseSearch(lastQuery);
     }
@@ -203,6 +205,14 @@ public class SearchViewModel extends AndroidViewModel {
             // Get all songs from database synchronously
             List<Song> allSongs = songRepository.getAllSongsSync().get();
 
+            // Debug: Log all songs in database
+            android.util.Log.d("SearchViewModel", "Total songs in database: " + allSongs.size());
+            for (Song song : allSongs) {
+                android.util.Log.d("SearchViewModel", "Song: " + song.getTitle() +
+                    ", Public: " + song.isPublic() +
+                    ", Uploader: " + song.getUploaderId());
+            }
+
             // Filter songs that match the query
             String lowerQuery = query.toLowerCase();
             for (Song song : allSongs) {
@@ -213,6 +223,9 @@ public class SearchViewModel extends AndroidViewModel {
                     filteredSongs.add(song);
                 }
             }
+
+            android.util.Log.d("SearchViewModel", "Filtered songs for query '" + query + "': " + filteredSongs.size());
+
         } catch (Exception e) {
             android.util.Log.e("SearchViewModel", "Error filtering songs", e);
         }

@@ -51,16 +51,7 @@
 
         <!-- Profile Activities -->
         <activity
-            android:name=".ui.profile.UserProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.profile.EditProfileActivity"
-            android:parentActivityName=".ui.profile.UserProfileActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Soundifymusicplayer" />
-        <activity
             android:name=".ui.profile.FollowersFollowingActivity"
-            android:parentActivityName=".ui.profile.UserProfileActivity"
             android:exported="false" />
 
         <!-- Upload Activity -->

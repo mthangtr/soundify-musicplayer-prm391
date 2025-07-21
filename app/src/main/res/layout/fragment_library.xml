@@ -156,7 +156,24 @@
                 android:fontFamily="sans-serif"
                 android:gravity="center"
                 android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="24dp"
                 tools:text="Upload your first song to see it here" />
+
+            <!-- Create Playlist Button (only visible for playlist tab) -->
+            <Button
+                android:id="@+id/button_create_playlist"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:text="@string/create_playlist"
+                android:textColor="@color/white"
+                android:background="@drawable/button_primary"
+                android:paddingHorizontal="24dp"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="16sp"
+                android:visibility="gone"
+                android:drawableStart="@drawable/ic_add"
+                android:drawablePadding="8dp"
+                android:drawableTint="@color/white" />
 
         </LinearLayout>
 

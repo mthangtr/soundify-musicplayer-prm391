@@ -70,9 +70,6 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         setupSearchInput();
         setupFilterChips();
         observeViewModel();
-
-        // Load initial mock data
-        loadMockData();
     }
 
     private void initViews(View view) {
@@ -113,8 +110,10 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
             @Override
             public void afterTextChanged(Editable s) {
                 String query = s.toString().trim();
+                android.util.Log.d("SearchFragment", "Text changed to: '" + query + "'");
                 if (!query.equals(currentQuery)) {
                     currentQuery = query;
+                    android.util.Log.d("SearchFragment", "Calling viewModel.search with: '" + query + "'");
                     viewModel.search(query);
                 }
             }
@@ -279,9 +278,5 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         }
     }
 
-    private void loadMockData() {
-        // SIMPLE: Just trigger search with empty query to show all mock data
-        // No backend, no network, just pure mock data display
-        viewModel.search("");
-    }
+
 }

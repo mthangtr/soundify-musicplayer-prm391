@@ -2,6 +2,7 @@ package com.g3.soundify_musicplayer.data.Activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import android.widget.Toast;
 
@@ -17,11 +18,14 @@ import com.g3.soundify_musicplayer.ui.search.SearchFragment;
 import com.g3.soundify_musicplayer.ui.library.LibraryFragment;
 import com.g3.soundify_musicplayer.ui.upload.UploadSongActivity;
 import com.g3.soundify_musicplayer.ui.upload.UploadSongFragment;
+import com.g3.soundify_musicplayer.ui.profile.UserProfileFragment;
 import com.g3.soundify_musicplayer.utils.AuthManager;
+import androidx.appcompat.widget.PopupMenu;
 
 public class MainActivity extends BaseActivity {
-    
+
     private AuthManager authManager;
+    private int currentSelectedTab = R.id.nav_home; // Track current tab
 
     @Override
     protected int getLayoutResourceId() {
@@ -55,29 +59,44 @@ public class MainActivity extends BaseActivity {
             int itemId = item.getItemId();
             
             if (itemId == R.id.nav_home) {
+                currentSelectedTab = R.id.nav_home;
                 getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.fragment_container, new HomeFragment())
                     .commit();
                 return true;
             } else if (itemId == R.id.nav_search) {
+                currentSelectedTab = R.id.nav_search;
                 getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.fragment_container, new SearchFragment())
                     .commit();
                 return true;
             } else if (itemId == R.id.nav_library) {
+                currentSelectedTab = R.id.nav_library;
                 getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.fragment_container, new LibraryFragment())
                     .commit();
                 return true;
+            } else if (itemId == R.id.nav_profile) {
+                currentSelectedTab = R.id.nav_profile;
+                // Navigate to current user's profile
+                long currentUserId = authManager.getCurrentUserId();
+                if (currentUserId != -1) {
+                    UserProfileFragment profileFragment = UserProfileFragment.newInstance(currentUserId);
+                    getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, profileFragment)
+                        .commit();
+                } else {
+                    Toast.makeText(this, "Please login first", Toast.LENGTH_SHORT).show();
+                }
+                return true;
             } else if (itemId == R.id.nav_upload) {
+                currentSelectedTab = R.id.nav_upload;
                 // Navigate to UploadSongFragment
                 navigateToUploadSong();
-                return true;
-            } else if (itemId == R.id.nav_logout) {
-                logout();
                 return true;
             }
             return false;
@@ -91,6 +110,16 @@ public class MainActivity extends BaseActivity {
     protected void onResume() {
         super.onResume();
 
+        // Check if we're returning from UserProfile with a specific tab to restore
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("restore_tab")) {
+            int tabToRestore = intent.getIntExtra("restore_tab", R.id.nav_home);
+            restoreTab(tabToRestore);
+            // Clear the extra to prevent repeated restoration
+            intent.removeExtra("restore_tab");
+            return; // Skip the default navigation reset
+        }
+
         // Reset bottom navigation selection when returning from other activities
         // This ensures the upload button doesn't stay selected
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
@@ -101,16 +130,24 @@ public class MainActivity extends BaseActivity {
 
             if (currentFragment instanceof HomeFragment) {
                 bottomNav.setSelectedItemId(R.id.nav_home);
+                currentSelectedTab = R.id.nav_home;
             } else if (currentFragment instanceof SearchFragment) {
                 bottomNav.setSelectedItemId(R.id.nav_search);
+                currentSelectedTab = R.id.nav_search;
             } else if (currentFragment instanceof LibraryFragment) {
                 bottomNav.setSelectedItemId(R.id.nav_library);
+                currentSelectedTab = R.id.nav_library;
+            } else if (currentFragment instanceof UserProfileFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_profile);
+                currentSelectedTab = R.id.nav_profile;
             } else if (currentFragment instanceof UploadSongFragment) {
                 // Don't change navigation for upload fragment
                 // Keep the previous selection
+                currentSelectedTab = R.id.nav_upload;
             } else {
                 // Default to home if unknown fragment
                 bottomNav.setSelectedItemId(R.id.nav_home);
+                currentSelectedTab = R.id.nav_home;
             }
         }
     }
@@ -133,6 +170,21 @@ public class MainActivity extends BaseActivity {
                 .commit();
 
         android.util.Log.d("MainActivity", "Navigating to UploadSongFragment");
+    }
+
+
+
+
+
+    /**
+     * Restore specific tab when returning from UserProfile
+     */
+    private void restoreTab(int tabId) {
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(tabId);
+            currentSelectedTab = tabId;
+        }
     }
 
     /**

@@ -187,6 +187,20 @@ public class SongRepository {
         return songDao.searchPublicSongsWithUploaderInfo(query);
     }
 
+    /**
+     * Get public songs by uploader with uploader information (sync)
+     */
+    public Future<List<SongWithUploaderInfo>> getPublicSongsByUploaderWithInfoSync(long uploaderId) {
+        return executor.submit(() -> songDao.getPublicSongsByUploaderWithInfoSync(uploaderId));
+    }
+
+    /**
+     * Get all songs by uploader with uploader information (sync) - for own profile
+     */
+    public Future<List<SongWithUploaderInfo>> getSongsByUploaderWithInfoSync(long uploaderId) {
+        return executor.submit(() -> songDao.getSongsByUploaderWithInfoSync(uploaderId));
+    }
+
     // Song Detail specific methods
 
     /**

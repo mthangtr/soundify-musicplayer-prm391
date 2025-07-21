@@ -11,6 +11,7 @@ import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.repository.PlaylistRepository;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.repository.SongRepository;
 import com.g3.soundify_musicplayer.data.repository.UserRepository;
 import com.g3.soundify_musicplayer.utils.AuthManager;
@@ -46,6 +47,7 @@ public class UserProfileViewModel extends AndroidViewModel {
     // Content LiveData
     private final MutableLiveData<List<Song>> publicSongs = new MutableLiveData<>();
     private final MutableLiveData<List<Playlist>> publicPlaylists = new MutableLiveData<>();
+    private final MutableLiveData<List<SongWithUploaderInfo>> publicSongsWithUploaderInfo = new MutableLiveData<>();
     
     // Current user ID
     private long currentUserId = -1;
@@ -65,8 +67,24 @@ public class UserProfileViewModel extends AndroidViewModel {
         if (currentUserId == userId) {
             return; // Already loaded
         }
-        
+
         currentUserId = userId;
+        loadUserProfileInternal(userId);
+    }
+
+    /**
+     * Force refresh user profile (even if same userId)
+     */
+    public void refreshUserProfile(long userId) {
+        currentUserId = userId;
+        loadUserProfileInternal(userId);
+    }
+
+    /**
+     * Internal method to load user profile data
+     */
+    private void loadUserProfileInternal(long userId) {
+        android.util.Log.d("UserProfileViewModel", "Loading user profile for userId: " + userId);
         isLoading.setValue(true);
         
         // Load user data in background
@@ -156,17 +174,22 @@ public class UserProfileViewModel extends AndroidViewModel {
             try {
                 // Load public songs
                 Future<List<Song>> songsFuture;
+                Future<List<SongWithUploaderInfo>> songsWithInfoFuture;
                 long currentLoggedUserId = authManager.getCurrentUserId();
                 if (currentLoggedUserId == userId) {
                     // Own profile - show all songs
                     songsFuture = songRepository.getSongsByUploaderSync(userId);
+                    songsWithInfoFuture = songRepository.getSongsByUploaderWithInfoSync(userId);
                 } else {
                     // Other user's profile - show only public songs
                     songsFuture = songRepository.getPublicSongsByUploaderSync(userId);
+                    songsWithInfoFuture = songRepository.getPublicSongsByUploaderWithInfoSync(userId);
                 }
-                
+
                 List<Song> songs = songsFuture.get();
+                List<SongWithUploaderInfo> songsWithInfo = songsWithInfoFuture.get();
                 publicSongs.postValue(songs);
+                publicSongsWithUploaderInfo.postValue(songsWithInfo);
                 
                 // Load public playlists
                 Future<List<Playlist>> playlistsFuture;
@@ -340,7 +363,11 @@ public class UserProfileViewModel extends AndroidViewModel {
     public LiveData<List<Song>> getPublicSongs() {
         return publicSongs;
     }
-    
+
+    public LiveData<List<SongWithUploaderInfo>> getPublicSongsWithUploaderInfo() {
+        return publicSongsWithUploaderInfo;
+    }
+
     public LiveData<List<Playlist>> getPublicPlaylists() {
         return publicPlaylists;
     }

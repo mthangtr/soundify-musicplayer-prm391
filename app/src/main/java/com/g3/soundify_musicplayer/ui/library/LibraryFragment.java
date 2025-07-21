@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,6 +44,7 @@ public class LibraryFragment extends Fragment {
     private LinearLayout emptyStateLayout;
     private TextView emptyStateTitle;
     private TextView emptyStateSubtitle;
+    private Button buttonCreatePlaylist;
 
     // Adapters and ViewModel
     private SongAdapter mySongsAdapter;
@@ -89,6 +91,10 @@ public class LibraryFragment extends Fragment {
         emptyStateLayout = view.findViewById(R.id.empty_state_layout);
         emptyStateTitle = view.findViewById(R.id.empty_state_title);
         emptyStateSubtitle = view.findViewById(R.id.empty_state_subtitle);
+        buttonCreatePlaylist = view.findViewById(R.id.button_create_playlist);
+
+        // Setup create playlist button click listener
+        buttonCreatePlaylist.setOnClickListener(v -> showCreatePlaylistDialog());
     }
 
 
@@ -246,8 +252,18 @@ public class LibraryFragment extends Fragment {
             emptyStateLayout.setVisibility(View.VISIBLE);
             emptyStateTitle.setText(title);
             emptyStateSubtitle.setText(subtitle);
+
+            // Show create playlist button only for playlist tab
+            if (currentTab == TAB_MY_PLAYLISTS && title.contains("playlist")) {
+                buttonCreatePlaylist.setVisibility(View.VISIBLE);
+                emptyStateSubtitle.setVisibility(View.GONE); // Hide subtitle when button is shown
+            } else {
+                buttonCreatePlaylist.setVisibility(View.GONE);
+                emptyStateSubtitle.setVisibility(View.VISIBLE);
+            }
         } else {
             emptyStateLayout.setVisibility(View.GONE);
+            buttonCreatePlaylist.setVisibility(View.GONE);
         }
     }
 
@@ -271,5 +287,64 @@ public class LibraryFragment extends Fragment {
 
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Show dialog to create new playlist
+     */
+    private void showCreatePlaylistDialog() {
+        if (getContext() == null) return;
+
+        // Create dialog with input field
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(getContext());
+        builder.setTitle("Create New Playlist");
+
+        // Create input field
+        final android.widget.EditText input = new android.widget.EditText(getContext());
+        input.setHint("Playlist name");
+        input.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
+
+        // Add padding to input
+        int padding = (int) (16 * getResources().getDisplayMetrics().density);
+        input.setPadding(padding, padding, padding, padding);
+
+        builder.setView(input);
+
+        // Set buttons
+        builder.setPositiveButton("Create", (dialog, which) -> {
+            String playlistName = input.getText().toString().trim();
+            if (!playlistName.isEmpty()) {
+                createNewPlaylist(playlistName);
+            } else {
+                showToast("Please enter a playlist name");
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+
+        // Show dialog
+        android.app.AlertDialog dialog = builder.create();
+        dialog.show();
+
+        // Focus on input and show keyboard
+        input.requestFocus();
+        android.view.inputmethod.InputMethodManager imm =
+            (android.view.inputmethod.InputMethodManager) getContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.showSoftInput(input, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+        }
+    }
+
+    /**
+     * Create new playlist with given name
+     */
+    private void createNewPlaylist(String playlistName) {
+        // TODO: Implement playlist creation through repository
+        // For now, just show a toast
+        showToast("Creating playlist: " + playlistName);
+
+        // Here you would typically call:
+        // libraryViewModel.createPlaylist(playlistName);
+        // or use PlaylistRepository directly
     }
 }

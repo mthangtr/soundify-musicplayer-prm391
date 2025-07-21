@@ -360,7 +360,7 @@ public class UploadSongFragment extends Fragment {
                 viewModel.deleteSong();
                 navigateBack();
             })
-            .setNegativeButton(R.string.cancel, null)
+            .setNegativeButton(R.string.button_cancel, null)
             .show();
     }
 
