@@ -178,6 +178,7 @@ public class SongRepository {
      */
     public LiveData<List<SongWithUploaderInfo>> searchPublicSongsWithUploaderInfo(String query) {
         return songDao.searchPublicSongsWithUploaderInfo(query);
+    }
 
     // Song Detail specific methods
 
