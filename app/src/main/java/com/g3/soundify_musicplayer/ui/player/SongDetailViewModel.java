@@ -33,27 +33,27 @@ import java.util.concurrent.Executors;
  */
 public class SongDetailViewModel extends AndroidViewModel {
 
-    private SongDetailRepository repository;
-    private AuthManager authManager;
-    private ExecutorService executor;
+    private final SongDetailRepository repository;
+    private final AuthManager authManager;
+    private final ExecutorService executor;
 
     // MediaPlaybackService integration
-    private MediaPlaybackService mediaService;
+    private  MediaPlaybackService mediaService;
     private boolean isServiceBound = false;
     
     // LiveData cho UI
-    private MutableLiveData<Song> currentSong = new MutableLiveData<>();
-    private MutableLiveData<Boolean> isLiked = new MutableLiveData<>();
-    private MutableLiveData<Integer> likeCount = new MutableLiveData<>();
-    private MutableLiveData<Integer> commentCount = new MutableLiveData<>();
-    private MutableLiveData<List<Playlist>> userPlaylists = new MutableLiveData<>();
-    private MutableLiveData<List<Long>> playlistsContainingSong = new MutableLiveData<>();
-    private MutableLiveData<List<Song>> relatedSongs = new MutableLiveData<>();
-    private MutableLiveData<List<Song>> moreSongsByArtist = new MutableLiveData<>();
+    private final MutableLiveData<Song> currentSong = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLiked = new MutableLiveData<>();
+    private final MutableLiveData<Integer> likeCount = new MutableLiveData<>();
+    private final MutableLiveData<Integer> commentCount = new MutableLiveData<>();
+    private final MutableLiveData<List<Playlist>> userPlaylists = new MutableLiveData<>();
+    private final MutableLiveData<List<Long>> playlistsContainingSong = new MutableLiveData<>();
+    private final MutableLiveData<List<Song>> relatedSongs = new MutableLiveData<>();
+    private final MutableLiveData<List<Song>> moreSongsByArtist = new MutableLiveData<>();
     
     // Status LiveData
-    private MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
-    private MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
     // Playback LiveData
     private final MutableLiveData<Boolean> isPlaying = new MutableLiveData<>(false);
@@ -146,6 +146,7 @@ public class SongDetailViewModel extends AndroidViewModel {
     /**
      * Add comment to song
      */
+    @SuppressWarnings("unused") // Method có thể được sử dụng trong tương lai
     public void addComment(long songId, long userId, String content) {
         if (content == null || content.trim().isEmpty()) {
             errorMessage.setValue("Nội dung comment không được để trống");
@@ -208,6 +209,7 @@ public class SongDetailViewModel extends AndroidViewModel {
     /**
      * Create new playlist and add song to it
      */
+    @SuppressWarnings("unused") // Method có thể được sử dụng trong tương lai
     public void createPlaylistWithSong(String playlistName, String description, boolean isPublic, long ownerId, long songId) {
         if (playlistName == null || playlistName.trim().isEmpty()) {
             errorMessage.setValue("Tên playlist không được để trống");
@@ -285,12 +287,12 @@ public class SongDetailViewModel extends AndroidViewModel {
     
     public LiveData<Song> getCurrentSong() { return currentSong; }
     public LiveData<Boolean> getIsLiked() { return isLiked; }
-    public LiveData<Integer> getLikeCount() { return likeCount; }
-    public LiveData<Integer> getCommentCount() { return commentCount; }
-    public LiveData<List<Playlist>> getUserPlaylists() { return userPlaylists; }
-    public LiveData<List<Long>> getPlaylistsContainingSong() { return playlistsContainingSong; }
-    public LiveData<List<Song>> getRelatedSongs() { return relatedSongs; }
-    public LiveData<List<Song>> getMoreSongsByArtist() { return moreSongsByArtist; }
+    @SuppressWarnings("unused") public LiveData<Integer> getLikeCount() { return likeCount; }
+    @SuppressWarnings("unused") public LiveData<Integer> getCommentCount() { return commentCount; }
+    @SuppressWarnings("unused") public LiveData<List<Playlist>> getUserPlaylists() { return userPlaylists; }
+    @SuppressWarnings("unused") public LiveData<List<Long>> getPlaylistsContainingSong() { return playlistsContainingSong; }
+    @SuppressWarnings("unused") public LiveData<List<Song>> getRelatedSongs() { return relatedSongs; }
+    @SuppressWarnings("unused") public LiveData<List<Song>> getMoreSongsByArtist() { return moreSongsByArtist; }
     public LiveData<Boolean> getIsLoading() { return isLoading; }
     public LiveData<String> getErrorMessage() { return errorMessage; }
     
@@ -299,6 +301,7 @@ public class SongDetailViewModel extends AndroidViewModel {
         return repository.getCommentsBySong(songId);
     }
     
+    @SuppressWarnings("unused") // Method có thể được sử dụng trong tương lai
     public LiveData<List<User>> getUsersWhoLikedSong(long songId) {
         return repository.getUsersWhoLikedSong(songId);
     }
@@ -341,7 +344,7 @@ public class SongDetailViewModel extends AndroidViewModel {
 
                 @Override
                 public void onPlaybackStateChanged(boolean playing) {
-                    android.util.Log.d("SongDetailViewModel", "onPlaybackStateChanged: " + playing);
+                    // XÓA LOG SPAM - chỉ log khi cần debug
                     isPlaying.postValue(playing);
                     if (playing) {
                         startProgressUpdates();
@@ -359,6 +362,7 @@ public class SongDetailViewModel extends AndroidViewModel {
                     if (dur > 0) {
                         int progressPercent = (int) ((currentPos * 100) / dur);
                         progress.postValue(progressPercent);
+                        // XÓA LOG SPAM - chỉ log khi cần debug
                     }
                 }
             });
@@ -385,15 +389,26 @@ public class SongDetailViewModel extends AndroidViewModel {
      * Phát bài hát mới với navigation context
      */
     public void playSong(Song song, User artist, NavigationContext context) {
+        playSongForced(song, artist, context);
+    }
+
+    /**
+     * Phát bài hát - LUÔN restart từ đầu (dù cùng bài hay khác bài)
+     * Đây là method chính được gọi từ UI khi user click vào bài hát
+     */
+    public void playSongForced(Song song, User artist, NavigationContext context) {
         if (mediaService != null && song != null) {
             currentNavigationContext = context;
+
+            // LUÔN gọi playSong để restart từ đầu
             mediaService.playSong(song, artist);
             currentSong.postValue(song);
-            setCurrentArtist(artist); // Set artist data
+            setCurrentArtist(artist);
             isVisible.postValue(true);
 
-            android.util.Log.d("SongDetailViewModel", "playSong - Song: " + song.getTitle() +
-                ", Artist: " + (artist != null ? artist.getDisplayName() : "NULL"));
+            android.util.Log.d("SongDetailViewModel", "playSongForced - Song: " + song.getTitle() +
+                ", Artist: " + (artist != null ? artist.getDisplayName() : "NULL") +
+                " - Will restart from beginning");
         } else {
             errorMessage.postValue("Service chưa sẵn sàng hoặc bài hát không hợp lệ");
         }
@@ -428,7 +443,7 @@ public class SongDetailViewModel extends AndroidViewModel {
      */
     public void toggleFollow() {
         Boolean currentFollowing = isFollowing.getValue();
-        boolean newFollowing = currentFollowing == null ? true : !currentFollowing;
+        boolean newFollowing = currentFollowing == null || !currentFollowing;
         isFollowing.postValue(newFollowing);
     }
 
@@ -459,19 +474,15 @@ public class SongDetailViewModel extends AndroidViewModel {
                 if (dur > 0) {
                     int progressPercent = (int) ((currentPos * 100) / dur);
                     progress.postValue(progressPercent);
-                    android.util.Log.d("SongDetailViewModel", "Progress synced: " + progressPercent + "%");
+                    // XÓA LOG SPAM - chỉ log khi cần debug
                 }
 
-                android.util.Log.d("SongDetailViewModel", "Song and artist data synced to LiveData");
+                // XÓA LOG SPAM - chỉ log khi cần debug
 
                 if (mediaService.isPlaying()) {
                     startProgressUpdates();
                 }
-            } else {
-                android.util.Log.w("SongDetailViewModel", "No song data in service to sync");
             }
-        } else {
-            android.util.Log.w("SongDetailViewModel", "MediaService is null, cannot sync");
         }
     }
 
@@ -479,20 +490,30 @@ public class SongDetailViewModel extends AndroidViewModel {
      * Progress updates
      */
     private void startProgressUpdates() {
-        stopProgressUpdates();
+        stopProgressUpdates(); // Đảm bảo cleanup trước khi tạo mới
+
         progressRunnable = new Runnable() {
             @Override
             public void run() {
+                // Kiểm tra service và playing state
                 if (mediaService != null && mediaService.isPlaying()) {
-                    long currentPos = mediaService.getCurrentPosition();
-                    long dur = mediaService.getDuration();
-                    currentPosition.postValue(currentPos);
-                    duration.postValue(dur);
-                    if (dur > 0) {
-                        int progressPercent = (int) ((currentPos * 100) / dur);
-                        progress.postValue(progressPercent);
+                    try {
+                        long currentPos = mediaService.getCurrentPosition();
+                        long dur = mediaService.getDuration();
+                        currentPosition.postValue(currentPos);
+                        duration.postValue(dur);
+                        if (dur > 0) {
+                            int progressPercent = (int) ((currentPos * 100) / dur);
+                            progress.postValue(progressPercent);
+                        }
+                        // Chỉ schedule next update nếu vẫn đang phát
+                        if (mediaService.isPlaying()) {
+                            progressHandler.postDelayed(this, 500);
+                        }
+                    } catch (Exception e) {
+                        android.util.Log.w("SongDetailViewModel", "Error updating progress: " + e.getMessage());
+                        stopProgressUpdates(); // Stop nếu có lỗi để tránh leak
                     }
-                    progressHandler.postDelayed(this, 1000);
                 }
             }
         };
@@ -567,7 +588,7 @@ public class SongDetailViewModel extends AndroidViewModel {
     protected void onCleared() {
         super.onCleared();
         stopProgressUpdates();
-        if (isServiceBound && getApplication() != null) {
+        if (isServiceBound) {
             getApplication().unbindService(serviceConnection);
             isServiceBound = false;
         }

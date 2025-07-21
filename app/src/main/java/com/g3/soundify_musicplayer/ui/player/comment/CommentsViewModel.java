@@ -21,9 +21,9 @@ import java.util.concurrent.Executors;
  */
 public class CommentsViewModel extends AndroidViewModel {
 
-    private CommentRepository commentRepository;
-    private AuthManager authManager;
-    private ExecutorService executor;
+    private final CommentRepository commentRepository;
+    private final AuthManager authManager;
+    private final ExecutorService executor;
 
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();

@@ -93,7 +93,7 @@ public class MediaPlaybackService extends Service {
     }
     
     /**
-     * Phát bài hát mới
+     * Phát bài hát mới - LUÔN restart từ đầu
      */
     public void playSong(Song song, User artist) {
         if (song == null || song.getAudioUrl() == null) {
@@ -101,24 +101,31 @@ public class MediaPlaybackService extends Service {
             return;
         }
 
+        boolean isSameSong = currentSong != null && currentSong.getId() == song.getId();
         currentSong = song;
         currentArtist = artist;
 
-        android.util.Log.d("MediaPlaybackService", "Playing song: " + song.getTitle());
+        android.util.Log.d("MediaPlaybackService", "Playing song: " + song.getTitle() +
+            " (Same song: " + isSameSong + ")");
 
         try {
             // Tạo MediaItem từ URL
             MediaItem mediaItem = MediaItem.fromUri(song.getAudioUrl());
 
-            // Set media item và bắt đầu phát
+            // QUAN TRỌNG: Luôn stop và reset trước khi phát bài mới/cũ
+            exoPlayer.stop();
+            exoPlayer.clearMediaItems();
+
+            // Set media item và bắt đầu phát từ đầu
             exoPlayer.setMediaItem(mediaItem);
             exoPlayer.prepare();
+            exoPlayer.seekTo(0); // Đảm bảo bắt đầu từ đầu
             exoPlayer.setPlayWhenReady(true);
 
             // Start foreground service với notification (chỉ khi cần)
             startForegroundService();
 
-            // Thông báo UI về bài hát mới
+            // Thông báo UI về bài hát mới (luôn gọi để refresh UI)
             if (playbackStateListener != null) {
                 android.util.Log.d("MediaPlaybackService", "Calling onSongChanged listener");
                 playbackStateListener.onSongChanged(song, artist);
@@ -126,7 +133,7 @@ public class MediaPlaybackService extends Service {
                 android.util.Log.w("MediaPlaybackService", "playbackStateListener is NULL!");
             }
 
-            android.util.Log.d("MediaPlaybackService", "Song setup completed");
+            android.util.Log.d("MediaPlaybackService", "Song setup completed - playing from start");
         } catch (Exception e) {
             android.util.Log.e("MediaPlaybackService", "Error playing song", e);
         }
@@ -141,6 +148,34 @@ public class MediaPlaybackService extends Service {
         } else {
             exoPlayer.play();
         }
+    }
+
+    /**
+     * Kiểm tra xem có đang phát bài hát này không
+     */
+    public boolean isPlayingSong(long songId) {
+        return currentSong != null && currentSong.getId() == songId && exoPlayer.isPlaying();
+    }
+
+    /**
+     * Kiểm tra xem bài hát này có phải là current song không (dù đang phát hay pause)
+     */
+    public boolean isCurrentSong(long songId) {
+        return currentSong != null && currentSong.getId() == songId;
+    }
+
+    /**
+     * Lấy current song
+     */
+    public Song getCurrentSong() {
+        return currentSong;
+    }
+
+    /**
+     * Lấy current artist
+     */
+    public User getCurrentArtist() {
+        return currentArtist;
     }
     
     /**
@@ -205,19 +240,7 @@ public class MediaPlaybackService extends Service {
         return exoPlayer.isPlaying();
     }
     
-    /**
-     * Lấy bài hát hiện tại
-     */
-    public Song getCurrentSong() {
-        return currentSong;
-    }
-    
-    /**
-     * Lấy artist hiện tại
-     */
-    public User getCurrentArtist() {
-        return currentArtist;
-    }
+    // XÓA duplicate methods - đã có ở lines 170-179
     
     /**
      * Set listener cho UI updates

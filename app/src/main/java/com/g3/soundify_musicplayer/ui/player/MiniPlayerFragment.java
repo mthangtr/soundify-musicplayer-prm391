@@ -1,5 +1,6 @@
 package com.g3.soundify_musicplayer.ui.player;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -30,7 +31,7 @@ public class MiniPlayerFragment extends Fragment {
 
     // UI Components
     private View rootView;
-    private ImageView imageAlbumArt;
+    // Xóa imageAlbumArt - không sử dụng
     private TextView textSongTitle;
     private TextView textArtistName;
     private ImageButton btnPlayPause;
@@ -65,7 +66,7 @@ public class MiniPlayerFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        imageAlbumArt = view.findViewById(R.id.image_album_art);
+        // Xóa imageAlbumArt initialization - không sử dụng
         textSongTitle = view.findViewById(R.id.text_song_title);
         textArtistName = view.findViewById(R.id.text_artist_name);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
@@ -137,10 +138,15 @@ public class MiniPlayerFragment extends Fragment {
             }
         });
 
-        // Observe progress
-        viewModel.getProgress().observe(getViewLifecycleOwner(), progress -> {
-            if (progress != null && currentSong != null) {
-                updateProgress(progress);
+        // XÓA OBSERVER PROGRESS RIÊNG - chỉ dùng currentPosition
+        viewModel.getCurrentPosition().observe(getViewLifecycleOwner(), positionMs -> {
+            if (positionMs != null && currentSong != null) {
+                // Tính progress từ position
+                Long duration = viewModel.getDuration().getValue();
+                if (duration != null && duration > 0) {
+                    int progressPercent = (int) ((positionMs * 100) / duration);
+                    updateProgress(progressPercent);
+                }
             }
         });
     }
@@ -169,12 +175,7 @@ public class MiniPlayerFragment extends Fragment {
         progressBar.setProgress(progressPercent);
     }
 
-    private void updateProgressFromPosition(long positionMs) {
-        if (currentSong != null && currentSong.getDurationMs() != null && currentSong.getDurationMs() > 0) {
-            int progressPercent = (int) ((positionMs * 100.0) / currentSong.getDurationMs());
-            progressBar.setProgress(progressPercent);
-        }
-    }
+    // Xóa updateProgressFromPosition - không sử dụng
 
     private void expandToFullPlayer() {
         if (getActivity() != null && currentSong != null) {
@@ -191,8 +192,9 @@ public class MiniPlayerFragment extends Fragment {
             }
 
             // Start FullPlayerActivity với smooth animation
-            startActivity(intent);
-            getActivity().overridePendingTransition(R.anim.slide_up_in, R.anim.fade_in);
+            ActivityOptions options = ActivityOptions.makeCustomAnimation(
+                getContext(), R.anim.slide_up_in, R.anim.fade_in);
+            startActivity(intent, options.toBundle());
 
             android.util.Log.d("MiniPlayerFragment", "Expanding to FullPlayerActivity for song: " +
                 currentSong.getTitle());

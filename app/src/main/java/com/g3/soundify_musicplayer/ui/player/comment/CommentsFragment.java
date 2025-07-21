@@ -118,7 +118,7 @@ public class CommentsFragment extends Fragment implements CommentAdapter.OnComme
         if (viewModel != null) {
             adapter.setCurrentUserId(viewModel.getCurrentUserId());
         } else {
-            android.util.Log.w("CommentsFragment", "ViewModel is null in setupRecyclerView()");
+            // ViewModel is null - use default
             adapter.setCurrentUserId(-1); // Default to no user
         }
 
@@ -129,11 +129,9 @@ public class CommentsFragment extends Fragment implements CommentAdapter.OnComme
     private void setupViewModel() {
         try {
             viewModel = new ViewModelProvider(this).get(CommentsViewModel.class);
-            if (viewModel == null) {
-                android.util.Log.e("CommentsFragment", "Failed to create CommentsViewModel");
-            }
+            // Xóa log error thừa
         } catch (Exception e) {
-            android.util.Log.e("CommentsFragment", "Error creating CommentsViewModel", e);
+            // Xóa log error thừa - handle gracefully
         }
     }
 
@@ -163,7 +161,7 @@ public class CommentsFragment extends Fragment implements CommentAdapter.OnComme
 
     private void observeViewModel() {
         if (viewModel == null) {
-            android.util.Log.e("CommentsFragment", "ViewModel is null in observeViewModel()");
+            // ViewModel is null - return early
             return;
         }
 
@@ -211,7 +209,7 @@ public class CommentsFragment extends Fragment implements CommentAdapter.OnComme
 
     private void loadComments() {
         if (viewModel == null) {
-            android.util.Log.e("CommentsFragment", "ViewModel is null in loadComments()");
+            // ViewModel is null - return early
             return;
         }
 

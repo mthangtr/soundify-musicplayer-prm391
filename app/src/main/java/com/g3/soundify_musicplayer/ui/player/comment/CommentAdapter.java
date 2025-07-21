@@ -77,13 +77,13 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     }
 
     class CommentViewHolder extends RecyclerView.ViewHolder {
-        private ImageView imageAvatar;
-        private TextView textUsername;
-        private TextView textTime;
-        private TextView textComment;
-        private ImageButton btnLike;
-        private TextView textLikeCount;
-        private ImageButton btnDelete;
+        private final ImageView imageAvatar;
+        private final TextView textUsername;
+        private final TextView textTime;
+        private final TextView textComment;
+        private final ImageButton btnLike;
+        private final TextView textLikeCount;
+        private final ImageButton btnDelete;
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);

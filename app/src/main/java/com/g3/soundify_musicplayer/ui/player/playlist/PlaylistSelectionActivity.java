@@ -18,7 +18,7 @@ import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
-import java.util.Arrays;
+import java.util.List;
 
 /**
  * Activity for selecting a playlist to add a song to
@@ -151,7 +151,7 @@ public class PlaylistSelectionActivity extends AppCompatActivity implements Play
     @Override
     public void onPlaylistClick(Playlist playlist) {
         // Thêm bài hát vào playlist đã chọn
-        viewModel.addSongToPlaylists(songId, Arrays.asList(playlist.getId()));
+        viewModel.addSongToPlaylists(songId, List.of(playlist.getId()));
 
         // Return result to calling activity
         Intent resultIntent = new Intent();
