@@ -8,6 +8,8 @@ import com.g3.soundify_musicplayer.data.dao.SongDao;
 import com.g3.soundify_musicplayer.data.dao.RecentlyPlayedDao;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.RecentlyPlayed;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -146,6 +148,36 @@ public class SongRepository {
      */
     public LiveData<List<Song>> getSuggestedSongs() {
         return songDao.getRandomSongs(10);
+    }
+
+    // ========== METHODS WITH UPLOADER INFORMATION ==========
+
+    /**
+     * Get 10 random suggested songs with uploader information
+     */
+    public LiveData<List<SongWithUploaderInfo>> getSuggestedSongsWithUploaderInfo() {
+        return songDao.getRandomSongsWithUploaderInfo(10);
+    }
+
+    /**
+     * Get 6 most recent songs with uploader information for current user
+     */
+    public LiveData<List<SongWithUploaderInfo>> getRecentSongsWithUploaderInfo(long userId) {
+        return recentlyPlayedDao.getRecentSongsWithUploaderInfo(userId);
+    }
+
+    /**
+     * Get all public songs with uploader information
+     */
+    public LiveData<List<SongWithUploaderInfo>> getPublicSongsWithUploaderInfo() {
+        return songDao.getPublicSongsWithUploaderInfo();
+    }
+
+    /**
+     * Search public songs with uploader information
+     */
+    public LiveData<List<SongWithUploaderInfo>> searchPublicSongsWithUploaderInfo(String query) {
+        return songDao.searchPublicSongsWithUploaderInfo(query);
     }
 
     public void shutdown() {

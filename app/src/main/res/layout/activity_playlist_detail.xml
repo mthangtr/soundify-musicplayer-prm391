@@ -157,15 +157,16 @@
                     tools:text="15 songs" />
 
                 <!-- Songs RecyclerView -->
+
+                <!-- Empty State -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recycler_view_songs"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
-                    tools:listitem="@layout/item_playlist_song"
-                    tools:itemCount="5" />
+                    tools:itemCount="5"
+                    tools:listitem="@layout/item_playlist_song" />
 
-                <!-- Empty State -->
                 <LinearLayout
                     android:id="@+id/layout_empty_state"
                     android:layout_width="match_parent"

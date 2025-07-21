@@ -8,6 +8,8 @@ import androidx.room.Query;
 
 import com.g3.soundify_musicplayer.data.entity.RecentlyPlayed;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 import java.util.List;
 import java.util.concurrent.Future;
@@ -34,6 +36,20 @@ public interface RecentlyPlayedDao {
            "ORDER BY rp.played_at DESC " +
            "LIMIT 6")
     List<Song> getRecentSongsSync(long userId);
+
+    /**
+     * Get 6 most recent songs with uploader information for a user
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN recently_played rp ON s.id = rp.song_id " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE rp.user_id = :userId " +
+           "ORDER BY rp.played_at DESC " +
+           "LIMIT 6")
+    LiveData<List<SongWithUploaderInfo>> getRecentSongsWithUploaderInfo(long userId);
 
     /**
      * Insert or update recently played record

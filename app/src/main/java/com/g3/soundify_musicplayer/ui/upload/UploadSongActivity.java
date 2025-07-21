@@ -378,6 +378,13 @@ public class UploadSongActivity extends AppCompatActivity {
         onBackPressed();
         return true;
     }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        // Add smooth back transition animation
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+    }
     
     @Override
     protected void onDestroy() {
