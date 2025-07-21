@@ -66,7 +66,9 @@
         <!-- Upload Activity -->
         <activity
             android:name=".ui.upload.UploadSongActivity"
-            android:exported="false" />
+            android:parentActivityName=".data.Activity.MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Soundifymusicplayer" />
 
         <!-- Playlist Activities -->
         <activity

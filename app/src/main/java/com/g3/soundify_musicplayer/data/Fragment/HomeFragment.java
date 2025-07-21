@@ -17,9 +17,13 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.Adapter.RecentSongAdapter;
 import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
 import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
+import com.g3.soundify_musicplayer.data.Adapter.RecentSongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.data.Adapter.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
@@ -80,26 +84,29 @@ public class HomeFragment extends Fragment {
         });
         rvMyPlaylists.setAdapter(playlistAdapter);
 
-        // Recently Played Adapter
-        RecentSongAdapter recentAdapter = new RecentSongAdapter(new ArrayList<>(), new RecentSongAdapter.OnRecentSongClick() {
-            @Override
-            public void onPlay(Song s) {
-                Toast.makeText(requireContext(), "Playing: " + s.getTitle(), Toast.LENGTH_SHORT).show();
+        // Recently Played Adapter with Uploader Info
+        RecentSongWithUploaderInfoAdapter recentAdapter = new RecentSongWithUploaderInfoAdapter(
+                new ArrayList<>(),
+                new RecentSongWithUploaderInfoAdapter.OnRecentSongClick() {
+                    @Override
+                    public void onPlay(SongWithUploaderInfo songInfo) {
+                        Toast.makeText(requireContext(), "Playing: " + songInfo.getTitle(), Toast.LENGTH_SHORT).show();
 
-                // Track recently played
-                homeViewModel.trackRecentlyPlayed(s.getId());
+                        // Track recently played
+                        homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                // Show mini player with the selected song
-                showMiniPlayer(s);
-            }
-        });
+                        // Show mini player with the selected song
+                        showMiniPlayerWithSongInfo(songInfo);
+                    }
+                });
         rvRecentlyPlayed.setAdapter(recentAdapter);
 
-        // Observe recent songs from ViewModel
-        homeViewModel.getRecentSongs().observe(getViewLifecycleOwner(), recentSongs -> {
-            if (recentSongs != null) {
-                recentAdapter.updateSongs(recentSongs);
-                android.util.Log.d("HomeFragment", "Recent songs updated: " + recentSongs.size() + " songs");
+        // Observe recent songs with uploader info from ViewModel
+        homeViewModel.getRecentSongs().observe(getViewLifecycleOwner(), recentSongsWithUploader -> {
+            if (recentSongsWithUploader != null) {
+                recentAdapter.updateSongs(recentSongsWithUploader);
+                android.util.Log.d("HomeFragment", "Recent songs updated: " +
+                        recentSongsWithUploader.size() + " songs with uploader info");
             }
         });
 
@@ -111,28 +118,36 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        // All Songs (Suggested) Adapter
-        SongAdapter adt = new SongAdapter(new ArrayList<>(), new SongAdapter.OnSongClick() {
-            @Override public void onPlay(Song s) {
-                Toast.makeText(requireContext(), "Playing: " + s.getTitle(), Toast.LENGTH_SHORT).show();
+        // All Songs (Suggested) Adapter with Uploader Info
+        SongWithUploaderInfoAdapter adt = new SongWithUploaderInfoAdapter(
+                new ArrayList<>(),
+                new SongWithUploaderInfoAdapter.OnSongClick() {
+                    @Override
+                    public void onPlay(SongWithUploaderInfo songInfo) {
+                        Toast.makeText(requireContext(), "Playing: " + songInfo.getTitle(), Toast.LENGTH_SHORT).show();
 
-                // Track recently played
-                homeViewModel.trackRecentlyPlayed(s.getId());
+                        // Track recently played
+                        homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                // Show mini player with the selected song
-                showMiniPlayer(s);
-            }
-            @Override public void onOpenDetail(Song s) {
-                Toast.makeText(requireContext(), "Open detail " + s.getTitle(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                        // Show mini player with the selected song
+                        showMiniPlayerWithSongInfo(songInfo);
+                    }
+
+                    @Override
+                    public void onOpenDetail(SongWithUploaderInfo songInfo) {
+                        Toast.makeText(requireContext(), "Open detail: " + songInfo.getTitle() +
+                                " by " + songInfo.getDisplayUploaderName(),
+                                Toast.LENGTH_SHORT).show();
+                    }
+                });
         rv.setAdapter(adt);
 
-        // Observe suggested songs from ViewModel
-        homeViewModel.getSuggestedSongs().observe(getViewLifecycleOwner(), suggestedSongs -> {
-            if (suggestedSongs != null) {
-                adt.updateData(suggestedSongs);
-                android.util.Log.d("HomeFragment", "Suggested songs updated: " + suggestedSongs.size() + " songs");
+        // Observe suggested songs with uploader info from ViewModel
+        homeViewModel.getSuggestedSongs().observe(getViewLifecycleOwner(), suggestedSongsWithUploader -> {
+            if (suggestedSongsWithUploader != null) {
+                adt.updateData(suggestedSongsWithUploader);
+                android.util.Log.d("HomeFragment", "Suggested songs updated: " +
+                        suggestedSongsWithUploader.size() + " songs with uploader info");
             }
         });
     }
@@ -154,6 +169,35 @@ public class HomeFragment extends Fragment {
 
         // Show mini player using the global manager
         MiniPlayerManager.getInstance().showMiniPlayer(song, mockArtist);
+    }
+
+    // Helper method to show mini player with song and real uploader
+    private void showMiniPlayerWithUploader(Song song, User uploader) {
+        // Show mini player using the global manager with real uploader data
+        MiniPlayerManager.getInstance().showMiniPlayer(song, uploader);
+    }
+
+    // Helper method to show mini player with SongWithUploaderInfo
+    private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
+        // Create Song object from SongWithUploaderInfo
+        Song song = new Song(songInfo.getUploaderId(), songInfo.getTitle(), songInfo.getAudioUrl());
+        song.setId(songInfo.getId());
+        song.setDescription(songInfo.getDescription());
+        song.setCoverArtUrl(songInfo.getCoverArtUrl());
+        song.setGenre(songInfo.getGenre());
+        song.setDurationMs(songInfo.getDurationMs());
+        song.setPublic(songInfo.isPublic());
+        song.setCreatedAt(songInfo.getCreatedAt());
+
+        // Create User object from uploader info
+        User uploader = new User();
+        uploader.setId(songInfo.getUploaderId());
+        uploader.setUsername(songInfo.getUploaderUsername());
+        uploader.setDisplayName(songInfo.getUploaderDisplayName());
+        uploader.setAvatarUrl(songInfo.getUploaderAvatarUrl());
+
+        // Show mini player
+        MiniPlayerManager.getInstance().showMiniPlayer(song, uploader);
     }
 
     // Helper method to create mock artist

@@ -8,6 +8,8 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 import java.util.List;
 import java.util.concurrent.Future;
@@ -71,9 +73,49 @@ public interface SongDao {
     @Query("SELECT * FROM songs")
     List<Song> getAllSongsSync();
 
+
+    // ========== JOIN QUERIES FOR SONG WITH UPLOADER ==========
+
+    /**
+     * Get random songs with uploader information for suggested songs
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE s.is_public = 1 " +
+           "ORDER BY RANDOM() LIMIT :limit")
+    LiveData<List<SongWithUploaderInfo>> getRandomSongsWithUploaderInfo(int limit);
+
+    /**
+     * Get all public songs with uploader information
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE s.is_public = 1 " +
+           "ORDER BY s.created_at DESC")
+    LiveData<List<SongWithUploaderInfo>> getPublicSongsWithUploaderInfo();
+
+    /**
+     * Search public songs with uploader information
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE s.is_public = 1 AND (s.title LIKE '%' || :query || '%' OR s.genre LIKE '%' || :query || '%' OR u.display_name LIKE '%' || :query || '%') " +
+           "ORDER BY s.created_at DESC")
+    LiveData<List<SongWithUploaderInfo>> searchPublicSongsWithUploaderInfo(String query);
+
     /**
      * Get songs by genre (sync version for related songs)
      */
     @Query("SELECT * FROM songs WHERE genre = :genre AND is_public = 1 ORDER BY created_at DESC")
     List<Song> getSongsByGenreSync(String genre);
+
 }

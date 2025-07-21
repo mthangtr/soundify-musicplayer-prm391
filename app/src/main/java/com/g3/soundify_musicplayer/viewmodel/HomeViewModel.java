@@ -10,6 +10,8 @@ import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.RecentlyPlayed;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.PlaylistAccess;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.repository.SongRepository;
 import com.g3.soundify_musicplayer.data.repository.PlaylistRepository;
 import com.g3.soundify_musicplayer.utils.AuthManager;
@@ -27,8 +29,8 @@ public class HomeViewModel extends AndroidViewModel {
     private AuthManager authManager;
     
     // LiveData for recent songs, suggested songs, and recent playlists
-    private LiveData<List<Song>> recentSongs;
-    private LiveData<List<Song>> suggestedSongs;
+    private LiveData<List<SongWithUploaderInfo>> recentSongs;
+    private LiveData<List<SongWithUploaderInfo>> suggestedSongs;
     private LiveData<List<Playlist>> recentPlaylists;
     
     public HomeViewModel(@NonNull Application application) {
@@ -40,8 +42,8 @@ public class HomeViewModel extends AndroidViewModel {
         // Initialize recent songs for current user
         initializeRecentSongs();
 
-        // Initialize suggested songs (random)
-        suggestedSongs = songRepository.getSuggestedSongs();
+        // Initialize suggested songs (random) with uploader info
+        suggestedSongs = songRepository.getSuggestedSongsWithUploaderInfo();
 
         // Initialize recent playlists for current user
         initializeRecentPlaylists();
@@ -50,7 +52,7 @@ public class HomeViewModel extends AndroidViewModel {
     private void initializeRecentSongs() {
         long currentUserId = authManager.getCurrentUserId();
         if (currentUserId != -1) {
-            recentSongs = songRepository.getRecentSongs(currentUserId);
+            recentSongs = songRepository.getRecentSongsWithUploaderInfo(currentUserId);
         } else {
             recentSongs = new MutableLiveData<>();
         }
@@ -66,16 +68,16 @@ public class HomeViewModel extends AndroidViewModel {
     }
     
     /**
-     * Get recent songs LiveData
+     * Get recent songs LiveData with uploader information
      */
-    public LiveData<List<Song>> getRecentSongs() {
+    public LiveData<List<SongWithUploaderInfo>> getRecentSongs() {
         return recentSongs;
     }
 
     /**
-     * Get suggested songs LiveData (10 random songs)
+     * Get suggested songs LiveData with uploader information (10 random songs)
      */
-    public LiveData<List<Song>> getSuggestedSongs() {
+    public LiveData<List<SongWithUploaderInfo>> getSuggestedSongs() {
         return suggestedSongs;
     }
 
@@ -122,10 +124,10 @@ public class HomeViewModel extends AndroidViewModel {
     }
 
     /**
-     * Refresh suggested songs (get new random songs)
+     * Refresh suggested songs (get new random songs with uploader info)
      */
     public void refreshSuggestedSongs() {
-        suggestedSongs = songRepository.getSuggestedSongs();
+        suggestedSongs = songRepository.getSuggestedSongsWithUploaderInfo();
     }
 
     /**

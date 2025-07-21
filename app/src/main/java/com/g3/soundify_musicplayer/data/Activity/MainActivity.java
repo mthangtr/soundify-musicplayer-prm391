@@ -15,6 +15,7 @@ import com.g3.soundify_musicplayer.data.Fragment.HomeFragment;
 import com.g3.soundify_musicplayer.ui.base.BaseActivity;
 import com.g3.soundify_musicplayer.ui.search.SearchFragment;
 import com.g3.soundify_musicplayer.ui.library.LibraryFragment;
+import com.g3.soundify_musicplayer.ui.upload.UploadSongActivity;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
 public class MainActivity extends BaseActivity {
@@ -71,8 +72,8 @@ public class MainActivity extends BaseActivity {
                     .commit();
                 return true;
             } else if (itemId == R.id.nav_upload) {
-                Toast.makeText(this, "Upload clicked", Toast.LENGTH_SHORT).show();
-                // TODO: Navigate to UploadFragment
+                // Navigate to UploadSongActivity
+                navigateToUploadSong();
                 return true;
             } else if (itemId == R.id.nav_logout) {
                 logout();
@@ -84,7 +85,43 @@ public class MainActivity extends BaseActivity {
         // Set Home as selected by default
         bottomNav.setSelectedItemId(R.id.nav_home);
     }
-    
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // Reset bottom navigation selection when returning from other activities
+        // This ensures the upload button doesn't stay selected
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        if (bottomNav != null) {
+            // Check current fragment and set appropriate navigation item
+            androidx.fragment.app.Fragment currentFragment = getSupportFragmentManager()
+                    .findFragmentById(R.id.fragment_container);
+
+            if (currentFragment instanceof HomeFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_home);
+            } else if (currentFragment instanceof SearchFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_search);
+            } else if (currentFragment instanceof LibraryFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_library);
+            } else {
+                // Default to home if unknown fragment
+                bottomNav.setSelectedItemId(R.id.nav_home);
+            }
+        }
+    }
+
+    /**
+     * Navigate to UploadSongActivity for new song upload
+     */
+    private void navigateToUploadSong() {
+        Intent intent = UploadSongActivity.createUploadIntent(this);
+        startActivity(intent);
+
+        // Add smooth transition animation
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+    }
+
     private void logout() {
         // Clear user session
         authManager.logout();
