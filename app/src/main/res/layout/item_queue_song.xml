@@ -18,7 +18,7 @@
         android:layout_height="@dimen/icon_size_small"
         android:src="@drawable/ic_play"
         android:contentDescription="@string/cd_currently_playing"
-        android:tint="@color/accent_blue"
+        app:tint="@color/accent_blue"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -114,7 +114,7 @@
             android:layout_height="@dimen/min_touch_target"
             android:src="@drawable/ic_drag_handle"
             android:contentDescription="@string/cd_drag_handle"
-            android:tint="@color/text_tertiary"
+            app:tint="@color/text_tertiary"
             android:padding="@dimen/spacing_sm"
             android:background="?android:attr/selectableItemBackgroundBorderless" />
 

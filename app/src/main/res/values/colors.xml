@@ -15,6 +15,7 @@
     <color name="text_tertiary">#C7C7CC</color>
 
     <!-- Accent Colors -->
+    <color name="accent_primary">#007AFF</color>
     <color name="accent_blue">#007AFF</color>
     <color name="accent_red">#FF3B30</color>
     <color name="accent_green">#34C759</color>

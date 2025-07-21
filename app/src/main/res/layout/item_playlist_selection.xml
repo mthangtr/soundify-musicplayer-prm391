@@ -89,7 +89,7 @@
         android:layout_height="@dimen/icon_size_small"
         android:src="@drawable/ic_chevron_right"
         android:contentDescription="@string/cd_select_playlist"
-        android:tint="@color/text_tertiary"
+        app:tint="@color/text_tertiary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

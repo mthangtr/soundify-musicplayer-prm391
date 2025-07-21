@@ -60,6 +60,6 @@
             android:layout_alignParentEnd="true"
             android:background="@android:color/transparent"
             android:src="@android:drawable/ic_media_play"
-            android:tint="@android:color/white"/>
+            app:tint="@android:color/white"/>
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

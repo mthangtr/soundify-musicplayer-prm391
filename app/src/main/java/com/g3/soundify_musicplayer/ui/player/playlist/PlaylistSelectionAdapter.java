@@ -1,4 +1,4 @@
-package com.g3.soundify_musicplayer.ui.playlist;
+package com.g3.soundify_musicplayer.ui.player.playlist;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -13,11 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Adapter for displaying playlists in selection mode

@@ -28,7 +28,7 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_arrow_back"
             android:contentDescription="@string/cd_back_button"
-            android:tint="@color/text_primary" />
+            app:tint="@color/text_primary" />
 
         <!-- Title Container -->
         <LinearLayout

@@ -21,6 +21,7 @@ import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.SongDetailRepository;
 import com.g3.soundify_musicplayer.service.MediaPlaybackService;
+import com.g3.soundify_musicplayer.utils.AuthManager;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -33,6 +34,7 @@ import java.util.concurrent.Executors;
 public class SongDetailViewModel extends AndroidViewModel {
 
     private SongDetailRepository repository;
+    private AuthManager authManager;
     private ExecutorService executor;
 
     // MediaPlaybackService integration
@@ -71,6 +73,7 @@ public class SongDetailViewModel extends AndroidViewModel {
     public SongDetailViewModel(@NonNull Application application) {
         super(application);
         repository = new SongDetailRepository(application);
+        authManager = new AuthManager(application);
         executor = Executors.newFixedThreadPool(2);
 
         // Initialize values
@@ -148,20 +151,33 @@ public class SongDetailViewModel extends AndroidViewModel {
             errorMessage.setValue("Nội dung comment không được để trống");
             return;
         }
-        
+
         executor.execute(() -> {
             try {
                 Long commentId = repository.addComment(songId, userId, content.trim()).get();
                 if (commentId != null && commentId > 0) {
                     // Update comment count
-                    Integer newCount = repository.getCommentCountBySong(songId).get();
-                    commentCount.postValue(newCount);
+                    refreshCommentCount(songId);
                 } else {
                     errorMessage.postValue("Không thể thêm comment");
                 }
-                
+
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi thêm comment: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Refresh comment count for a song (useful when comments are added/deleted from other screens)
+     */
+    public void refreshCommentCount(long songId) {
+        executor.execute(() -> {
+            try {
+                Integer newCount = repository.getCommentCountBySong(songId).get();
+                commentCount.postValue(newCount);
+            } catch (Exception e) {
+                android.util.Log.e("SongDetailViewModel", "Error refreshing comment count", e);
             }
         });
     }
@@ -259,8 +275,10 @@ public class SongDetailViewModel extends AndroidViewModel {
     }
     
     private long getCurrentUserId() {
-        // TODO: Get current user ID from session/preferences
-        return 1L; // Mock user ID for now
+        if (authManager != null) {
+            return authManager.getCurrentUserId();
+        }
+        return 1L; // Fallback user ID
     }
     
     // ========== GETTERS FOR LIVEDATA ==========

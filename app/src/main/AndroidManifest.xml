@@ -91,7 +91,7 @@
 
         <!-- Playlist Activities -->
         <activity
-            android:name=".ui.playlist.PlaylistSelectionActivity"
+            android:name=".ui.player.playlist.PlaylistSelectionActivity"
             android:parentActivityName=".data.Activity.MainActivity"
             android:exported="false" />
 
