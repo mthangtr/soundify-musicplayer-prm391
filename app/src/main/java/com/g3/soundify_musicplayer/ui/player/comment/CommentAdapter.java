@@ -25,9 +25,15 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
     private List<CommentWithUser> comments;
     private Context context;
     private OnCommentLikeListener likeListener;
+    private OnCommentDeleteListener deleteListener;
+    private long currentUserId;
 
     public interface OnCommentLikeListener {
         void onCommentLike(CommentWithUser comment, int position);
+    }
+
+    public interface OnCommentDeleteListener {
+        void onCommentDelete(CommentWithUser comment, int position);
     }
 
     public CommentAdapter(Context context) {
@@ -42,6 +48,14 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
 
     public void setOnCommentLikeListener(OnCommentLikeListener listener) {
         this.likeListener = listener;
+    }
+
+    public void setOnCommentDeleteListener(OnCommentDeleteListener listener) {
+        this.deleteListener = listener;
+    }
+
+    public void setCurrentUserId(long userId) {
+        this.currentUserId = userId;
     }
 
     @NonNull
@@ -69,6 +83,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
         private TextView textComment;
         private ImageButton btnLike;
         private TextView textLikeCount;
+        private ImageButton btnDelete;
 
         public CommentViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -78,6 +93,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             textComment = itemView.findViewById(R.id.text_comment);
             btnLike = itemView.findViewById(R.id.btn_like);
             textLikeCount = itemView.findViewById(R.id.text_like_count);
+            btnDelete = itemView.findViewById(R.id.btn_delete);
         }
 
         public void bind(CommentWithUser commentWithUser, int position) {
@@ -104,18 +120,49 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.CommentV
             // Set like button click listener
             btnLike.setOnClickListener(v -> {
                 if (likeListener != null) {
+                    // Toggle like state immediately for instant UI feedback
+                    boolean newLikeState = !commentWithUser.isLiked();
+                    commentWithUser.setLiked(newLikeState);
+
+                    // Update like count immediately
+                    int currentCount = commentWithUser.getLikeCount();
+                    if (newLikeState) {
+                        commentWithUser.setLikeCount(currentCount + 1);
+                    } else {
+                        commentWithUser.setLikeCount(Math.max(0, currentCount - 1));
+                    }
+
+                    // Update UI immediately
+                    updateLikeButton(newLikeState);
+                    updateLikeCount(commentWithUser.getLikeCount());
+
+                    // Notify listener for backend update
                     likeListener.onCommentLike(commentWithUser, position);
                 }
             });
+
+            // Show/hide delete button based on ownership
+            boolean canDelete = currentUserId != -1 && commentWithUser.getComment() != null &&
+                               commentWithUser.getComment().getUserId() == currentUserId;
+            btnDelete.setVisibility(canDelete ? View.VISIBLE : View.GONE);
+
+            // Set delete button click listener
+            if (canDelete) {
+                btnDelete.setOnClickListener(v -> {
+                    if (deleteListener != null) {
+                        deleteListener.onCommentDelete(commentWithUser, position);
+                    }
+                });
+            }
         }
 
         private void updateLikeButton(boolean isLiked) {
             if (isLiked) {
                 btnLike.setImageResource(R.drawable.ic_heart_filled);
-                btnLike.setColorFilter(context.getColor(R.color.button_like_active));
+                btnLike.setColorFilter(context.getResources().getColor(R.color.button_like_active, null));
             } else {
                 btnLike.setImageResource(R.drawable.ic_heart);
-                btnLike.setColorFilter(context.getColor(R.color.button_like_inactive));
+                btnLike.setColorFilter(context.getResources().getColor(R.color.button_like_inactive, null));
             }
         }
 

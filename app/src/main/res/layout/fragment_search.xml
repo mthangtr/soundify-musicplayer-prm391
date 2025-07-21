@@ -170,7 +170,7 @@
             android:layout_width="@dimen/icon_size_xl"
             android:layout_height="@dimen/icon_size_xl"
             android:src="@drawable/ic_search"
-            android:tint="@color/text_tertiary"
+            app:tint="@color/text_tertiary"
             android:contentDescription="@string/search_empty_title" />
 
         <!-- Empty Title -->

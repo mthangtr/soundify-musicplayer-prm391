@@ -49,7 +49,6 @@ public class FullPlayerFragment extends Fragment {
     private ImageButton btnPrevious;
     private ImageButton btnPlayPause;
     private ImageButton btnNext;
-    private EditText editComment;
     private ImageButton btnLike;
     private ImageButton btnComments;
     private ImageButton btnAddToPlaylist;
@@ -161,10 +160,7 @@ public class FullPlayerFragment extends Fragment {
         btnPrevious = view.findViewById(R.id.btn_previous);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
         btnNext = view.findViewById(R.id.btn_next);
-        
-        // Comment input
-        editComment = view.findViewById(R.id.edit_comment);
-        
+
         // Bottom action bar
         btnLike = view.findViewById(R.id.btn_like);
         btnComments = view.findViewById(R.id.btn_comments);
@@ -249,18 +245,6 @@ public class FullPlayerFragment extends Fragment {
                 // Cho phép auto update trở lại
                 isUserSeeking = false;
             }
-        });
-        
-        // Comment input - ĐƠN GIẢN HÓA: Chỉ hiển thị toast, không cần backend
-        editComment.setOnEditorActionListener((v, actionId, event) -> {
-            String comment = editComment.getText().toString().trim();
-            if (!comment.isEmpty() && currentSong != null) {
-                // ĐƠN GIẢN HÓA: Chỉ hiển thị success message, không lưu comment
-                editComment.setText("");
-                showToast("Comment added: " + comment);
-                return true;
-            }
-            return false;
         });
         
         // Bottom action bar - Like button với visual feedback
@@ -515,6 +499,13 @@ public class FullPlayerFragment extends Fragment {
         if (getActivity() != null && currentSong != null) {
             // Create and show comments fragment
             CommentsFragment commentsFragment = CommentsFragment.newInstance(currentSong.getId());
+
+            // Set up comment change listener to refresh comment count
+            commentsFragment.setCommentChangeListener(() -> {
+                if (viewModel != null && currentSong != null) {
+                    viewModel.refreshCommentCount(currentSong.getId());
+                }
+            });
 
             // SỬA LỖI: Sử dụng đúng container ID cho FullPlayerActivity
             int containerId = getActivity() instanceof FullPlayerActivity ?

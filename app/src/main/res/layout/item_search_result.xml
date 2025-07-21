@@ -36,7 +36,7 @@
         android:layout_width="@dimen/icon_size_small"
         android:layout_height="@dimen/icon_size_small"
         android:layout_marginStart="@dimen/spacing_small"
-        android:tint="@color/text_secondary"
+        app:tint="@color/text_secondary"
         android:visibility="gone"
         app:layout_constraintStart_toEndOf="@id/card_item_image"
         app:layout_constraintTop_toTopOf="@id/card_item_image"
@@ -105,7 +105,7 @@
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_play"
         android:contentDescription="@string/cd_mini_player_play_pause"
-        android:tint="@color/player_control_active"
+        app:tint="@color/player_control_active"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

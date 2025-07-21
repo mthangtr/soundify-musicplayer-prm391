@@ -148,20 +148,33 @@ public class SongDetailViewModel extends AndroidViewModel {
             errorMessage.setValue("Nội dung comment không được để trống");
             return;
         }
-        
+
         executor.execute(() -> {
             try {
                 Long commentId = repository.addComment(songId, userId, content.trim()).get();
                 if (commentId != null && commentId > 0) {
                     // Update comment count
-                    Integer newCount = repository.getCommentCountBySong(songId).get();
-                    commentCount.postValue(newCount);
+                    refreshCommentCount(songId);
                 } else {
                     errorMessage.postValue("Không thể thêm comment");
                 }
-                
+
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi thêm comment: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Refresh comment count for a song (useful when comments are added/deleted from other screens)
+     */
+    public void refreshCommentCount(long songId) {
+        executor.execute(() -> {
+            try {
+                Integer newCount = repository.getCommentCountBySong(songId).get();
+                commentCount.postValue(newCount);
+            } catch (Exception e) {
+                android.util.Log.e("SongDetailViewModel", "Error refreshing comment count", e);
             }
         });
     }
