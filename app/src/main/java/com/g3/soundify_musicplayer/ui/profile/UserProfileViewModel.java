@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.PlaylistRepository;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.repository.SongRepository;
@@ -29,6 +30,7 @@ public class UserProfileViewModel extends AndroidViewModel {
     private final UserRepository userRepository;
     private final SongRepository songRepository;
     private final PlaylistRepository playlistRepository;
+    private final MusicPlayerRepository musicPlayerRepository;
     private final AuthManager authManager;
     
     // LiveData for UI state
@@ -57,6 +59,7 @@ public class UserProfileViewModel extends AndroidViewModel {
         this.userRepository = new UserRepository(application);
         this.songRepository = new SongRepository(application);
         this.playlistRepository = new PlaylistRepository(application);
+        this.musicPlayerRepository = new MusicPlayerRepository(application);
         this.authManager = new AuthManager(application);
     }
     
@@ -127,9 +130,22 @@ public class UserProfileViewModel extends AndroidViewModel {
      * Load follow status between current user and profile user
      */
     private void loadFollowStatus(long followerId, long followeeId) {
-        // TODO: Implement when FollowRepository is available
-        // For now, set to false
-        isFollowing.postValue(false);
+        if (followerId == -1 || followerId == followeeId) {
+            // Not logged in or viewing own profile
+            isFollowing.postValue(false);
+            return;
+        }
+
+        new Thread(() -> {
+            try {
+                Future<Boolean> followStatusFuture = musicPlayerRepository.isFollowing(followerId, followeeId);
+                Boolean followStatus = followStatusFuture.get();
+                isFollowing.postValue(followStatus != null ? followStatus : false);
+            } catch (ExecutionException | InterruptedException e) {
+                isFollowing.postValue(false);
+                android.util.Log.e("UserProfileViewModel", "Error loading follow status", e);
+            }
+        }).start();
     }
     
     /**
@@ -138,13 +154,15 @@ public class UserProfileViewModel extends AndroidViewModel {
     private void loadUserStats(long userId) {
         new Thread(() -> {
             try {
-                // Load followers count
-                // TODO: Implement when Follow entity is available
-                followersCount.postValue(0);
-                
-                // Load following count
-                // TODO: Implement when Follow entity is available
-                followingCount.postValue(0);
+                // Load followers count using MusicPlayerRepository
+                Future<Integer> followersCountFuture = musicPlayerRepository.getFollowersCount(userId);
+                Integer followersCountValue = followersCountFuture.get();
+                followersCount.postValue(followersCountValue != null ? followersCountValue : 0);
+
+                // Load following count using MusicPlayerRepository
+                Future<Integer> followingCountFuture = musicPlayerRepository.getFollowingCount(userId);
+                Integer followingCountValue = followingCountFuture.get();
+                followingCount.postValue(followingCountValue != null ? followingCountValue : 0);
                 
                 // Load songs count (public songs only for other users)
                 Future<List<Song>> songsFuture;
@@ -161,7 +179,11 @@ public class UserProfileViewModel extends AndroidViewModel {
                 songsCount.postValue(songs != null ? songs.size() : 0);
                 
             } catch (ExecutionException | InterruptedException e) {
-                // Handle error silently for stats
+                // Handle error - set default values
+                followersCount.postValue(0);
+                followingCount.postValue(0);
+                songsCount.postValue(0);
+                android.util.Log.e("UserProfileViewModel", "Error loading user stats", e);
             }
         }).start();
     }
@@ -236,31 +258,33 @@ public class UserProfileViewModel extends AndroidViewModel {
         
         isLoading.setValue(true);
         
+        // Optimistic UI update
+        isFollowing.setValue(newFollowStatus);
+
         new Thread(() -> {
             try {
-                // TODO: Implement follow/unfollow operations when FollowRepository is available
-                // For now, just toggle the status
-                Thread.sleep(500); // Simulate network delay
-                
-                isFollowing.postValue(newFollowStatus);
-                
-                String message = newFollowStatus ? 
+                // Perform actual follow/unfollow operation
+                if (newFollowStatus) {
+                    // Follow
+                    musicPlayerRepository.followUser(currentLoggedUserId, user.getId()).get();
+                } else {
+                    // Unfollow
+                    musicPlayerRepository.unfollowUser(currentLoggedUserId, user.getId()).get();
+                }
+
+                String message = newFollowStatus ?
                     "Now following " + user.getDisplayName() :
                     "Unfollowed " + user.getDisplayName();
                 successMessage.postValue(message);
-                
-                // Update followers count
-                Integer currentCount = followersCount.getValue();
-                int newCount = currentCount != null ? currentCount : 0;
-                if (newFollowStatus) {
-                    newCount++;
-                } else {
-                    newCount = Math.max(0, newCount - 1);
-                }
-                followersCount.postValue(newCount);
-                
-            } catch (InterruptedException e) {
+
+                // Reload user stats to get accurate counts
+                loadUserStats(user.getId());
+
+            } catch (ExecutionException | InterruptedException e) {
+                // Revert optimistic update on error
+                isFollowing.postValue(!newFollowStatus);
                 errorMessage.postValue("Error updating follow status");
+                android.util.Log.e("UserProfileViewModel", "Error toggling follow status", e);
             } finally {
                 isLoading.postValue(false);
             }
@@ -375,7 +399,14 @@ public class UserProfileViewModel extends AndroidViewModel {
     public long getCurrentUserId() {
         return currentUserId;
     }
-    
+
+    public void refreshUserData() {
+        User user = currentUser.getValue();
+        if (user != null) {
+            loadUserProfileInternal(user.getId());
+        }
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();

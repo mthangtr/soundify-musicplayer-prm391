@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,12 +20,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.ui.player.FullPlayerFragment;
+import com.g3.soundify_musicplayer.ui.player.FullPlayerActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
-import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.List;
 
 /**
  * Fragment for the Search screen.
@@ -44,10 +46,10 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     private TextView textEmptyTitle;
     private TextView textEmptySubtitle;
 
-    // ViewModels and Adapter - THỐNG NHẤT ARCHITECTURE
+    // ViewModel and Adapter
     private SearchViewModel viewModel;
-    private SongDetailViewModel songDetailViewModel;
     private SearchAdapter adapter;
+    private SongDetailViewModel songDetailViewModel;
 
     // Current state
     private String currentQuery = "";
@@ -89,15 +91,17 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     private void setupRecyclerView() {
         adapter = new SearchAdapter(requireContext());
         adapter.setOnSearchResultClickListener(this);
-        
+
         recyclerSearchResults.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerSearchResults.setAdapter(adapter);
     }
 
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
-        // Sử dụng SongDetailViewModel THỐNG NHẤT (Activity-scoped)
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+
+        // Set current user ID in adapter
+        adapter.setCurrentUserId(viewModel.getCurrentUserId());
     }
 
     private void setupSearchInput() {
@@ -187,6 +191,20 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
                 showToast("Search error: " + error);
             }
         });
+
+        // Observe following user IDs
+        viewModel.getFollowingUserIds().observe(getViewLifecycleOwner(), followingIds -> {
+            if (followingIds != null) {
+                adapter.setFollowingUserIds(followingIds);
+            }
+        });
+
+        // Observe follow messages
+        viewModel.getFollowMessage().observe(getViewLifecycleOwner(), message -> {
+            if (message != null && !message.isEmpty()) {
+                showToast(message);
+            }
+        });
     }
 
     private void updateResultsCount(int count) {
@@ -226,7 +244,7 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     @Override
     public void onSongClick(SearchResult result) {
         if (result.getSong() != null && result.getUser() != null) {
-            // Show mini player with the selected song using UNIFIED ViewModel
+            // Show mini player with the selected song
             songDetailViewModel.playSong(result.getSong(), result.getUser());
             showToast("Playing: " + result.getPrimaryText());
         }
@@ -252,19 +270,17 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     public void onActionClick(SearchResult result) {
         switch (result.getType()) {
             case SONG:
-                // Play song and optionally navigate to full player
+                // Play song using SongDetailViewModel and navigate to full player
                 if (result.getSong() != null && result.getUser() != null) {
+                    // Show mini player using SongDetailViewModel
                     songDetailViewModel.playSong(result.getSong(), result.getUser());
-                    
+
                     // Navigate to full player
-                    Intent intent = new Intent(getContext(), FullPlayerFragment.class);
+                    Intent intent = new Intent(getContext(), FullPlayerActivity.class);
                     intent.putExtra("song_id", result.getSong().getId());
+                    intent.putExtra("uploader_id", result.getUser().getId());
                     startActivity(intent);
                 }
-                break;
-            case ARTIST:
-                // Follow/unfollow artist
-                showToast("Follow: " + result.getPrimaryText());
                 break;
             case PLAYLIST:
                 // Play playlist
@@ -273,11 +289,26 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         }
     }
 
+    @Override
+    public void onFollowClick(SearchResult result, boolean isCurrentlyFollowing) {
+        if (result.getUser() != null) {
+            // Toggle follow status - optimistic UI update will handle immediate feedback
+            viewModel.toggleFollowStatus(result.getUser());
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh follow states when returning to search
+        if (viewModel != null) {
+            viewModel.refreshFollowingUsers();
+        }
+    }
+
     private void showToast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         }
     }
-
-
 }

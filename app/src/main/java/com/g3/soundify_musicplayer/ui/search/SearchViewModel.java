@@ -1,6 +1,8 @@
 package com.g3.soundify_musicplayer.ui.search;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -11,12 +13,16 @@ import androidx.lifecycle.Observer;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.SongRepository;
 import com.g3.soundify_musicplayer.data.repository.UserRepository;
 import com.g3.soundify_musicplayer.data.repository.PlaylistRepository;
+import com.g3.soundify_musicplayer.utils.AuthManager;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -40,9 +46,15 @@ public class SearchViewModel extends AndroidViewModel {
     private SongRepository songRepository;
     private UserRepository userRepository;
     private PlaylistRepository playlistRepository;
+    private MusicPlayerRepository musicPlayerRepository;
+    private AuthManager authManager;
     private ExecutorService executor;
 
     private String lastQuery = "";
+
+    // Follow state tracking
+    private final MutableLiveData<Set<Long>> followingUserIds = new MutableLiveData<>(new HashSet<>());
+    private final MutableLiveData<String> followMessage = new MutableLiveData<>();
 
     public SearchViewModel(@NonNull Application application) {
         super(application);
@@ -51,10 +63,15 @@ public class SearchViewModel extends AndroidViewModel {
         songRepository = new SongRepository(application);
         userRepository = new UserRepository(application);
         playlistRepository = new PlaylistRepository(application);
-        executor = Executors.newFixedThreadPool(2);
+        musicPlayerRepository = new MusicPlayerRepository(application);
+        authManager = new AuthManager(application);
+        executor = Executors.newFixedThreadPool(4);
 
         // Initialize with empty results
         searchResults.setValue(new ArrayList<>());
+
+        // Load current user's following list
+        loadFollowingUsers();
     }
 
     // Public methods for Fragment to call
@@ -140,6 +157,18 @@ public class SearchViewModel extends AndroidViewModel {
 
     public LiveData<String> getCurrentQuery() {
         return currentQuery;
+    }
+
+    public LiveData<Set<Long>> getFollowingUserIds() {
+        return followingUserIds;
+    }
+
+    public LiveData<String> getFollowMessage() {
+        return followMessage;
+    }
+
+    public long getCurrentUserId() {
+        return authManager.getCurrentUserId();
     }
 
     // Private methods for database search
@@ -305,6 +334,101 @@ public class SearchViewModel extends AndroidViewModel {
             android.util.Log.e("SearchViewModel", "Error getting playlist song count", e);
             return 0;
         }
+    }
+
+    // Follow functionality methods
+    private void loadFollowingUsers() {
+        long currentUserId = authManager.getCurrentUserId();
+        if (currentUserId == -1) {
+            followingUserIds.postValue(new HashSet<>());
+            return;
+        }
+
+        executor.execute(() -> {
+            try {
+                // Get following users from repository and observe changes
+                LiveData<List<User>> followingLiveData = musicPlayerRepository.getFollowing(currentUserId);
+
+                // We need to observe this on main thread
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    followingLiveData.observeForever(followingUsers -> {
+                        if (followingUsers != null) {
+                            Set<Long> followingIds = new HashSet<>();
+                            for (User user : followingUsers) {
+                                followingIds.add(user.getId());
+                            }
+                            followingUserIds.setValue(followingIds);
+                        }
+                    });
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("SearchViewModel", "Error loading following users", e);
+                followingUserIds.postValue(new HashSet<>());
+            }
+        });
+    }
+
+    public void refreshFollowingUsers() {
+        loadFollowingUsers();
+    }
+
+    public void toggleFollowStatus(User user) {
+        long currentUserId = authManager.getCurrentUserId();
+        if (currentUserId == -1) {
+            followMessage.setValue("Please log in to follow users");
+            return;
+        }
+
+        if (user.getId() == currentUserId) {
+            followMessage.setValue("Cannot follow yourself");
+            return;
+        }
+
+        Set<Long> currentFollowing = followingUserIds.getValue();
+        if (currentFollowing == null) {
+            currentFollowing = new HashSet<>();
+        }
+
+        final Set<Long> finalCurrentFollowing = currentFollowing;
+        boolean isCurrentlyFollowing = currentFollowing.contains(user.getId());
+
+        // Optimistic UI update - update state immediately
+        Set<Long> optimisticFollowing = new HashSet<>(finalCurrentFollowing);
+        if (isCurrentlyFollowing) {
+            optimisticFollowing.remove(user.getId());
+        } else {
+            optimisticFollowing.add(user.getId());
+        }
+        followingUserIds.setValue(optimisticFollowing);
+
+        // Show immediate feedback
+        String immediateMessage = isCurrentlyFollowing ?
+            "Unfollowed " + (user.getDisplayName() != null ? user.getDisplayName() : user.getUsername()) :
+            "Now following " + (user.getDisplayName() != null ? user.getDisplayName() : user.getUsername());
+        followMessage.setValue(immediateMessage);
+
+        // Perform background operation
+        executor.execute(() -> {
+            try {
+                if (isCurrentlyFollowing) {
+                    // Unfollow
+                    musicPlayerRepository.unfollowUser(currentUserId, user.getId()).get();
+                } else {
+                    // Follow
+                    musicPlayerRepository.followUser(currentUserId, user.getId()).get();
+                }
+
+                // Success - the LiveData observer will handle the final state update
+                android.util.Log.d("SearchViewModel", "Follow operation completed successfully");
+
+            } catch (Exception e) {
+                // Rollback optimistic update on error
+                followingUserIds.postValue(finalCurrentFollowing);
+                followMessage.postValue("Error updating follow status");
+                android.util.Log.e("SearchViewModel", "Error toggling follow status", e);
+            }
+        });
     }
 
     @Override

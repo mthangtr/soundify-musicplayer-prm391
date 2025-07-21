@@ -17,27 +17,24 @@
     <string name="player_share">Share</string>
 
     <!-- Time and Duration -->
-    <string name="time_format">%d:%02d</string>
+    <string name="time_format" formatted="false">%d:%02d</string>
     <string name="time_zero">0:00</string>
     <string name="duration_unknown">--:--</string>
 
     <!-- Comment Section -->
     <string name="comment_hint">Add a comment…</string>
-    <string name="hint_add_comment">Add a comment…</string>
     <string name="comment_post">Post</string>
     <string name="comment_count">%d comments</string>
     <string name="comment_count_single">1 comment</string>
     <string name="comment_count_none">No comments</string>
-    <string name="cd_send_comment">Send comment</string>
-    <string name="cd_delete_comment">Delete comment</string>
-    <string name="comment_likes_count">%d likes</string>
-    <string name="comment_likes_count_single">1 like</string>
 
     <!-- Comments Screen -->
     <string name="comments_title">Comments</string>
     <string name="comments_empty">No comments yet</string>
     <string name="comments_empty_subtitle">Be the first to comment on this song</string>
     <string name="cd_comment_like_button">Like comment</string>
+    <string name="comment_likes_count">%d likes</string>
+    <string name="comment_likes_count_single">1 like</string>
     <string name="comment_time_ago">%s ago</string>
     <string name="just_now">Just now</string>
     <string name="minutes_ago">%d minutes ago</string>
@@ -226,6 +223,16 @@
     <string name="user_profile_following">Following</string>
     <string name="user_profile_edit_profile">Edit Profile</string>
 
+    <!-- Follow Actions (Search) -->
+    <string name="search_follow">Follow</string>
+    <string name="search_following">Following</string>
+    <string name="search_unfollow">Unfollow</string>
+    <string name="search_followed_user">Now following %s</string>
+    <string name="search_unfollowed_user">Unfollowed %s</string>
+    <string name="search_error_follow_action">Error updating follow status</string>
+    <string name="search_error_not_logged_in">Please log in to follow users</string>
+    <string name="search_error_cannot_follow_self">Cannot follow yourself</string>
+
     <!-- Profile Stats -->
     <string name="profile_followers">Followers</string>
     <string name="profile_following">Following</string>
@@ -334,12 +341,16 @@
     <string name="loading_users">Loading users...</string>
     <string name="button_retry">Retry</string>
 
-    <!-- Follow Actions -->
+    <!-- Follow Actions (Followers/Following Screen) -->
     <string name="follow">Follow</string>
-    <string name="following_button">Following</string>
     <string name="follows_you">Follows you</string>
     <string name="followed_user">Now following %s</string>
     <string name="unfollowed_user">Unfollowed %s</string>
+
+    <!-- Comments -->
+    <string name="hint_add_comment">Add a comment...</string>
+    <string name="cd_send_comment">Send comment</string>
+    <string name="cd_delete_comment">Delete comment</string>
 
     <!-- Empty States -->
     <string name="no_followers_title">No Followers</string>

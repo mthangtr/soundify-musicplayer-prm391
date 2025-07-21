@@ -14,7 +14,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * RecyclerView adapter for displaying search results.
@@ -25,17 +27,24 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
     private List<SearchResult> searchResults;
     private Context context;
     private OnSearchResultClickListener clickListener;
+    private Set<Long> followingUserIds;
+    private Set<Long> loadingUserIds;
+    private long currentUserId;
 
     public interface OnSearchResultClickListener {
         void onSongClick(SearchResult result);
         void onArtistClick(SearchResult result);
         void onPlaylistClick(SearchResult result);
         void onActionClick(SearchResult result);
+        void onFollowClick(SearchResult result, boolean isCurrentlyFollowing);
     }
 
     public SearchAdapter(Context context) {
         this.context = context;
         this.searchResults = new ArrayList<>();
+        this.followingUserIds = new HashSet<>();
+        this.loadingUserIds = new HashSet<>();
+        this.currentUserId = -1;
     }
 
     public void setSearchResults(List<SearchResult> results) {
@@ -45,6 +54,52 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
     public void setOnSearchResultClickListener(OnSearchResultClickListener listener) {
         this.clickListener = listener;
+    }
+
+    public void setFollowingUserIds(Set<Long> followingIds) {
+        this.followingUserIds = followingIds != null ? followingIds : new HashSet<>();
+        notifyDataSetChanged();
+    }
+
+    public void setCurrentUserId(long userId) {
+        this.currentUserId = userId;
+        notifyDataSetChanged();
+    }
+
+    public void updateFollowStatus(long userId, boolean isFollowing) {
+        if (isFollowing) {
+            followingUserIds.add(userId);
+        } else {
+            followingUserIds.remove(userId);
+        }
+
+        // Find and update the specific item
+        for (int i = 0; i < searchResults.size(); i++) {
+            SearchResult result = searchResults.get(i);
+            if (result.getType() == SearchResult.Type.ARTIST &&
+                result.getUser() != null && result.getUser().getId() == userId) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
+    }
+
+    public void setUserLoading(long userId, boolean isLoading) {
+        if (isLoading) {
+            loadingUserIds.add(userId);
+        } else {
+            loadingUserIds.remove(userId);
+        }
+
+        // Find and update the specific item
+        for (int i = 0; i < searchResults.size(); i++) {
+            SearchResult result = searchResults.get(i);
+            if (result.getType() == SearchResult.Type.ARTIST &&
+                result.getUser() != null && result.getUser().getId() == userId) {
+                notifyItemChanged(i);
+                break;
+            }
+        }
     }
 
     @NonNull
@@ -128,7 +183,19 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
 
             btnAction.setOnClickListener(v -> {
                 if (clickListener != null) {
-                    clickListener.onActionClick(result);
+                    if (result.getType() == SearchResult.Type.ARTIST && result.getUser() != null) {
+                        // Handle follow/unfollow for artists
+                        long userId = result.getUser().getId();
+                        boolean isCurrentlyFollowing = followingUserIds.contains(userId);
+                        boolean isLoading = loadingUserIds.contains(userId);
+
+                        if (!isLoading && userId != currentUserId) {
+                            clickListener.onFollowClick(result, isCurrentlyFollowing);
+                        }
+                    } else {
+                        // Handle other actions (play, etc.)
+                        clickListener.onActionClick(result);
+                    }
                 }
             });
         }
@@ -149,15 +216,47 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         private void setupArtistResult(SearchResult result) {
             // Set user avatar or placeholder
             imageItem.setImageResource(R.drawable.placeholder_avatar);
-            
+
             // Show person icon to indicate this is an artist
             imageTypeIcon.setVisibility(View.VISIBLE);
-            imageTypeIcon.setImageResource(R.drawable.ic_person_add);
-            
-            // Set follow button (or person icon)
-            btnAction.setImageResource(R.drawable.ic_person_add);
-            btnAction.setContentDescription("Follow artist");
-            btnAction.setColorFilter(context.getColor(R.color.accent_blue));
+            imageTypeIcon.setImageResource(R.drawable.ic_person);
+
+            // Configure follow button based on current state
+            if (result.getUser() != null) {
+                long userId = result.getUser().getId();
+                boolean isCurrentUser = userId == currentUserId;
+                boolean isFollowing = followingUserIds.contains(userId);
+                boolean isLoading = loadingUserIds.contains(userId);
+
+                if (isCurrentUser) {
+                    // Hide action button for current user
+                    btnAction.setVisibility(View.GONE);
+                } else {
+                    btnAction.setVisibility(View.VISIBLE);
+
+                    if (isLoading) {
+                        // Show loading state
+                        btnAction.setImageResource(R.drawable.ic_loading);
+                        btnAction.setContentDescription("Loading...");
+                        btnAction.setColorFilter(context.getColor(R.color.text_secondary));
+                        btnAction.setEnabled(false);
+                    } else if (isFollowing) {
+                        // Show following state
+                        btnAction.setImageResource(R.drawable.ic_person_check);
+                        btnAction.setContentDescription("Unfollow artist");
+                        btnAction.setColorFilter(context.getColor(R.color.accent_blue));
+                        btnAction.setEnabled(true);
+                    } else {
+                        // Show follow state
+                        btnAction.setImageResource(R.drawable.ic_person_add);
+                        btnAction.setContentDescription("Follow artist");
+                        btnAction.setColorFilter(context.getColor(R.color.accent_blue));
+                        btnAction.setEnabled(true);
+                    }
+                }
+            } else {
+                btnAction.setVisibility(View.GONE);
+            }
         }
 
         private void setupPlaylistResult(SearchResult result) {

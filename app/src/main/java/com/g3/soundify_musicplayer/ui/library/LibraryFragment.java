@@ -52,7 +52,7 @@ public class LibraryFragment extends Fragment {
     private PlaylistWithSongCountAdapter myPlaylistsAdapter;
     private SongAdapter likedSongsAdapter;
     private LibraryViewModel libraryViewModel;
-    private SongDetailViewModel songDetailViewModel; // UNIFIED ViewModel for mini player
+    private SongDetailViewModel songDetailViewModel;
 
     // Current tab state
     private int currentTab = 0; // 0: My Songs, 1: My Playlists, 2: Liked Songs
@@ -73,9 +73,8 @@ public class LibraryFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Initialize ViewModels
+        // Initialize ViewModel
         libraryViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
-        // Initialize ViewModel THỐNG NHẤT - Activity-scoped SongDetailViewModel
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
 
         initViews(view);
@@ -309,7 +308,7 @@ public class LibraryFragment extends Fragment {
         // Create a mock artist for the song
         User mockArtist = createMockArtist(song.getUploaderId());
 
-        // Show mini player using UNIFIED SongDetailViewModel
+        // Show mini player using SongDetailViewModel
         songDetailViewModel.playSong(song, mockArtist);
     }
 

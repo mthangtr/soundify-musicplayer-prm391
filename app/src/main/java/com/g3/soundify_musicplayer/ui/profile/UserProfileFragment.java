@@ -26,7 +26,6 @@ import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
 import com.g3.soundify_musicplayer.data.Adapter.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
-import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
 import java.util.ArrayList;
@@ -36,16 +35,15 @@ import java.util.List;
  * Fragment for displaying user profile
  */
 public class UserProfileFragment extends Fragment {
-
+    
     // Constants
     public static final String ARG_USER_ID = "user_id";
     public static final String ARG_USERNAME = "username";
-
+    
     // ViewModels and Managers
     private UserProfileViewModel viewModel;
-    private SongDetailViewModel songDetailViewModel; // UNIFIED ViewModel for mini player
     private AuthManager authManager;
-
+    
     // UI Components
     private ImageView profileImage;
     private TextView displayName;
@@ -55,10 +53,12 @@ public class UserProfileFragment extends Fragment {
     private TextView followingCount;
     private TextView songsCount;
     private TextView playlistsCount;
+    private LinearLayout followersContainer;
+    private LinearLayout followingContainer;
     private Button followButton;
     private Button editProfileButton;
     private Button logoutButton;
-
+    
     // Tab system
     private LinearLayout tabSongs;
     private LinearLayout tabPlaylists;
@@ -66,16 +66,16 @@ public class UserProfileFragment extends Fragment {
     private View tabPlaylistsIndicator;
     private RecyclerView songsRecyclerView;
     private RecyclerView playlistsRecyclerView;
-
+    
     // Adapters
     private SongWithUploaderInfoAdapter songsAdapter;
     private PlaylistAdapter playlistsAdapter;
-
+    
     // Data
     private User currentUser;
     private long userId = -1;
     private int currentTab = 0; // 0 = Songs, 1 = Playlists
-
+    
     public static UserProfileFragment newInstance(long userId) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
@@ -83,7 +83,7 @@ public class UserProfileFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-
+    
     public static UserProfileFragment newInstance(long userId, String username) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
@@ -92,56 +92,55 @@ public class UserProfileFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-
+    
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        
         // Initialize AuthManager
         authManager = new AuthManager(requireContext());
-
-        // Initialize ViewModels
+        
+        // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(UserProfileViewModel.class);
-        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class); // Activity-scoped for mini player
-
+        
         // Get arguments
         if (getArguments() != null) {
             userId = getArguments().getLong(ARG_USER_ID, -1);
         }
     }
-
+    
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_user_profile, container, false);
     }
-
+    
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        
         initViews(view);
         setupRecyclerViews();
         setupTabs();
         setupClickListeners();
         setupObservers();
-
+        
         // Load user profile
         if (userId != -1) {
             viewModel.loadUserProfile(userId);
         }
     }
-
+    
     @Override
     public void onResume() {
         super.onResume();
         // Refresh data when returning to this fragment
-        if (viewModel != null && userId != -1) {
-            android.util.Log.d("UserProfileFragment", "onResume: Refreshing user profile for userId: " + userId);
-            viewModel.refreshUserProfile(userId);
+        if (viewModel != null) {
+            android.util.Log.d("UserProfileFragment", "onResume: Refreshing user profile data");
+            viewModel.refreshUserData();
         }
     }
-
+    
     /**
      * Initialize all UI components
      */
@@ -151,29 +150,35 @@ public class UserProfileFragment extends Fragment {
         displayName = view.findViewById(R.id.display_name);
         username = view.findViewById(R.id.username);
         bio = view.findViewById(R.id.bio);
-
-        // Stats
+        
+        // Social Stats
         followersCount = view.findViewById(R.id.followers_count);
         followingCount = view.findViewById(R.id.following_count);
+
+        // Stats containers (for click listeners)
+        followersContainer = (LinearLayout) followersCount.getParent();
+        followingContainer = (LinearLayout) followingCount.getParent();
+
+        // Content counts (in tabs)
         songsCount = view.findViewById(R.id.songs_count);
         playlistsCount = view.findViewById(R.id.playlists_count);
-
+        
         // Buttons
         followButton = view.findViewById(R.id.follow_button);
         editProfileButton = view.findViewById(R.id.edit_profile_button);
         logoutButton = view.findViewById(R.id.logout_button);
-
+        
         // Tabs
         tabSongs = view.findViewById(R.id.tab_songs);
         tabPlaylists = view.findViewById(R.id.tab_playlists);
         tabSongsIndicator = view.findViewById(R.id.tab_songs_indicator);
         tabPlaylistsIndicator = view.findViewById(R.id.tab_playlists_indicator);
-
+        
         // RecyclerViews
         songsRecyclerView = view.findViewById(R.id.songs_recycler_view);
         playlistsRecyclerView = view.findViewById(R.id.playlists_recycler_view);
     }
-
+    
     /**
      * Setup RecyclerViews with adapters
      */
@@ -183,20 +188,16 @@ public class UserProfileFragment extends Fragment {
             @Override
             public void onPlay(SongWithUploaderInfo songInfo) {
                 showToast("Playing: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
-
-                // Show mini player with the selected song
-                showMiniPlayerWithSongInfo(songInfo);
             }
 
             @Override
             public void onOpenDetail(SongWithUploaderInfo songInfo) {
                 showToast("Opening: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
-                // TODO: Navigate to song detail
             }
         });
         songsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         songsRecyclerView.setAdapter(songsAdapter);
-
+        
         // Playlists RecyclerView
         playlistsAdapter = new PlaylistAdapter(new ArrayList<>(), new PlaylistAdapter.OnPlaylistClickListener() {
             @Override
@@ -212,14 +213,14 @@ public class UserProfileFragment extends Fragment {
         playlistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         playlistsRecyclerView.setAdapter(playlistsAdapter);
     }
-
+    
     /**
      * Setup tab system
      */
     private void setupTabs() {
         switchTab(0); // Default to songs tab
     }
-
+    
     /**
      * Setup click listeners
      */
@@ -227,26 +228,56 @@ public class UserProfileFragment extends Fragment {
         // Tab clicks
         tabSongs.setOnClickListener(v -> switchTab(0));
         tabPlaylists.setOnClickListener(v -> switchTab(1));
+        
+        // Stats clicks
+        followersContainer.setOnClickListener(v -> openFollowersList());
+        followingContainer.setOnClickListener(v -> openFollowingList());
 
         // Button clicks
         followButton.setOnClickListener(v -> toggleFollow());
         editProfileButton.setOnClickListener(v -> editProfile());
         logoutButton.setOnClickListener(v -> showLogoutConfirmation());
     }
-
+    
     /**
      * Setup ViewModel observers
      */
     private void setupObservers() {
         // Observe user data
         viewModel.getCurrentUser().observe(getViewLifecycleOwner(), this::updateUserInfo);
-
+        
         // Observe own profile status
         viewModel.getIsOwnProfile().observe(getViewLifecycleOwner(), this::updateButtonVisibility);
-
+        
         // Observe follow status
         viewModel.getIsFollowing().observe(getViewLifecycleOwner(), this::updateFollowButton);
 
+        // Observe loading state
+        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            // Handle loading state if needed
+            // For now, we'll just disable click listeners during loading
+            if (isLoading != null) {
+                followersContainer.setEnabled(!isLoading);
+                followingContainer.setEnabled(!isLoading);
+            }
+        });
+
+        // Observe error messages
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
+            if (errorMessage != null && !errorMessage.isEmpty()) {
+                showToast(errorMessage);
+                viewModel.clearErrorMessage();
+            }
+        });
+
+        // Observe success messages
+        viewModel.getSuccessMessage().observe(getViewLifecycleOwner(), successMessage -> {
+            if (successMessage != null && !successMessage.isEmpty()) {
+                showToast(successMessage);
+                viewModel.clearSuccessMessage();
+            }
+        });
+        
         // Observe user songs with uploader info
         viewModel.getPublicSongsWithUploaderInfo().observe(getViewLifecycleOwner(), songsWithInfo -> {
             if (songsWithInfo != null) {
@@ -258,38 +289,38 @@ public class UserProfileFragment extends Fragment {
         viewModel.getPublicPlaylists().observe(getViewLifecycleOwner(), playlists -> {
             if (playlists != null) {
                 playlistsAdapter.updateData(playlists);
+                // Update playlists count
+                playlistsCount.setText(String.valueOf(playlists.size()));
             }
         });
-
+        
         // Observe stats
         viewModel.getFollowersCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
-                followersCount.setText(String.valueOf(count));
+                followersCount.setText(viewModel.getFollowersCountString());
             }
         });
 
         viewModel.getFollowingCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
-                followingCount.setText(String.valueOf(count));
+                followingCount.setText(viewModel.getFollowingCountString());
             }
         });
 
         viewModel.getSongsCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
-                songsCount.setText(String.valueOf(count));
+                songsCount.setText(viewModel.getSongsCountString());
             }
         });
 
-        // TODO: Implement playlists count observer when available
-        playlistsCount.setText("0");
     }
-
+    
     /**
      * Switch between tabs
      */
     private void switchTab(int tabIndex) {
         currentTab = tabIndex;
-
+        
         if (tabIndex == 0) {
             // Songs tab
             tabSongsIndicator.setVisibility(View.VISIBLE);
@@ -304,22 +335,22 @@ public class UserProfileFragment extends Fragment {
             playlistsRecyclerView.setVisibility(View.VISIBLE);
         }
     }
-
+    
     /**
      * Update user info in UI
      */
     private void updateUserInfo(User user) {
         if (user == null) return;
-
+        
         currentUser = user;
         displayName.setText(user.getDisplayName() != null ? user.getDisplayName() : user.getUsername());
         username.setText("@" + user.getUsername());
         bio.setText(user.getBio() != null ? user.getBio() : "No bio available");
-
+        
         // Load profile image if available
         // TODO: Implement image loading with Glide/Picasso
     }
-
+    
     /**
      * Update button visibility based on own profile status
      */
@@ -336,7 +367,7 @@ public class UserProfileFragment extends Fragment {
             logoutButton.setVisibility(View.GONE);
         }
     }
-
+    
     /**
      * Update follow button state
      */
@@ -345,7 +376,7 @@ public class UserProfileFragment extends Fragment {
             followButton.setText(isFollowing ? "Unfollow" : "Follow");
         }
     }
-
+    
     /**
      * Toggle follow status
      */
@@ -354,21 +385,21 @@ public class UserProfileFragment extends Fragment {
             viewModel.toggleFollowStatus();
         }
     }
-
+    
     /**
      * Edit profile - Navigate to EditProfileFragment
      */
     private void editProfile() {
         // Navigate to EditProfileFragment
         EditProfileFragment editFragment = EditProfileFragment.newInstance();
-
+        
         getParentFragmentManager()
             .beginTransaction()
             .replace(R.id.fragment_container, editFragment)
             .addToBackStack(null)
             .commit();
     }
-
+    
     /**
      * Show logout confirmation dialog
      */
@@ -413,34 +444,45 @@ public class UserProfileFragment extends Fragment {
     }
 
     /**
+     * Open followers list
+     */
+    private void openFollowersList() {
+        if (currentUser == null) {
+            showToast("User data not loaded");
+            return;
+        }
+
+        Intent intent = FollowersFollowingActivity.createIntent(
+            requireContext(),
+            currentUser.getId(),
+            currentUser.getUsername(),
+            FollowersFollowingActivity.TAB_FOLLOWERS
+        );
+        startActivity(intent);
+    }
+
+    /**
+     * Open following list
+     */
+    private void openFollowingList() {
+        if (currentUser == null) {
+            showToast("User data not loaded");
+            return;
+        }
+
+        Intent intent = FollowersFollowingActivity.createIntent(
+            requireContext(),
+            currentUser.getId(),
+            currentUser.getUsername(),
+            FollowersFollowingActivity.TAB_FOLLOWING
+        );
+        startActivity(intent);
+    }
+
+    /**
      * Show toast message
      */
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-    }
-
-    /**
-     * Helper method to show mini player with SongWithUploaderInfo
-     */
-    private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
-        // Create Song object from SongWithUploaderInfo
-        Song song = new Song(songInfo.getUploaderId(), songInfo.getTitle(), songInfo.getAudioUrl());
-        song.setId(songInfo.getId());
-        song.setDescription(songInfo.getDescription());
-        song.setCoverArtUrl(songInfo.getCoverArtUrl());
-        song.setGenre(songInfo.getGenre());
-        song.setDurationMs(songInfo.getDurationMs());
-        song.setPublic(songInfo.isPublic());
-        song.setCreatedAt(songInfo.getCreatedAt());
-
-        // Create User object from uploader info
-        User uploader = new User();
-        uploader.setId(songInfo.getUploaderId());
-        uploader.setUsername(songInfo.getUploaderUsername());
-        uploader.setDisplayName(songInfo.getUploaderDisplayName());
-        uploader.setAvatarUrl(songInfo.getUploaderAvatarUrl());
-
-        // Show mini player using UNIFIED SongDetailViewModel
-        songDetailViewModel.playSong(song, uploader);
     }
 }
