@@ -82,7 +82,7 @@
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_play"
         android:contentDescription="@string/cd_mini_player_play_pause"
-        android:tint="@color/player_control_active"
+        app:tint="@color/player_control_active"
         app:layout_constraintEnd_toStartOf="@id/btn_next"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
@@ -96,7 +96,7 @@
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_skip_next"
         android:contentDescription="@string/cd_mini_player_next"
-        android:tint="@color/player_control_active"
+        app:tint="@color/player_control_active"
         app:layout_constraintEnd_toStartOf="@id/btn_close"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
@@ -109,7 +109,7 @@
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_clear"
         android:contentDescription="@string/cd_mini_player_close"
-        android:tint="@color/text_secondary"
+        app:tint="@color/text_secondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />

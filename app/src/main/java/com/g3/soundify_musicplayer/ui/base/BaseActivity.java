@@ -10,6 +10,8 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.ui.player.MiniPlayerFragment;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import androidx.lifecycle.ViewModelProvider;
 
 /**
  * Base Activity that includes mini player functionality.
@@ -19,6 +21,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private FrameLayout miniPlayerContainer;
     private MiniPlayerFragment miniPlayerFragment;
+    private SongDetailViewModel songDetailViewModel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,6 +53,23 @@ public abstract class BaseActivity extends AppCompatActivity {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.mini_player_container, miniPlayerFragment);
             transaction.commit();
+
+            // Initialize ViewModel THỐNG NHẤT và observe visibility
+            songDetailViewModel = new ViewModelProvider(this).get(SongDetailViewModel.class);
+            android.util.Log.d("BaseActivity", "SongDetailViewModel initialized: " + songDetailViewModel.hashCode());
+
+            songDetailViewModel.getIsVisible().observe(this, isVisible -> {
+                android.util.Log.d("BaseActivity", "MiniPlayer visibility changed to: " + isVisible +
+                    ", shouldShowMiniPlayer: " + shouldShowMiniPlayer());
+
+                if (shouldShowMiniPlayer() && isVisible != null && isVisible) {
+                    android.util.Log.d("BaseActivity", "Setting miniPlayerContainer to VISIBLE");
+                    miniPlayerContainer.setVisibility(android.view.View.VISIBLE);
+                } else {
+                    android.util.Log.d("BaseActivity", "Setting miniPlayerContainer to GONE");
+                    miniPlayerContainer.setVisibility(android.view.View.GONE);
+                }
+            });
         }
     }
 

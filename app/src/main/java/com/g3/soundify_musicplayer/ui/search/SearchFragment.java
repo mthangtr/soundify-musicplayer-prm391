@@ -20,8 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
-import com.g3.soundify_musicplayer.ui.player.PlayerDemoActivity;
+import com.g3.soundify_musicplayer.ui.player.FullPlayerActivity;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
@@ -49,6 +49,7 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     // ViewModel and Adapter
     private SearchViewModel viewModel;
     private SearchAdapter adapter;
+    private SongDetailViewModel songDetailViewModel;
 
     // Current state
     private String currentQuery = "";
@@ -97,6 +98,7 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
 
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
 
         // Set current user ID in adapter
         adapter.setCurrentUserId(viewModel.getCurrentUserId());
@@ -243,7 +245,7 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     public void onSongClick(SearchResult result) {
         if (result.getSong() != null && result.getUser() != null) {
             // Show mini player with the selected song
-            MiniPlayerManager.getInstance().showMiniPlayer(result.getSong(), result.getUser());
+            songDetailViewModel.playSong(result.getSong(), result.getUser());
             showToast("Playing: " + result.getPrimaryText());
         }
     }
@@ -268,13 +270,15 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     public void onActionClick(SearchResult result) {
         switch (result.getType()) {
             case SONG:
-                // Play song and optionally navigate to full player
+                // Play song using SongDetailViewModel and navigate to full player
                 if (result.getSong() != null && result.getUser() != null) {
-                    MiniPlayerManager.getInstance().showMiniPlayer(result.getSong(), result.getUser());
+                    // Show mini player using SongDetailViewModel
+                    songDetailViewModel.playSong(result.getSong(), result.getUser());
 
                     // Navigate to full player
-                    Intent intent = new Intent(getContext(), PlayerDemoActivity.class);
+                    Intent intent = new Intent(getContext(), FullPlayerActivity.class);
                     intent.putExtra("song_id", result.getSong().getId());
+                    intent.putExtra("uploader_id", result.getUser().getId());
                     startActivity(intent);
                 }
                 break;

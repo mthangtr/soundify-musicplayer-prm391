@@ -1,5 +1,6 @@
 package com.g3.soundify_musicplayer.ui.player;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -19,17 +20,18 @@ import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
 
 /**
  * Mini Player Fragment - Persistent component that appears on all screens.
  * Provides basic playback controls and expands to full player when tapped.
- * UI ONLY - No backend integration, uses mock data for demo purposes.
+ * Sử dụng SongDetailViewModel để kết nối với backend thật qua MediaPlaybackService.
  */
 public class MiniPlayerFragment extends Fragment {
 
     // UI Components
     private View rootView;
-    private ImageView imageAlbumArt;
+    // Xóa imageAlbumArt - không sử dụng
     private TextView textSongTitle;
     private TextView textArtistName;
     private ImageButton btnPlayPause;
@@ -37,8 +39,8 @@ public class MiniPlayerFragment extends Fragment {
     private ImageButton btnClose;
     private ProgressBar progressBar;
 
-    // ViewModel
-    private MiniPlayerViewModel viewModel;
+    // ViewModel THỐNG NHẤT
+    private SongDetailViewModel viewModel;
 
     // Current data
     private Song currentSong;
@@ -64,7 +66,7 @@ public class MiniPlayerFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        imageAlbumArt = view.findViewById(R.id.image_album_art);
+        // Xóa imageAlbumArt initialization - không sử dụng
         textSongTitle = view.findViewById(R.id.text_song_title);
         textArtistName = view.findViewById(R.id.text_artist_name);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
@@ -74,7 +76,9 @@ public class MiniPlayerFragment extends Fragment {
     }
 
     private void setupViewModel() {
-        viewModel = new ViewModelProvider(this).get(MiniPlayerViewModel.class);
+        // Sử dụng SongDetailViewModel THỐNG NHẤT cho cả Mini và Full Player
+        viewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+        android.util.Log.d("MiniPlayerFragment", "SongDetailViewModel initialized: " + viewModel.hashCode());
     }
 
     private void setupClickListeners() {
@@ -110,6 +114,8 @@ public class MiniPlayerFragment extends Fragment {
 
         // Observe current song
         viewModel.getCurrentSong().observe(getViewLifecycleOwner(), song -> {
+            android.util.Log.d("MiniPlayerFragment", "Song changed to: " +
+                (song != null ? song.getTitle() : "NULL"));
             if (song != null) {
                 currentSong = song;
                 updateSongInfo(song);
@@ -132,10 +138,15 @@ public class MiniPlayerFragment extends Fragment {
             }
         });
 
-        // Observe progress
-        viewModel.getProgress().observe(getViewLifecycleOwner(), progress -> {
-            if (progress != null && currentSong != null) {
-                updateProgress(progress);
+        // XÓA OBSERVER PROGRESS RIÊNG - chỉ dùng currentPosition
+        viewModel.getCurrentPosition().observe(getViewLifecycleOwner(), positionMs -> {
+            if (positionMs != null && currentSong != null) {
+                // Tính progress từ position
+                Long duration = viewModel.getDuration().getValue();
+                if (duration != null && duration > 0) {
+                    int progressPercent = (int) ((positionMs * 100) / duration);
+                    updateProgress(progressPercent);
+                }
             }
         });
     }
@@ -160,19 +171,33 @@ public class MiniPlayerFragment extends Fragment {
         }
     }
 
-    private void updateProgress(int progressMs) {
-        if (currentSong != null && currentSong.getDurationMs() != null && currentSong.getDurationMs() > 0) {
-            int progressPercent = (int) ((progressMs * 100.0) / currentSong.getDurationMs());
-            progressBar.setProgress(progressPercent);
-        }
+    private void updateProgress(int progressPercent) {
+        progressBar.setProgress(progressPercent);
     }
 
+    // Xóa updateProgressFromPosition - không sử dụng
+
     private void expandToFullPlayer() {
-        if (getContext() != null && currentSong != null) {
-            // Navigate to PlayerDemoActivity
-            Intent intent = new Intent(getContext(), PlayerDemoActivity.class);
-            intent.putExtra("song_id", currentSong.getId());
-            startActivity(intent);
+        if (getActivity() != null && currentSong != null) {
+            // Get NavigationContext từ ViewModel if available
+            NavigationContext context = viewModel.getCurrentNavigationContext();
+
+            // SỬA LỖI: Sử dụng FullPlayerActivity thay vì fragment transaction
+            // để có full-screen experience
+            Intent intent;
+            if (context != null) {
+                intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId(), context);
+            } else {
+                intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId());
+            }
+
+            // Start FullPlayerActivity với smooth animation
+            ActivityOptions options = ActivityOptions.makeCustomAnimation(
+                getContext(), R.anim.slide_up_in, R.anim.fade_in);
+            startActivity(intent, options.toBundle());
+
+            android.util.Log.d("MiniPlayerFragment", "Expanding to FullPlayerActivity for song: " +
+                currentSong.getTitle());
         }
     }
 

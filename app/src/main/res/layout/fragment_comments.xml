@@ -28,7 +28,7 @@
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_arrow_back"
             android:contentDescription="@string/cd_minimize_player"
-            android:tint="@color/text_primary" />
+            app:tint="@color/text_primary" />
 
         <!-- Title -->
         <TextView
@@ -65,8 +65,49 @@
         android:clipToPadding="false"
         android:paddingBottom="@dimen/spacing_medium"
         app:layout_constraintTop_toBottomOf="@id/layout_header"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/layout_comment_input"
         tools:listitem="@layout/item_comment" />
+
+    <!-- Comment Input Section -->
+    <LinearLayout
+        android:id="@+id/layout_comment_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="@dimen/spacing_medium"
+        android:paddingVertical="@dimen/spacing_small"
+        android:background="@color/surface_background"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <EditText
+            android:id="@+id/edit_comment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/spacing_small"
+            android:hint="@string/hint_add_comment"
+            android:background="@drawable/comment_input_background"
+            android:paddingHorizontal="@dimen/spacing_medium"
+            android:paddingVertical="@dimen/spacing_small"
+            android:textSize="@dimen/text_size_body"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_secondary"
+            android:maxLines="3"
+            android:inputType="textMultiLine|textCapSentences" />
+
+        <ImageButton
+            android:id="@+id/btn_send_comment"
+            android:layout_width="@dimen/min_touch_target"
+            android:layout_height="@dimen/min_touch_target"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_send"
+            android:contentDescription="@string/cd_send_comment"
+            app:tint="@color/accent_primary" />
+
+    </LinearLayout>
 
     <!-- Empty State -->
     <LinearLayout
@@ -87,7 +128,7 @@
             android:layout_width="@dimen/icon_size_xl"
             android:layout_height="@dimen/icon_size_xl"
             android:src="@drawable/ic_comment"
-            android:tint="@color/text_tertiary"
+            app:tint="@color/text_tertiary"
             android:contentDescription="@string/comments_empty" />
 
         <!-- Empty Title -->
@@ -131,7 +172,7 @@
             android:layout_width="@dimen/icon_size_xl"
             android:layout_height="@dimen/icon_size_xl"
             android:src="@drawable/ic_error"
-            android:tint="@color/text_tertiary"
+            app:tint="@color/text_tertiary"
             android:contentDescription="@string/error_loading_song" />
 
         <!-- Error Message -->

@@ -23,7 +23,7 @@ import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.google.android.material.tabs.TabLayout;
 
@@ -52,6 +52,7 @@ public class LibraryFragment extends Fragment {
     private PlaylistWithSongCountAdapter myPlaylistsAdapter;
     private SongAdapter likedSongsAdapter;
     private LibraryViewModel libraryViewModel;
+    private SongDetailViewModel songDetailViewModel;
 
     // Current tab state
     private int currentTab = 0; // 0: My Songs, 1: My Playlists, 2: Liked Songs
@@ -74,6 +75,7 @@ public class LibraryFragment extends Fragment {
 
         // Initialize ViewModel
         libraryViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
 
         initViews(view);
         setupTabs();
@@ -305,9 +307,9 @@ public class LibraryFragment extends Fragment {
     private void showMiniPlayer(Song song) {
         // Create a mock artist for the song
         User mockArtist = createMockArtist(song.getUploaderId());
-        
-        // Show mini player using the global manager
-        MiniPlayerManager.getInstance().showMiniPlayer(song, mockArtist);
+
+        // Show mini player using SongDetailViewModel
+        songDetailViewModel.playSong(song, mockArtist);
     }
 
     private User createMockArtist(long artistId) {

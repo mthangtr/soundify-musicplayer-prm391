@@ -6,13 +6,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -21,7 +21,10 @@ import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.ui.playlist.PlaylistSelectionActivity;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
+import com.g3.soundify_musicplayer.ui.player.comment.CommentsFragment;
+import com.g3.soundify_musicplayer.ui.player.queue.QueueFragment;
+import com.g3.soundify_musicplayer.ui.player.playlist.PlaylistSelectionActivity;
 import com.g3.soundify_musicplayer.utils.TimeUtils;
 
 /**
@@ -31,28 +34,30 @@ import com.g3.soundify_musicplayer.utils.TimeUtils;
 public class FullPlayerFragment extends Fragment {
 
     private static final String ARG_SONG_ID = "song_id";
-    private static final int REQUEST_CODE_PLAYLIST_SELECTION = 1001;
+    private static final String ARG_NAVIGATION_CONTEXT = "navigation_context";
+
+    // Activity Result Launcher thay thế cho deprecated startActivityForResult
+    private ActivityResultLauncher<Intent> playlistSelectionLauncher;
     
     // UI Components
     private ImageButton btnMinimize;
     private TextView textSongTitle;
     private TextView textArtistName;
     private Button btnFollow;
-    private ImageView imageAlbumArt;
+    // Xóa imageAlbumArt - không sử dụng
     private SeekBar seekbarProgress;
     private TextView textCurrentTime;
     private TextView textTotalTime;
     private ImageButton btnPrevious;
     private ImageButton btnPlayPause;
     private ImageButton btnNext;
-    private EditText editComment;
     private ImageButton btnLike;
     private ImageButton btnComments;
     private ImageButton btnAddToPlaylist;
     private ImageButton btnQueue;
     
-    // ViewModel
-    private FullPlayerViewModel viewModel;
+    // THỐNG NHẤT: SỬ DỤNG SONGDETAILVIEWMODEL CHO CẢ MINI VÀ FULL PLAYER
+    private SongDetailViewModel viewModel; // Có TẤT CẢ: song detail + media playback
     
     // Current song data
     private Song currentSong;
@@ -60,6 +65,9 @@ public class FullPlayerFragment extends Fragment {
     private boolean isPlaying = false;
     private boolean isLiked = false;
     private boolean isFollowing = false;
+
+    // Seek bar state
+    private boolean isUserSeeking = false;
 
     public static FullPlayerFragment newInstance(long songId) {
         FullPlayerFragment fragment = new FullPlayerFragment();
@@ -69,14 +77,32 @@ public class FullPlayerFragment extends Fragment {
         return fragment;
     }
 
+    public static FullPlayerFragment newInstanceWithContext(long songId, NavigationContext context) {
+        FullPlayerFragment fragment = new FullPlayerFragment();
+        Bundle args = new Bundle();
+        args.putLong(ARG_SONG_ID, songId);
+        args.putSerializable(ARG_NAVIGATION_CONTEXT, context);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(FullPlayerViewModel.class);
-        
+
+        // THỐNG NHẤT: SỬ DỤNG SONGDETAILVIEWMODEL GIỐNG MINIPLAYER
+        viewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+
+        android.util.Log.d("FullPlayerFragment", "SongDetailViewModel initialized: " + viewModel.hashCode());
+
+        // SỬA LỖI: KHÔNG sync data ở đây vì UI chưa được khởi tạo
+
+        // ĐƠN GIẢN HÓA: Không cần load song riêng vì FullPlayer chỉ hiển thị data có sẵn
+        // Song data đã có sẵn trong SongDetailViewModel (shared instance)
         if (getArguments() != null) {
             long songId = getArguments().getLong(ARG_SONG_ID);
-            viewModel.loadSong(songId);
+            android.util.Log.d("FullPlayerFragment", "FullPlayer opened for song ID: " + songId);
+            // Data sẽ được sync qua observers
         }
     }
 
@@ -90,10 +116,41 @@ public class FullPlayerFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
+        setupActivityResultLaunchers();
         initializeViews(view);
         setupClickListeners();
         observeViewModel();
+
+        // Load song detail để có like status và thiết lập service connection
+        if (getArguments() != null) {
+            long songId = getArguments().getLong(ARG_SONG_ID);
+            android.util.Log.d("FullPlayerFragment", "Loading song detail for ID: " + songId);
+            viewModel.loadSongDetail(songId, 1L); // Default userId = 1
+        }
+
+        // XÓA syncCurrentSongData() - THỪA vì data đã được sync qua Observer pattern
+        // Khi MediaPlaybackService gọi onSongChanged() → ViewModel update LiveData → UI tự động update
+
+        android.util.Log.d("FullPlayerFragment", "FullPlayer UI setup completed");
+    }
+
+    private void setupActivityResultLaunchers() {
+        // Setup Activity Result Launcher thay thế cho deprecated startActivityForResult
+        playlistSelectionLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new androidx.activity.result.ActivityResultCallback<androidx.activity.result.ActivityResult>() {
+                @Override
+                public void onActivityResult(androidx.activity.result.ActivityResult result) {
+                    if (result.getResultCode() == getActivity().RESULT_OK && result.getData() != null) {
+                        String playlistName = result.getData().getStringExtra(PlaylistSelectionActivity.RESULT_PLAYLIST_NAME);
+                        if (playlistName != null) {
+                            showToast("Added to " + playlistName);
+                        }
+                    }
+                }
+            }
+        );
     }
 
     private void initializeViews(View view) {
@@ -103,20 +160,26 @@ public class FullPlayerFragment extends Fragment {
         textArtistName = view.findViewById(R.id.text_artist_name);
         btnFollow = view.findViewById(R.id.btn_follow);
         
-        // Album art
-        imageAlbumArt = view.findViewById(R.id.image_album_art);
+        // Album art - xóa vì không sử dụng
         
         // Playback controls
         seekbarProgress = view.findViewById(R.id.seekbar_progress);
+        // SỬA LỖI: Khởi tạo SeekBar với max = 100 để sử dụng percentage system
+        android.util.Log.d("FullPlayerFragment", "Initializing SeekBar - current max: " +
+            seekbarProgress.getMax() + ", setting to 100");
+        seekbarProgress.setMax(100);
+        seekbarProgress.setProgress(0);
+
         textCurrentTime = view.findViewById(R.id.text_current_time);
         textTotalTime = view.findViewById(R.id.text_total_time);
+
+        // Khởi tạo với giá trị mặc định
+        textCurrentTime.setText(getString(R.string.time_zero));
+        textTotalTime.setText(getString(R.string.duration_unknown));
         btnPrevious = view.findViewById(R.id.btn_previous);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
         btnNext = view.findViewById(R.id.btn_next);
-        
-        // Comment input
-        editComment = view.findViewById(R.id.edit_comment);
-        
+
         // Bottom action bar
         btnLike = view.findViewById(R.id.btn_like);
         btnComments = view.findViewById(R.id.btn_comments);
@@ -127,78 +190,76 @@ public class FullPlayerFragment extends Fragment {
     private void setupClickListeners() {
         // Header actions
         btnMinimize.setOnClickListener(v -> {
-            // Show mini player with current song when minimizing
-            if (currentSong != null && currentArtist != null) {
-                MiniPlayerManager.getInstance().showMiniPlayer(currentSong, currentArtist);
-            }
+            // SỬA LỖI: Sử dụng FullPlayerActivity.minimizeToMiniPlayer()
+            // thay vì tạo Intent mới
             showToast("Minimized to mini player");
 
-            // Navigate to MainActivity to show mini player
-            if (getActivity() != null) {
-                Intent intent = new Intent(getActivity(), com.g3.soundify_musicplayer.data.Activity.MainActivity.class);
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                startActivity(intent);
-                getActivity().finish();
+            if (getActivity() instanceof FullPlayerActivity) {
+                ((FullPlayerActivity) getActivity()).minimizeToMiniPlayer();
+            } else {
+                // Fallback for fragment-based implementation
+                if (getActivity() != null) {
+                    getActivity().getOnBackPressedDispatcher().onBackPressed();
+                }
             }
         });
         
         btnFollow.setOnClickListener(v -> {
             if (currentArtist != null) {
-                viewModel.toggleFollow(currentArtist.getId());
-                showToast(isFollowing ? "Unfollowed artist" : "Following artist");
+                // SỬA LỖI: Sử dụng method signature đúng (không cần parameter)
+                viewModel.toggleFollow();
+                // Visual feedback sẽ được update qua observer
+            } else {
+                showToast("No artist information available");
             }
         });
         
         // Playback controls
         btnPrevious.setOnClickListener(v -> {
-            // TODO: Implement previous track
-            showToast("Previous track");
+            // Sử dụng viewModel (cùng instance với MiniPlayer)
+            viewModel.seekToPercentage(0);
+            showToast("Song restarted");
         });
-        
+
         btnPlayPause.setOnClickListener(v -> {
-            // TODO: Implement play/pause
-            togglePlayPause();
+            // Sử dụng viewModel (cùng instance với MiniPlayer)
+            viewModel.togglePlayPause();
         });
-        
+
         btnNext.setOnClickListener(v -> {
-            // TODO: Implement next track
-            showToast("Next track");
+            showToast("Next track not available (single song mode)");
         });
         
-        // Progress bar
+        // Progress bar - Seek functionality
         seekbarProgress.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    // TODO: Implement seek functionality
-                    updateCurrentTime(progress);
+                if (fromUser && currentSong != null) {
+                    updateCurrentTimeFromProgress(progress);
                 }
             }
-            
+
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-            
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {}
-        });
-        
-        // Comment input
-        editComment.setOnEditorActionListener((v, actionId, event) -> {
-            String comment = editComment.getText().toString().trim();
-            if (!comment.isEmpty() && currentSong != null) {
-                viewModel.addComment(currentSong.getId(), comment);
-                editComment.setText("");
-                showToast("Comment added!");
-                return true;
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                isUserSeeking = true;
             }
-            return false;
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                int progress = seekBar.getProgress();
+                viewModel.seekToPercentage(progress);
+                isUserSeeking = false;
+            }
         });
         
-        // Bottom action bar
+        // Bottom action bar - Like button với visual feedback
         btnLike.setOnClickListener(v -> {
             if (currentSong != null) {
-                viewModel.toggleLike(currentSong.getId());
-                showToast(isLiked ? "Removed from liked songs" : "Added to liked songs");
+                // SỬA LỖI: Sử dụng method signature đúng (không cần parameter)
+                viewModel.toggleLike();
+                // Visual feedback sẽ được update qua observer
+            } else {
+                showToast("No song selected");
             }
         });
         
@@ -225,15 +286,17 @@ public class FullPlayerFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        // Observe song data
+        // COPY CHÍNH XÁC PATTERN TỪ MINIPLAYER
+
+        // Song data
         viewModel.getCurrentSong().observe(getViewLifecycleOwner(), song -> {
             if (song != null) {
                 currentSong = song;
                 updateSongInfo(song);
             }
         });
-        
-        // Observe artist data
+
+        // Artist data
         viewModel.getCurrentArtist().observe(getViewLifecycleOwner(), artist -> {
             if (artist != null) {
                 currentArtist = artist;
@@ -241,50 +304,64 @@ public class FullPlayerFragment extends Fragment {
             }
         });
         
-        // Observe like status
+        // Like status
         viewModel.getIsLiked().observe(getViewLifecycleOwner(), liked -> {
-            isLiked = liked;
-            updateLikeButton();
+            if (liked != null) {
+                isLiked = liked;
+                updateLikeButton();
+            }
         });
-        
-        // Observe follow status
+
+        // Follow status
         viewModel.getIsFollowing().observe(getViewLifecycleOwner(), following -> {
-            isFollowing = following;
-            updateFollowButton();
-        });
-        
-        // Observe playback state
-        viewModel.getIsPlaying().observe(getViewLifecycleOwner(), playing -> {
-            isPlaying = playing;
-            updatePlayPauseButton();
-        });
-        
-        // Observe progress
-        viewModel.getProgress().observe(getViewLifecycleOwner(), progress -> {
-            if (progress != null) {
-                seekbarProgress.setProgress(progress);
+            if (following != null) {
+                isFollowing = following;
+                updateFollowButton();
             }
         });
         
-        // Observe current time
-        viewModel.getCurrentTime().observe(getViewLifecycleOwner(), time -> {
-            if (time != null) {
-                textCurrentTime.setText(TimeUtils.formatDuration(time));
+        // Playing state
+        viewModel.getIsPlaying().observe(getViewLifecycleOwner(), playing -> {
+            if (playing != null) {
+                isPlaying = playing;
+                updatePlayPauseButton();
+            }
+        });
+
+        // XÓA OBSERVER PROGRESS RIÊNG - chỉ dùng currentPosition
+        viewModel.getCurrentPosition().observe(getViewLifecycleOwner(), positionMs -> {
+            if (positionMs != null && !isUserSeeking && currentSong != null) {
+                textCurrentTime.setText(formatTime(positionMs));
+
+                // Tính progress từ position
+                Long duration = viewModel.getDuration().getValue();
+                if (duration != null && duration > 0) {
+                    int progressPercent = (int) ((positionMs * 100) / duration);
+                    seekbarProgress.setProgress(progressPercent);
+                }
+            }
+        });
+
+        // Duration observer
+        viewModel.getDuration().observe(getViewLifecycleOwner(), durationMs -> {
+            if (durationMs != null && durationMs > 0) {
+                textTotalTime.setText(formatTime(durationMs));
             }
         });
     }
 
     private void updateSongInfo(Song song) {
         textSongTitle.setText(song.getTitle());
-        
+
         // Update total time
         if (song.getDurationMs() != null && song.getDurationMs() > 0) {
-            textTotalTime.setText(TimeUtils.formatDuration(song.getDurationMs()));
-            seekbarProgress.setMax(song.getDurationMs());
+            textTotalTime.setText(formatTime(song.getDurationMs()));
+            seekbarProgress.setMax(100);
         } else {
             textTotalTime.setText(getString(R.string.duration_unknown));
+            seekbarProgress.setMax(100);
         }
-        
+
         // TODO: Load album art using image loading library (Glide/Coil)
         // For now, keep the placeholder
     }
@@ -322,12 +399,28 @@ public class FullPlayerFragment extends Fragment {
         }
     }
 
-    private void togglePlayPause() {
-        viewModel.togglePlayPause();
+    // XÓA syncCurrentSongData() - THỪA vì data sync tự động qua Observer pattern
+
+    /**
+     * Update current time display based on seek bar progress (0-100)
+     */
+    private void updateCurrentTimeFromProgress(int progressPercent) {
+        // Estimate time based on progress percentage and total duration
+        if (currentSong != null && currentSong.getDurationMs() != null) {
+            long totalDurationMs = currentSong.getDurationMs();
+            long estimatedPositionMs = (totalDurationMs * progressPercent) / 100;
+            textCurrentTime.setText(formatTime(estimatedPositionMs));
+        }
     }
 
-    private void updateCurrentTime(int progress) {
-        textCurrentTime.setText(TimeUtils.formatDuration(progress));
+    /**
+     * Helper method để format thời gian một cách consistent
+     */
+    private String formatTime(long timeMs) {
+        if (timeMs <= 0) {
+            return "0:00";
+        }
+        return TimeUtils.formatDuration((int) timeMs);
     }
 
     private void navigateToComments() {
@@ -335,9 +428,23 @@ public class FullPlayerFragment extends Fragment {
             // Create and show comments fragment
             CommentsFragment commentsFragment = CommentsFragment.newInstance(currentSong.getId());
 
+            // Set up comment change listener to refresh comment count
+            commentsFragment.setCommentChangeListener(new CommentsFragment.CommentChangeListener() {
+                @Override
+                public void onCommentCountChanged() {
+                    if (viewModel != null && currentSong != null) {
+                        viewModel.refreshCommentCount(currentSong.getId());
+                    }
+                }
+            });
+
+            // SỬA LỖI: Sử dụng đúng container ID cho FullPlayerActivity
+            int containerId = getActivity() instanceof FullPlayerActivity ?
+                R.id.full_player_container : R.id.fragment_container;
+
             getActivity().getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.fragment_container, commentsFragment)
+                .replace(containerId, commentsFragment)
                 .addToBackStack(null)
                 .commit();
         }
@@ -346,7 +453,7 @@ public class FullPlayerFragment extends Fragment {
     private void navigateToPlaylistSelection() {
         if (getContext() != null && currentSong != null) {
             Intent intent = PlaylistSelectionActivity.createIntent(getContext(), currentSong.getId());
-            startActivityForResult(intent, REQUEST_CODE_PLAYLIST_SELECTION);
+            playlistSelectionLauncher.launch(intent);
         }
     }
 
@@ -355,9 +462,13 @@ public class FullPlayerFragment extends Fragment {
             // Create and show queue fragment
             QueueFragment queueFragment = QueueFragment.newInstance(currentSong.getId());
 
+            // SỬA LỖI: Sử dụng đúng container ID cho FullPlayerActivity
+            int containerId = getActivity() instanceof FullPlayerActivity ?
+                R.id.full_player_container : R.id.fragment_container;
+
             getActivity().getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.fragment_container, queueFragment)
+                .replace(containerId, queueFragment)
                 .addToBackStack(null)
                 .commit();
         }
@@ -369,19 +480,5 @@ public class FullPlayerFragment extends Fragment {
         }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_CODE_PLAYLIST_SELECTION && resultCode == getActivity().RESULT_OK) {
-            if (data != null) {
-                String playlistName = data.getStringExtra(PlaylistSelectionActivity.RESULT_PLAYLIST_NAME);
-                if (playlistName != null) {
-                    showToast("Added to " + playlistName);
-                } else {
-                    showToast("Added to playlist");
-                }
-            }
-        }
-    }
+    // Xóa deprecated onActivityResult - đã thay thế bằng ActivityResultLauncher
 }

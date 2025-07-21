@@ -24,7 +24,8 @@ import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
-import com.g3.soundify_musicplayer.ui.player.MiniPlayerManager;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
 import java.util.ArrayList;
@@ -34,13 +35,18 @@ import java.util.List;
 public class HomeFragment extends Fragment {
 
     private HomeViewModel homeViewModel;
+    private SongDetailViewModel songDetailViewModel;
 
     public HomeFragment() { super(R.layout.fragment_home); }
 
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle b) {
-        // Initialize ViewModel
+        // Initialize ViewModels
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        // Sử dụng SongDetailViewModel THỐNG NHẤT
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+
+        android.util.Log.d("HomeFragment", "SongDetailViewModel initialized: " + songDetailViewModel.hashCode());
 
         // Recently Played RecyclerView
         RecyclerView rvRecentlyPlayed = v.findViewById(R.id.rvRecentlyPlayed);
@@ -167,14 +173,14 @@ public class HomeFragment extends Fragment {
         // Create a mock artist for the song
         User mockArtist = createMockArtist(song.getUploaderId());
 
-        // Show mini player using the global manager
-        MiniPlayerManager.getInstance().showMiniPlayer(song, mockArtist);
+        // Show mini player using SongDetailViewModel THỐNG NHẤT
+        songDetailViewModel.playSong(song, mockArtist);
     }
 
     // Helper method to show mini player with song and real uploader
     private void showMiniPlayerWithUploader(Song song, User uploader) {
-        // Show mini player using the global manager with real uploader data
-        MiniPlayerManager.getInstance().showMiniPlayer(song, uploader);
+        // Show mini player using SongDetailViewModel THỐNG NHẤT
+        songDetailViewModel.playSong(song, uploader);
     }
 
     // Helper method to show mini player with SongWithUploaderInfo
@@ -196,8 +202,8 @@ public class HomeFragment extends Fragment {
         uploader.setDisplayName(songInfo.getUploaderDisplayName());
         uploader.setAvatarUrl(songInfo.getUploaderAvatarUrl());
 
-        // Show mini player
-        MiniPlayerManager.getInstance().showMiniPlayer(song, uploader);
+        // Show mini player bằng SongDetailViewModel THỐNG NHẤT
+        songDetailViewModel.playSong(song, uploader);
     }
 
     // Helper method to create mock artist

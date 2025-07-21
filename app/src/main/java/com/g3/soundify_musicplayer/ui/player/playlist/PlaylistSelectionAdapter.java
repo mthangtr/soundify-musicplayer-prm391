@@ -1,4 +1,4 @@
-package com.g3.soundify_musicplayer.ui.playlist;
+package com.g3.soundify_musicplayer.ui.player.playlist;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -13,11 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Adapter for displaying playlists in selection mode
@@ -73,7 +70,6 @@ public class PlaylistSelectionAdapter extends RecyclerView.Adapter<PlaylistSelec
         private final TextView tvPlaylistName;
         private final TextView tvPlaylistDescription;
         private final TextView tvSongCount;
-        private final ImageView ivArrow;
 
         public PlaylistViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -81,7 +77,7 @@ public class PlaylistSelectionAdapter extends RecyclerView.Adapter<PlaylistSelec
             tvPlaylistName = itemView.findViewById(R.id.tv_playlist_name);
             tvPlaylistDescription = itemView.findViewById(R.id.tv_playlist_description);
             tvSongCount = itemView.findViewById(R.id.tv_song_count);
-            ivArrow = itemView.findViewById(R.id.iv_arrow);
+            ImageView ivArrow = itemView.findViewById(R.id.iv_arrow);
         }
 
         public void bind(Playlist playlist) {

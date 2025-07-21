@@ -1,43 +1,35 @@
 package com.g3.soundify_musicplayer.ui.player;
 
+import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.fragment.app.FragmentTransaction;
-
-import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.ui.base.BaseActivity;
+import androidx.appcompat.app.AppCompatActivity;
 
 /**
- * Demo Activity to test the Full Player Screen UI
- * UI ONLY - No backend integration
+ * PlayerDemoActivity - Compatibility wrapper for FullPlayerActivity
+ * This class exists to maintain compatibility with existing references in manifest and other files
+ * It simply redirects to FullPlayerActivity with the same intent data
  */
-public class PlayerDemoActivity extends BaseActivity {
-
-    @Override
-    protected int getLayoutResourceId() {
-        return R.layout.activity_player_demo;
-    }
-
-    @Override
-    protected boolean shouldShowMiniPlayer() {
-        // Hide mini player on full player screen to avoid duplication
-        return false;
-    }
+public class PlayerDemoActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        if (savedInstanceState == null) {
-            // Get song ID from intent or use default
-            long songId = getIntent().getLongExtra("song_id", 1L);
-
-            // Load the Full Player Fragment with song data
-            FullPlayerFragment fragment = FullPlayerFragment.newInstance(songId);
-
-            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-            transaction.replace(R.id.fragment_container, fragment);
-            transaction.commit();
+        
+        // Get intent data from this activity
+        Intent currentIntent = getIntent();
+        
+        // Create new intent for FullPlayerActivity
+        Intent fullPlayerIntent = new Intent(this, FullPlayerActivity.class);
+        
+        // Transfer all extras from current intent to new intent
+        if (currentIntent.getExtras() != null) {
+            fullPlayerIntent.putExtras(currentIntent.getExtras());
         }
+        
+        // Start FullPlayerActivity
+        startActivity(fullPlayerIntent);
+        
+        // Finish this activity immediately
+        finish();
     }
 }

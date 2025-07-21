@@ -17,7 +17,8 @@
     <string name="player_share">Share</string>
 
     <!-- Time and Duration -->
-    <string name="time_format">%d:%02d</string>
+    <string name="time_format" formatted="false">%d:%02d</string>
+    <string name="time_zero">0:00</string>
     <string name="duration_unknown">--:--</string>
 
     <!-- Comment Section -->
@@ -345,6 +346,11 @@
     <string name="follows_you">Follows you</string>
     <string name="followed_user">Now following %s</string>
     <string name="unfollowed_user">Unfollowed %s</string>
+
+    <!-- Comments -->
+    <string name="hint_add_comment">Add a comment...</string>
+    <string name="cd_send_comment">Send comment</string>
+    <string name="cd_delete_comment">Delete comment</string>
 
     <!-- Empty States -->
     <string name="no_followers_title">No Followers</string>
