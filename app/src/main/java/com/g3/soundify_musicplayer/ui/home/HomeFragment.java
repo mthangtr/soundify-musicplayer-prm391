@@ -13,11 +13,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.ui.playlist.PlaylistAdapter;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistWithSongCountAdapter;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 // REMOVED: SimplePlaybackHandler - using Zero Queue Rule
@@ -61,24 +62,24 @@ public class HomeFragment extends Fragment {
         rvMyPlaylists.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         // My Playlists Adapter - Start with empty list, will be populated by ViewModel
-        PlaylistAdapter playlistAdapter = new PlaylistAdapter(new ArrayList<>(), new PlaylistAdapter.OnPlaylistClickListener() {
+        PlaylistWithSongCountAdapter playlistAdapter = new PlaylistWithSongCountAdapter(new ArrayList<>(), new PlaylistWithSongCountAdapter.OnPlaylistClickListener() {
             @Override
-            public void onPlaylistClick(Playlist playlist) {
-                Toast.makeText(requireContext(), "Open playlist: " + playlist.getName(), Toast.LENGTH_SHORT).show();
+            public void onPlaylistClick(PlaylistWithSongCount playlistWithSongCount) {
+                Toast.makeText(requireContext(), "Open playlist: " + playlistWithSongCount.getName(), Toast.LENGTH_SHORT).show();
 
                 // Track playlist access
-                homeViewModel.trackPlaylistAccess(playlist.getId());
+                homeViewModel.trackPlaylistAccess(playlistWithSongCount.getId());
 
                 // Navigate to playlist detail
-                navigateToPlaylistDetail(playlist);
+                navigateToPlaylistDetail(playlistWithSongCount.getId());
             }
 
             @Override
-            public void onPlayButtonClick(Playlist playlist) {
-                Toast.makeText(requireContext(), "Play playlist: " + playlist.getName(), Toast.LENGTH_SHORT).show();
+            public void onPlayButtonClick(PlaylistWithSongCount playlistWithSongCount) {
+                Toast.makeText(requireContext(), "Play playlist: " + playlistWithSongCount.getName(), Toast.LENGTH_SHORT).show();
 
                 // Track playlist access
-                homeViewModel.trackPlaylistAccess(playlist.getId());
+                homeViewModel.trackPlaylistAccess(playlistWithSongCount.getId());
 
                 // TODO: Implement play playlist functionality
             }
@@ -294,10 +295,10 @@ public class HomeFragment extends Fragment {
     /**
      * Navigate to playlist detail
      */
-    private void navigateToPlaylistDetail(Playlist playlist) {
+    private void navigateToPlaylistDetail(long playlistId) {
         try {
             // Create PlaylistDetailFragment with playlist data
-            PlaylistDetailFragment playlistDetailFragment = PlaylistDetailFragment.newInstance(playlist.getId());
+            PlaylistDetailFragment playlistDetailFragment = PlaylistDetailFragment.newInstance(playlistId);
 
             // Navigate to playlist detail
             getParentFragmentManager()

@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.RecentlyPlayed;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
+import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.entity.PlaylistAccess;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
@@ -16,6 +17,7 @@ import com.g3.soundify_musicplayer.data.repository.SongRepository;
 import com.g3.soundify_musicplayer.data.repository.PlaylistRepository;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +34,7 @@ public class HomeViewModel extends AndroidViewModel {
     private LiveData<List<SongWithUploaderInfo>> recentSongs;
     private LiveData<List<SongWithUploaderInfo>> suggestedSongs;
     private LiveData<List<Playlist>> recentPlaylists;
-    private LiveData<List<Playlist>> userPlaylists;
+    private LiveData<List<PlaylistWithSongCount>> userPlaylists;
     
     public HomeViewModel(@NonNull Application application) {
         super(application);
@@ -74,7 +76,20 @@ public class HomeViewModel extends AndroidViewModel {
     private void initializeUserPlaylists() {
         long currentUserId = authManager.getCurrentUserId();
         if (currentUserId != -1) {
-            userPlaylists = playlistRepository.getPlaylistsByOwner(currentUserId);
+            // Create MutableLiveData and load data asynchronously
+            MutableLiveData<List<PlaylistWithSongCount>> liveData = new MutableLiveData<>();
+            userPlaylists = liveData;
+
+            // Load playlists with song count in background using executor
+            java.util.concurrent.Executors.newSingleThreadExecutor().execute(() -> {
+                try {
+                    List<PlaylistWithSongCount> playlists = playlistRepository.getPlaylistsByOwnerWithSongCount(currentUserId).get();
+                    liveData.postValue(playlists);
+                } catch (Exception e) {
+                    android.util.Log.e("HomeViewModel", "Error loading user playlists", e);
+                    liveData.postValue(new ArrayList<>());
+                }
+            });
         } else {
             userPlaylists = new MutableLiveData<>();
         }
@@ -104,7 +119,7 @@ public class HomeViewModel extends AndroidViewModel {
     /**
      * Get all user playlists LiveData (all playlists owned by current user)
      */
-    public LiveData<List<Playlist>> getUserPlaylists() {
+    public LiveData<List<PlaylistWithSongCount>> getUserPlaylists() {
         return userPlaylists;
     }
     

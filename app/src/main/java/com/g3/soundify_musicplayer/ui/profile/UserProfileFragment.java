@@ -25,8 +25,9 @@ import com.g3.soundify_musicplayer.data.entity.User;
 
 import com.g3.soundify_musicplayer.ui.login_register.LoginActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
-import com.g3.soundify_musicplayer.ui.playlist.PlaylistAdapter;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistWithSongCountAdapter;
 import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
@@ -74,7 +75,7 @@ public class UserProfileFragment extends Fragment {
 
     // Adapters
     private SongWithUploaderInfoAdapter songsAdapter;
-    private PlaylistAdapter playlistsAdapter;
+    private PlaylistWithSongCountAdapter playlistsAdapter;
 
     // Data
     private User currentUser;
@@ -217,15 +218,15 @@ public class UserProfileFragment extends Fragment {
         songsRecyclerView.setAdapter(songsAdapter);
 
         // Playlists RecyclerView
-        playlistsAdapter = new PlaylistAdapter(new ArrayList<>(), new PlaylistAdapter.OnPlaylistClickListener() {
+        playlistsAdapter = new PlaylistWithSongCountAdapter(new ArrayList<>(), new PlaylistWithSongCountAdapter.OnPlaylistClickListener() {
             @Override
-            public void onPlaylistClick(Playlist playlist) {
-                showToast("Opening playlist: " + playlist.getName());
+            public void onPlaylistClick(PlaylistWithSongCount playlistWithSongCount) {
+                showToast("Opening playlist: " + playlistWithSongCount.getName());
             }
 
             @Override
-            public void onPlayButtonClick(Playlist playlist) {
-                showToast("Playing playlist: " + playlist.getName());
+            public void onPlayButtonClick(PlaylistWithSongCount playlistWithSongCount) {
+                showToast("Playing playlist: " + playlistWithSongCount.getName());
             }
         });
         playlistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

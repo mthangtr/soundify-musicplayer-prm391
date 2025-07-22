@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.g3.soundify_musicplayer.data.entity.Playlist;
+import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
@@ -48,7 +49,7 @@ public class UserProfileViewModel extends AndroidViewModel {
     
     // Content LiveData
     private final MutableLiveData<List<Song>> publicSongs = new MutableLiveData<>();
-    private final MutableLiveData<List<Playlist>> publicPlaylists = new MutableLiveData<>();
+    private final MutableLiveData<List<PlaylistWithSongCount>> publicPlaylists = new MutableLiveData<>();
     private final MutableLiveData<List<SongWithUploaderInfo>> publicSongsWithUploaderInfo = new MutableLiveData<>();
     
     // Current user ID
@@ -212,18 +213,25 @@ public class UserProfileViewModel extends AndroidViewModel {
                 publicSongs.postValue(songs);
                 publicSongsWithUploaderInfo.postValue(songsWithInfo);
                 
-                // Load public playlists
-                Future<List<Playlist>> playlistsFuture;
+                // Load public playlists with song count
+                List<PlaylistWithSongCount> playlistsWithCount;
                 if (currentLoggedUserId == userId) {
-                    // Own profile - show all playlists
-                    playlistsFuture = playlistRepository.getPlaylistsByOwnerSync(userId);
+                    // Own profile - show all playlists with song count
+                    playlistsWithCount = playlistRepository.getPlaylistsByOwnerWithSongCount(userId).get();
                 } else {
-                    // Other user's profile - show only public playlists
-                    playlistsFuture = playlistRepository.getPublicPlaylistsByOwnerSync(userId);
+                    // Other user's profile - show only public playlists with song count
+                    Future<List<Playlist>> publicPlaylistsFuture = playlistRepository.getPublicPlaylistsByOwnerSync(userId);
+                    List<Playlist> publicPlaylists = publicPlaylistsFuture.get();
+
+                    // Convert to PlaylistWithSongCount
+                    playlistsWithCount = new java.util.ArrayList<>();
+                    for (Playlist playlist : publicPlaylists) {
+                        int songCount = playlistRepository.getSongCountInPlaylist(playlist.getId()).get();
+                        playlistsWithCount.add(new PlaylistWithSongCount(playlist, songCount));
+                    }
                 }
-                
-                List<Playlist> playlists = playlistsFuture.get();
-                publicPlaylists.postValue(playlists);
+
+                publicPlaylists.postValue(playlistsWithCount);
                 
             } catch (ExecutionException | InterruptedException e) {
                 errorMessage.postValue("Error loading user content");
@@ -391,7 +399,7 @@ public class UserProfileViewModel extends AndroidViewModel {
         return publicSongsWithUploaderInfo;
     }
 
-    public LiveData<List<Playlist>> getPublicPlaylists() {
+    public LiveData<List<PlaylistWithSongCount>> getPublicPlaylists() {
         return publicPlaylists;
     }
     

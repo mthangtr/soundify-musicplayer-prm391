@@ -22,10 +22,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 
 import com.g3.soundify_musicplayer.ui.player.FullPlayerFragment;
+import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
 // REMOVED: NavigationContext import - using Zero Queue Rule
 import com.g3.soundify_musicplayer.ui.player.FullPlayerActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.g3.soundify_musicplayer.ui.profile.UserProfileFragment;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 import com.google.android.material.chip.Chip;
@@ -270,8 +272,8 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     @Override
     public void onPlaylistClick(SearchResult result) {
         if (result.getPlaylist() != null) {
-            // TODO: Navigate to playlist detail
-            showToast("View playlist: " + result.getPrimaryText());
+            // Navigate to playlist detail
+            navigateToPlaylistDetail(result.getPlaylist());
         }
     }
 
@@ -342,6 +344,28 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         } catch (Exception e) {
             android.util.Log.e("SearchFragment", "Error navigating to user profile", e);
             showToast("Error opening profile");
+        }
+    }
+
+    /**
+     * Navigate to playlist detail
+     */
+    private void navigateToPlaylistDetail(Playlist playlist) {
+        try {
+            // Create PlaylistDetailFragment with playlist data
+            PlaylistDetailFragment playlistDetailFragment = PlaylistDetailFragment.newInstance(playlist.getId());
+
+            // Navigate to playlist detail
+            getParentFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, playlistDetailFragment)
+                .addToBackStack("playlist_detail")
+                .commit();
+
+            showToast("Opening playlist: " + playlist.getName());
+        } catch (Exception e) {
+            android.util.Log.e("SearchFragment", "Error navigating to playlist detail", e);
+            showToast("Error opening playlist");
         }
     }
 }
