@@ -16,6 +16,11 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
+import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+
+import java.util.List;
 
 /**
  * Queue Fragment - Shows current song and upcoming queue
@@ -31,7 +36,7 @@ public class QueueFragment extends Fragment {
     private RecyclerView recyclerViewQueue;
 
     // ViewModel and Adapter
-    private QueueViewModel viewModel;
+    private SongDetailViewModel songDetailViewModel;
     private QueueAdapter adapter;
     private ItemTouchHelper itemTouchHelper;
 
@@ -46,12 +51,8 @@ public class QueueFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        viewModel = new ViewModelProvider(this).get(QueueViewModel.class);
-        
-        if (getArguments() != null) {
-            long songId = getArguments().getLong(ARG_SONG_ID);
-            viewModel.loadQueue(songId);
-        }
+        // Use shared ViewModel from Activity to access real queue data
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
     }
 
     @Nullable
@@ -87,8 +88,13 @@ public class QueueFragment extends Fragment {
     private void setupRecyclerView() {
         adapter = new QueueAdapter(requireContext());
         adapter.setOnItemClickListener((song, position) -> {
-            // Handle song click - could play the selected song
-            viewModel.moveToPosition(position);
+            // Play the selected song
+            songDetailViewModel.playSongAtIndex(position);
+        });
+
+        adapter.setOnItemMoveListener((fromPosition, toPosition) -> {
+            // Move song in queue
+            songDetailViewModel.moveSongInQueue(fromPosition, toPosition);
         });
 
         recyclerViewQueue.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -98,27 +104,50 @@ public class QueueFragment extends Fragment {
         ItemTouchHelper.Callback callback = new QueueItemTouchHelperCallback(adapter);
         itemTouchHelper = new ItemTouchHelper(callback);
         itemTouchHelper.attachToRecyclerView(recyclerViewQueue);
-        
+
         adapter.setItemTouchHelper(itemTouchHelper);
     }
 
     private void setupObservers() {
-        viewModel.getQueueItems().observe(getViewLifecycleOwner(), queueItems -> {
-            if (queueItems != null) {
-                adapter.updateData(queueItems);
-                updateQueueTitle(queueItems.size());
+        // Observer 1: Queue list changes (only when queue actually changes - drag/drop, add/remove)
+        songDetailViewModel.getCurrentQueueLiveData().observe(getViewLifecycleOwner(), queueList -> {
+            if (queueList != null && !queueList.isEmpty()) {
+                // Get current index and artist info
+                Integer currentIndex = songDetailViewModel.getCurrentQueueIndex().getValue();
+                User currentArtist = songDetailViewModel.getCurrentArtistDirect();
+
+                // Update entire adapter data
+                adapter.updateData(queueList, currentIndex != null ? currentIndex : -1, currentArtist);
+
+                android.util.Log.d("QueueFragment", "Queue list updated - " + queueList.size() + " songs");
             }
         });
 
-        viewModel.getCurrentPosition().observe(getViewLifecycleOwner(), position -> {
-            if (position != null) {
-                adapter.setCurrentPosition(position);
+        // Observer 2: Current playing index changes (only updates playing indicator)
+        songDetailViewModel.getCurrentQueueIndex().observe(getViewLifecycleOwner(), currentIndex -> {
+            if (currentIndex != null) {
+                // Only update the playing indicator, don't reload entire list
+                adapter.updateCurrentPlayingIndex(currentIndex);
+
+                android.util.Log.d("QueueFragment", "Current index updated - " + currentIndex);
+            }
+        });
+
+        // Observer 3: Queue info for title updates
+        songDetailViewModel.getQueueInfo().observe(getViewLifecycleOwner(), queueInfo -> {
+            if (queueInfo != null) {
+                updateQueueTitle(queueInfo.getTotalSongs(), queueInfo.getQueueTitle());
             }
         });
     }
 
-    private void updateQueueTitle(int queueSize) {
-        String title = queueSize == 1 ? "1 song in queue" : queueSize + " songs in queue";
+    private void updateQueueTitle(int queueSize, String queueTitle) {
+        String title;
+        if (queueTitle != null && !queueTitle.isEmpty()) {
+            title = queueTitle + " (" + queueSize + " songs)";
+        } else {
+            title = queueSize == 1 ? "1 song in queue" : queueSize + " songs in queue";
+        }
         textQueueTitle.setText(title);
     }
 }

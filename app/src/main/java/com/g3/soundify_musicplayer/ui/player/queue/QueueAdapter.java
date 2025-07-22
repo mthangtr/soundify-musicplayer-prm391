@@ -14,26 +14,32 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.utils.TimeUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  * Adapter for Queue with drag & drop functionality
  */
-public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHolder> 
+public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHolder>
         implements QueueItemTouchHelperCallback.ItemTouchHelperAdapter {
 
     private final Context context;
-    private final List<QueueViewModel.QueueItem> queueItems;
+    private final List<Song> queueItems;
     private OnItemClickListener listener;
+    private OnItemMoveListener moveListener;
     private ItemTouchHelper itemTouchHelper;
-    private int currentPosition = 0;
+    private int currentPlayingIndex = -1;
+    private User currentArtist;
 
     public interface OnItemClickListener {
         void onItemClick(Song song, int position);
+    }
+
+    public interface OnItemMoveListener {
+        void onItemMoveRequested(int fromPosition, int toPosition);
     }
 
     public QueueAdapter(Context context) {
@@ -45,23 +51,24 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         this.listener = listener;
     }
 
+    public void setOnItemMoveListener(OnItemMoveListener moveListener) {
+        this.moveListener = moveListener;
+    }
+
     public void setItemTouchHelper(ItemTouchHelper itemTouchHelper) {
         this.itemTouchHelper = itemTouchHelper;
     }
 
-    public void setCurrentPosition(int position) {
-        int oldPosition = this.currentPosition;
-        this.currentPosition = position;
-        
-        // Update the playing state
-        if (oldPosition < queueItems.size()) {
-            queueItems.get(oldPosition).setCurrentlyPlaying(false);
-            notifyItemChanged(oldPosition);
+    public void setCurrentPlayingIndex(int index) {
+        int oldIndex = this.currentPlayingIndex;
+        this.currentPlayingIndex = index;
+
+        // Update the old and new positions
+        if (oldIndex != -1) {
+            notifyItemChanged(oldIndex);
         }
-        
-        if (position < queueItems.size()) {
-            queueItems.get(position).setCurrentlyPlaying(true);
-            notifyItemChanged(position);
+        if (index != -1) {
+            notifyItemChanged(index);
         }
     }
 
@@ -74,8 +81,9 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
 
     @Override
     public void onBindViewHolder(@NonNull QueueViewHolder holder, int position) {
-        QueueViewModel.QueueItem item = queueItems.get(position);
-        holder.bind(item, position);
+        Song song = queueItems.get(position);
+        boolean isCurrentlyPlaying = (position == currentPlayingIndex);
+        holder.bind(song, position, isCurrentlyPlaying);
     }
 
     @Override
@@ -83,51 +91,58 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         return queueItems.size();
     }
 
-    public void updateData(List<QueueViewModel.QueueItem> newData) {
+    public void updateData(List<Song> newData, int currentPlayingIndex, User artist) {
         queueItems.clear();
         if (newData != null) {
             queueItems.addAll(newData);
         }
+        this.currentPlayingIndex = currentPlayingIndex;
+        this.currentArtist = artist;
         notifyDataSetChanged();
+    }
+
+    /**
+     * Update only the current playing index without reloading the entire list
+     * More efficient for when only the playing indicator needs to change
+     */
+    public void updateCurrentPlayingIndex(int newIndex) {
+        int oldIndex = this.currentPlayingIndex;
+        this.currentPlayingIndex = newIndex;
+
+        // Only update the affected items
+        if (oldIndex != -1 && oldIndex < queueItems.size()) {
+            notifyItemChanged(oldIndex);
+        }
+        if (newIndex != -1 && newIndex < queueItems.size()) {
+            notifyItemChanged(newIndex);
+        }
     }
 
     // ItemTouchHelperAdapter implementation
     @Override
     public boolean onItemMove(int fromPosition, int toPosition) {
         // Don't allow moving the currently playing song
-        if (fromPosition == currentPosition) {
+        if (fromPosition == currentPlayingIndex) {
             return false;
         }
-        
-        Collections.swap(queueItems, fromPosition, toPosition);
-        notifyItemMoved(fromPosition, toPosition);
-        
-        // Update current position if needed
-        if (toPosition == currentPosition) {
-            currentPosition = fromPosition;
-        } else if (fromPosition < currentPosition && toPosition >= currentPosition) {
-            currentPosition--;
-        } else if (fromPosition > currentPosition && toPosition <= currentPosition) {
-            currentPosition++;
+
+        // Report the move request to Fragment/ViewModel instead of handling it here
+        if (moveListener != null) {
+            moveListener.onItemMoveRequested(fromPosition, toPosition);
         }
-        
+
         return true;
     }
 
     @Override
     public void onItemDismiss(int position) {
         // Don't allow dismissing the currently playing song
-        if (position == currentPosition) {
+        if (position == currentPlayingIndex) {
             return;
         }
-        
-        queueItems.remove(position);
-        notifyItemRemoved(position);
-        
-        // Update current position if needed
-        if (position < currentPosition) {
-            currentPosition--;
-        }
+
+        // For now, we don't support removing songs from queue
+        // This can be implemented later if needed
     }
 
     class QueueViewHolder extends RecyclerView.ViewHolder {
@@ -150,18 +165,23 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
             itemContainer = itemView.findViewById(R.id.item_container);
         }
 
-        public void bind(QueueViewModel.QueueItem item, int position) {
-            Song song = item.getSong();
-            
+        public void bind(Song song, int position, boolean isCurrentlyPlaying) {
             tvSongTitle.setText(song.getTitle());
-            tvArtistName.setText("Demo Artist"); // Mock artist name
+
+            // Use real artist name from current artist info
+            String artistName = "Unknown Artist";
+            if (currentArtist != null && currentArtist.getUsername() != null) {
+                artistName = currentArtist.getUsername();
+            }
+            tvArtistName.setText(artistName);
+
             tvDuration.setText(TimeUtils.formatDuration(song.getDurationMs()));
-            
+
             // Set album art placeholder
             ivAlbumArt.setImageResource(R.drawable.placeholder_album_art);
-            
+
             // Show/hide playing indicator
-            if (item.isCurrentlyPlaying()) {
+            if (isCurrentlyPlaying) {
                 ivPlayingIndicator.setVisibility(View.VISIBLE);
                 ivPlayingIndicator.setImageResource(R.drawable.ic_play);
                 itemContainer.setAlpha(1.0f);
@@ -171,7 +191,7 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
                 itemContainer.setAlpha(0.8f);
                 tvSongTitle.setTextColor(context.getColor(R.color.text_primary));
             }
-            
+
             // Setup drag handle
             ivDragHandle.setOnTouchListener((v, event) -> {
                 if (event.getAction() == MotionEvent.ACTION_DOWN && itemTouchHelper != null) {
@@ -179,7 +199,7 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
                 }
                 return false;
             });
-            
+
             // Click listener
             itemView.setOnClickListener(v -> {
                 if (listener != null) {

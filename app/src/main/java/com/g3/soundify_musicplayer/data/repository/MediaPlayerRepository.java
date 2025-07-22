@@ -577,6 +577,61 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
             }
         });
     }
+
+    /**
+     * Jump to song at specific position in queue
+     */
+    public Future<Boolean> jumpToSongInQueue(int position) {
+        return mediaExecutor.submit(() -> {
+            try {
+                Song targetSong = playbackQueue.jumpToSong(position);
+                if (targetSong != null) {
+                    currentState.setCurrentSong(targetSong);
+                    currentState.setCurrentQueueIndex(playbackQueue.getCurrentIndex());
+                    updateQueueInfo();
+
+                    // Start playback of the selected song
+                    if (isServiceBound && mediaService != null) {
+                        User currentArtist = currentState.getCurrentArtist();
+                        mediaService.playSong(targetSong, currentArtist);
+                    }
+
+                    android.util.Log.d("MediaPlayerRepository", "Jumped to position " + position + " - Song: " + targetSong.getTitle());
+                    return true;
+                }
+                return false;
+            } catch (Exception e) {
+                handlePlaybackError("Error jumping to song in queue", e);
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Move song in queue from one position to another
+     */
+    public Future<Boolean> moveSongInQueue(int fromPosition, int toPosition) {
+        return mediaExecutor.submit(() -> {
+            try {
+                playbackQueue.moveSong(fromPosition, toPosition);
+                currentState.setCurrentQueueIndex(playbackQueue.getCurrentIndex());
+                updateQueueInfo();
+
+                android.util.Log.d("MediaPlayerRepository", "Moved song from " + fromPosition + " to " + toPosition);
+                return true;
+            } catch (Exception e) {
+                handlePlaybackError("Error moving song in queue", e);
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Get current queue as list of songs
+     */
+    public List<Song> getCurrentQueue() {
+        return playbackQueue.getCurrentQueue();
+    }
     
     /**
      * Remove song from queue

@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
 
 import com.g3.soundify_musicplayer.data.entity.Comment;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
@@ -23,6 +24,7 @@ import com.g3.soundify_musicplayer.data.repository.SongDetailRepository;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 import com.g3.soundify_musicplayer.utils.RepositoryManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -332,6 +334,73 @@ public class SongDetailViewModel extends AndroidViewModel {
 
     public LiveData<MediaPlayerState.QueueInfo> getQueueInfo() {
         return mediaPlayerRepository.getQueueInfo();
+    }
+
+    /**
+     * Get current queue as list of songs for Queue screen
+     */
+    public List<Song> getCurrentQueue() {
+        return mediaPlayerRepository.getCurrentQueue();
+    }
+
+    /**
+     * Get current queue as LiveData for Queue screen (only updates when queue changes)
+     */
+    public LiveData<List<Song>> getCurrentQueueLiveData() {
+        // Transform QueueInfo to extract queue list - only updates when queue actually changes
+        return Transformations.map(mediaPlayerRepository.getQueueInfo(),
+            queueInfo -> queueInfo != null ? mediaPlayerRepository.getCurrentQueue() : new ArrayList<>());
+    }
+
+    /**
+     * Get current queue index for Queue screen
+     */
+    public LiveData<Integer> getCurrentQueueIndex() {
+        // Transform CurrentPlaybackState to extract queue index
+        return Transformations.map(mediaPlayerRepository.getCurrentPlaybackState(),
+            state -> state != null ? state.getCurrentQueueIndex() : -1);
+    }
+
+    /**
+     * Get current artist directly (for Queue screen)
+     */
+    public User getCurrentArtistDirect() {
+        MediaPlayerState.CurrentPlaybackState currentState = mediaPlayerRepository.getCurrentPlaybackState().getValue();
+        return currentState != null ? currentState.getCurrentArtist() : null;
+    }
+
+    /**
+     * Play song at specific index in queue
+     */
+    public void playSongAtIndex(int position) {
+        executor.execute(() -> {
+            try {
+                boolean success = mediaPlayerRepository.jumpToSongInQueue(position).get();
+                if (!success) {
+                    errorMessage.postValue("Không thể phát bài hát tại vị trí " + position);
+                }
+            } catch (Exception e) {
+                errorMessage.postValue("Lỗi khi phát bài hát: " + e.getMessage());
+                android.util.Log.e("SongDetailViewModel", "Error playing song at index " + position, e);
+            }
+        });
+    }
+
+    /**
+     * Move song in queue from one position to another
+     */
+    public void moveSongInQueue(int fromPosition, int toPosition) {
+        executor.execute(() -> {
+            try {
+                boolean success = mediaPlayerRepository.moveSongInQueue(fromPosition, toPosition).get();
+                if (!success) {
+                    errorMessage.postValue("Không thể di chuyển bài hát trong queue");
+                }
+            } catch (Exception e) {
+                errorMessage.postValue("Lỗi khi di chuyển bài hát: " + e.getMessage());
+                android.util.Log.e("SongDetailViewModel", "Error moving song in queue", e);
+            }
+        });
     }
 
     // ========== MEDIA PLAYBACK METHODS ==========
