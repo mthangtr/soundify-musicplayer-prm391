@@ -13,15 +13,6 @@ public class CommentWithUser {
     private boolean isLiked;
     private int likeCount;
 
-    public CommentWithUser() {}
-
-    public CommentWithUser(Comment comment, User user) {
-        this.comment = comment;
-        this.user = user;
-        this.isLiked = false;
-        this.likeCount = 0;
-    }
-
     public CommentWithUser(Comment comment, User user, boolean isLiked, int likeCount) {
         this.comment = comment;
         this.user = user;

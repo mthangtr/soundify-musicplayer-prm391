@@ -123,7 +123,7 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
                     mediaService.playSong(songToPlay, null);
                 }
 
-                isPlayerVisible.postValue(true);
+                isPlayerVisible.setValue(true);
             } catch (Exception e) {
                 android.util.Log.e("MediaPlayerRepository", "Error in replaceListAndPlay", e);
             }

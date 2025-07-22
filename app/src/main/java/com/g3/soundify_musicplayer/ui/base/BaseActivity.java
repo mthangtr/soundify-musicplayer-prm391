@@ -12,6 +12,7 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.ui.player.MiniPlayerFragment;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModelFactory;
+
 import androidx.lifecycle.ViewModelProvider;
 
 /**
@@ -27,7 +28,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(getLayoutResourceId());
-        
+
         initMiniPlayer();
     }
 
@@ -48,13 +49,34 @@ public abstract class BaseActivity extends AppCompatActivity {
 
             MiniPlayerFragment miniPlayerFragment = new MiniPlayerFragment();
 
-            // FragmentTransaction để replace mini player container
+            // FragmentTransaction để replace mini player container để hiển thị mini player fragment
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+            // replace mini player container để hiển thị mini player fragment
             transaction.replace(R.id.mini_player_container, miniPlayerFragment);
+
+            // apply changes
             transaction.commit();
 
-            // Initialize ViewModel THỐNG NHẤT với Singleton Repository pattern
+            // MiniPlayer và FullPlayer đều cần tương tác với SongDetailRepository và MediaPlayerRepository
+            // => Cần dùng chung một instance ViewModel (SongDetailViewModel) để giữ đồng nhất trạng thái bài hát, chỉ số hàng đợi khi chuyển bài
+
+            // ViewModel phù hợp vì:
+            // - Giữ state sống sót qua vòng đời (xoay màn hình, chuyển fragment)
+            // - Có thể chia sẻ giữa Fragment/Activity khi dùng cùng ViewModelProvider(requireActivity(), ...)
+
+            // Tuy nhiên, SongDetailViewModel cần nhận đồng thời cả 2 repository:
+            // - SongDetailRepository (xử lý dữ liệu bài hát)
+            // - MediaPlayerRepository (xử lý logic playback)
+
+            // => Android ViewModel mặc định chỉ hỗ trợ constructor không tham số → không thể inject thủ công nhiều repository vào ViewModel
+
+            // Cần tạo một Factory tùy chỉnh (SongDetailViewModelFactory)
+            // → Factory này sẽ lấy các repository singleton từ RepositoryManager (hoặc từ Application)
+            // → Gói cả 2 repository vào ViewModel
             SongDetailViewModelFactory factory = new SongDetailViewModelFactory(getApplication());
+
+            // Kết quả: ViewModel được khởi tạo đầy đủ, giữ logic playback & dữ liệu bài hát một cách nhất quán giữa MiniPlayer và FullPlayer
             SongDetailViewModel songDetailViewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
 
             songDetailViewModel.getIsVisible().observe(this, isVisible -> {
@@ -78,7 +100,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        
+
         // Update mini player visibility based on activity preference
         if (miniPlayerContainer != null) {
             if (shouldShowMiniPlayer()) {

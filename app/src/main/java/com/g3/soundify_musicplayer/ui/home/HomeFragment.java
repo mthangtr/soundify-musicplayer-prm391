@@ -93,8 +93,6 @@ public class HomeFragment extends Fragment {
                     @Override
                     public void onPlay(SongWithUploaderInfo songInfo) {
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
-
-                        // ✅ CONSISTENT: Use playFromView for all fragments
                         List<Song> allSongs = convertToSongs(recentAdapter.getSongs());
                         int position = findSongPosition(songInfo, recentAdapter.getSongs());
                         songDetailViewModel.playFromView(allSongs, "Recently Played", position);
@@ -135,7 +133,6 @@ public class HomeFragment extends Fragment {
                     public void onPlay(SongWithUploaderInfo songInfo) {
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                        // ✅ CONSISTENT: Use playFromView for all fragments
                         List<Song> allSongs = convertToSongs(suggestedAdapter.getCurrentData());
                         int position = findSongPosition(songInfo, suggestedAdapter.getCurrentData());
                         songDetailViewModel.playFromView(allSongs, "Suggested For You", position);

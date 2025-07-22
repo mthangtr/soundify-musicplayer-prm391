@@ -29,6 +29,7 @@ public class SongDetailViewModelFactory implements ViewModelProvider.Factory {
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(SongDetailViewModel.class)) {
+
             // Get singleton repository instances
             SongDetailRepository songDetailRepository = repositoryManager.getSongDetailRepository();
             MediaPlayerRepository mediaPlayerRepository = repositoryManager.getMediaPlayerRepository();
@@ -42,9 +43,6 @@ public class SongDetailViewModelFactory implements ViewModelProvider.Factory {
 
             return (T) viewModel;
         }
-
-        // Fallback for other ViewModel types
-        android.util.Log.w("SongDetailViewModelFactory", "Unknown ViewModel class: " + modelClass.getName());
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }
 

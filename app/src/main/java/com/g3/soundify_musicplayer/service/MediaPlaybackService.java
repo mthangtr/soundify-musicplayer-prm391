@@ -187,54 +187,10 @@ public class MediaPlaybackService extends Service {
     }
 
     /**
-     * Play/Pause toggle
-     * Đảm bảo ExoPlayer operations chạy trên main thread
-     */
-    public void togglePlayPause() {
-        mainHandler.post(() -> {
-            if (exoPlayer.isPlaying()) {
-                exoPlayer.pause();
-            } else {
-                exoPlayer.play();
-            }
-        });
-    }
-
-    /**
-     * Kiểm tra xem có đang phát bài hát này không
-     * Thread-safe method
-     */
-    public boolean isPlayingSong(long songId) {
-        if (currentSong == null || currentSong.getId() != songId) {
-            return false;
-        }
-
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            return exoPlayer.isPlaying();
-        } else {
-            return false; // Safe default for background threads
-        }
-    }
-
-    /**
-     * Kiểm tra xem bài hát này có phải là current song không (dù đang phát hay pause)
-     */
-    public boolean isCurrentSong(long songId) {
-        return currentSong != null && currentSong.getId() == songId;
-    }
-
-    /**
      * Lấy current song
      */
     public Song getCurrentSong() {
         return currentSong;
-    }
-
-    /**
-     * Lấy current artist
-     */
-    public User getCurrentArtist() {
-        return currentArtist;
     }
 
     /**
@@ -251,14 +207,6 @@ public class MediaPlaybackService extends Service {
      */
     public void play() {
         mainHandler.post(() -> exoPlayer.play());
-    }
-
-    /**
-     * Stop playback
-     * Đảm bảo ExoPlayer operations chạy trên main thread
-     */
-    public void stop() {
-        mainHandler.post(() -> exoPlayer.stop());
     }
 
     /**

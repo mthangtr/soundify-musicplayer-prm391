@@ -47,7 +47,6 @@ public class SongDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
     private final MutableLiveData<Boolean> isPlaying = new MutableLiveData<>(false);
-    // Note: isVisible is now managed by MediaPlayerRepository, accessed via getIsVisible()
     private final MutableLiveData<Integer> progress = new MutableLiveData<>(0);
     private final MutableLiveData<Long> currentPosition = new MutableLiveData<>(0L);
     private final MutableLiveData<Long> duration = new MutableLiveData<>(0L);
@@ -84,18 +83,12 @@ public class SongDetailViewModel extends AndroidViewModel {
      * Load song detail data
      */
     public void loadSongDetail(long songId, long userId) {
-        android.util.Log.d("SongDetailViewModel", "🔍 loadSongDetail() called - songId: " + songId + ", userId: " + userId);
         isLoading.postValue(true); // FIXED: Use postValue() to avoid IllegalStateException
 
         executor.execute(() -> {
             try {
-                android.util.Log.d("SongDetailViewModel", "🔍 Executing loadSongDetail in background thread");
-                // Get comprehensive song detail data
                 SongDetailRepository.SongDetailData data = repository.getSongDetailData(songId, userId).get();
-                android.util.Log.d("SongDetailViewModel", "🔍 getSongDetailData returned: " + (data != null ? "SUCCESS" : "NULL"));
-
                 if (data != null) {
-                    android.util.Log.d("SongDetailViewModel", "🔍 Processing song data - Song: " + data.song.getTitle() + ", UploaderId: " + data.song.getUploaderId());
                     // Update UI data
                     currentSong.postValue(data.song);
                     isLiked.postValue(data.isLiked);
@@ -103,15 +96,12 @@ public class SongDetailViewModel extends AndroidViewModel {
                     commentCount.postValue(data.commentCount);
                     playlistsContainingSong.postValue(data.playlistIds);
 
-                    // FIXED: Load and set artist information
-                    android.util.Log.d("SongDetailViewModel", "🔍 About to call loadArtistInfo with uploaderId: " + data.song.getUploaderId());
                     loadArtistInfo(data.song.getUploaderId());
 
                     // Load related content
                     loadRelatedSongs(data.song.getGenre(), songId);
                     loadMoreSongsByArtist(data.song.getUploaderId(), songId);
                     loadUserPlaylists(userId);
-
                 } else {
                     errorMessage.postValue("Không thể tải thông tin bài hát");
                 }
@@ -143,32 +133,6 @@ public class SongDetailViewModel extends AndroidViewModel {
             } catch (Exception e) {
                 android.util.Log.e("SongDetailViewModel", "❌ Error in toggleLike", e);
                 errorMessage.postValue("Lỗi khi thực hiện like: " + e.getMessage());
-            }
-        });
-    }
-
-    /**
-     * Add comment to song
-     */
-    @SuppressWarnings("unused") // Method có thể được sử dụng trong tương lai
-    public void addComment(long songId, long userId, String content) {
-        if (content == null || content.trim().isEmpty()) {
-            errorMessage.postValue("Nội dung comment không được để trống"); // FIXED: Use postValue()
-            return;
-        }
-
-        executor.execute(() -> {
-            try {
-                Long commentId = repository.addComment(songId, userId, content.trim()).get();
-                if (commentId != null && commentId > 0) {
-                    // Update comment count
-                    refreshCommentCount(songId);
-                } else {
-                    errorMessage.postValue("Không thể thêm comment");
-                }
-
-            } catch (Exception e) {
-                errorMessage.postValue("Lỗi khi thêm comment: " + e.getMessage());
             }
         });
     }
@@ -209,43 +173,6 @@ public class SongDetailViewModel extends AndroidViewModel {
             }
         });
     }
-
-    /**
-     * Create new playlist and add song to it
-     */
-    @SuppressWarnings("unused") // Method có thể được sử dụng trong tương lai
-    public void createPlaylistWithSong(String playlistName, String description, boolean isPublic, long ownerId, long songId) {
-        if (playlistName == null || playlistName.trim().isEmpty()) {
-            errorMessage.postValue("Tên playlist không được để trống"); // FIXED: Use postValue()
-            return;
-        }
-
-        executor.execute(() -> {
-            try {
-                Long playlistId = repository.createPlaylistWithSong(
-                        playlistName.trim(),
-                        description != null ? description.trim() : "",
-                        isPublic,
-                        ownerId,
-                        songId
-                ).get();
-
-                if (playlistId != null && playlistId > 0) {
-                    // Reload user playlists and playlists containing song
-                    loadUserPlaylists(ownerId);
-                    List<Long> updatedPlaylistIds = repository.getPlaylistIdsContainingSong(songId, ownerId).get();
-                    playlistsContainingSong.postValue(updatedPlaylistIds);
-                } else {
-                    errorMessage.postValue("Không thể tạo playlist");
-                }
-
-            } catch (Exception e) {
-                errorMessage.postValue("Lỗi khi tạo playlist: " + e.getMessage());
-            }
-        });
-    }
-
-    // ========== PRIVATE HELPER METHODS ==========
 
     private void loadRelatedSongs(String genre, long excludeSongId) {
         executor.execute(() -> {

@@ -81,8 +81,6 @@ public class FullPlayerActivity extends AppCompatActivity {
         return intent;
     }
 
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,10 +111,6 @@ public class FullPlayerActivity extends AppCompatActivity {
         setupActivityResultLaunchers();
         setupClickListeners();
         observeViewModel();
-
-        // Load song detail
-        android.util.Log.d("FullPlayerActivity", "FullPlayer opened for song ID: " + songId);
-        android.util.Log.d("FullPlayerActivity", "FullPlayer will display current playback state from singleton repository");
     }
 
     private void setupActivityResultLaunchers() {
@@ -380,7 +374,6 @@ public class FullPlayerActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Ensure full-screen mode is maintained
         setupFullScreenMode();
     }
 
@@ -425,11 +418,6 @@ public class FullPlayerActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-
-        // ✅ CRITICAL: Clean up progress updates when paused to prevent leaks
-        if (viewModel != null) {
-            // Progress updates will be handled by MiniPlayer after minimize
-        }
     }
 
     private void updateSongInfo(Song song) {
@@ -493,7 +481,6 @@ public class FullPlayerActivity extends AppCompatActivity {
      * Update current time display based on seek bar progress (0-100)
      */
     private void updateCurrentTimeFromProgress(int progressPercent) {
-        // Estimate time based on progress percentage and total duration
         if (currentSong != null && currentSong.getDurationMs() != null) {
             long totalDurationMs = currentSong.getDurationMs();
             long estimatedPositionMs = (totalDurationMs * progressPercent) / 100;
