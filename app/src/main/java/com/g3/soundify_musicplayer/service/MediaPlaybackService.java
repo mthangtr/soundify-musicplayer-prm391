@@ -343,7 +343,6 @@ public class MediaPlaybackService extends Service {
                 Notification notification = createNotification();
                 startForeground(NOTIFICATION_ID, notification);
                 isServiceStarted = true;
-                android.util.Log.d("MediaPlaybackService", "Foreground service started");
             } else {
                 updateNotification();
             }
@@ -457,8 +456,6 @@ public class MediaPlaybackService extends Service {
      */
     public void setPlaybackStateListener(PlaybackStateListener listener) {
         this.playbackStateListener = listener;
-        android.util.Log.d("MediaPlaybackService", "✅ PlaybackStateListener registered: " +
-            (listener != null ? listener.getClass().getSimpleName() : "NULL"));
 
         // Ngay lập tức báo cáo trạng thái hiện tại nếu có - THREAD-SAFE
         if (listener != null && exoPlayer != null) {

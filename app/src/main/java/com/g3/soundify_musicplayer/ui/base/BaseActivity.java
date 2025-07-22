@@ -58,18 +58,11 @@ public abstract class BaseActivity extends AppCompatActivity {
             // Initialize ViewModel THỐNG NHẤT với Singleton Repository pattern
             SongDetailViewModelFactory factory = new SongDetailViewModelFactory(getApplication());
             songDetailViewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
-            android.util.Log.d("BaseActivity", "SongDetailViewModel initialized with singleton repositories: " +
-                songDetailViewModel.hashCode());
 
             songDetailViewModel.getIsVisible().observe(this, isVisible -> {
-                android.util.Log.d("BaseActivity", "MiniPlayer visibility changed to: " + isVisible +
-                    ", shouldShowMiniPlayer: " + shouldShowMiniPlayer());
-
                 if (shouldShowMiniPlayer() && isVisible != null && isVisible) {
-                    android.util.Log.d("BaseActivity", "Setting miniPlayerContainer to VISIBLE");
                     miniPlayerContainer.setVisibility(android.view.View.VISIBLE);
                 } else {
-                    android.util.Log.d("BaseActivity", "Setting miniPlayerContainer to GONE");
                     miniPlayerContainer.setVisibility(android.view.View.GONE);
                 }
             });

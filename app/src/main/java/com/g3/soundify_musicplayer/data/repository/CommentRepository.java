@@ -128,7 +128,7 @@ public class CommentRepository {
 
                 // Then delete the comment
                 commentDao.delete(comment);
-                android.util.Log.d("CommentRepository", "Successfully deleted comment: " + commentId);
+
                 return true;
 
             } catch (Exception e) {
@@ -160,12 +160,10 @@ public class CommentRepository {
                 boolean isCurrentlyLiked = commentLikeDao.isCommentLikedByUser(commentId, currentUserId) > 0;
                 if (isCurrentlyLiked) {
                     commentLikeDao.unlikeComment(commentId, currentUserId);
-                    android.util.Log.d("CommentRepository", "Unliked comment: " + commentId);
                     return false;
                 } else {
                     CommentLike commentLike = new CommentLike(commentId, currentUserId);
                     commentLikeDao.insert(commentLike);
-                    android.util.Log.d("CommentRepository", "Liked comment: " + commentId);
                     return true;
                 }
 

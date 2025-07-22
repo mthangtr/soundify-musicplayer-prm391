@@ -87,7 +87,6 @@ public class UserProfileViewModel extends AndroidViewModel {
      * Internal method to load user profile data
      */
     private void loadUserProfileInternal(long userId) {
-        android.util.Log.d("UserProfileViewModel", "Loading user profile for userId: " + userId);
         isLoading.setValue(true);
         
         // Load user data in background

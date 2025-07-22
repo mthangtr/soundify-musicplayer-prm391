@@ -333,10 +333,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
         songDetailViewModel.playFromView(playlistSongs, currentPlaylist.getName(), position);
 
         showToast("Playing: " + song.getTitle() + " from playlist: " + currentPlaylist.getName());
-
-        android.util.Log.d("PlaylistDetailFragment", "Playing song with context - Playlist: " +
-            currentPlaylist.getName() + ", Queue size: " + songIds.size() +
-            ", Position: " + position);
     }
 
     @Override

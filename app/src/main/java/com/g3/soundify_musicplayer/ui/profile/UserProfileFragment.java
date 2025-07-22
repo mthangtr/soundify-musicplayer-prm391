@@ -143,7 +143,6 @@ public class UserProfileFragment extends Fragment {
         super.onResume();
         // Refresh data when returning to this fragment
         if (viewModel != null) {
-            android.util.Log.d("UserProfileFragment", "onResume: Refreshing user profile data");
             viewModel.refreshUserData();
         }
     }

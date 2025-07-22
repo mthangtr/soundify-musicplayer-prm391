@@ -82,14 +82,10 @@ public class SearchViewModel extends AndroidViewModel {
         lastQuery = query.trim();
 
         if (lastQuery.isEmpty()) {
-            // Show empty results when query is empty
-            android.util.Log.d("SearchViewModel", "Empty query, showing empty results");
             searchResults.setValue(new ArrayList<>());
             return;
         }
 
-        android.util.Log.d("SearchViewModel", "Searching for: " + lastQuery);
-        // Perform real database search
         performDatabaseSearch(lastQuery);
     }
 
@@ -246,8 +242,6 @@ public class SearchViewModel extends AndroidViewModel {
                     filteredSongs.add(song);
                 }
             }
-
-            android.util.Log.d("SearchViewModel", "Filtered songs for query '" + query + "': " + filteredSongs.size());
 
         } catch (Exception e) {
             android.util.Log.e("SearchViewModel", "Error filtering songs", e);
@@ -412,9 +406,6 @@ public class SearchViewModel extends AndroidViewModel {
                     // Follow
                     musicPlayerRepository.followUser(currentUserId, user.getId()).get();
                 }
-
-                // Success - the LiveData observer will handle the final state update
-                android.util.Log.d("SearchViewModel", "Follow operation completed successfully");
 
             } catch (Exception e) {
                 // Rollback optimistic update on error

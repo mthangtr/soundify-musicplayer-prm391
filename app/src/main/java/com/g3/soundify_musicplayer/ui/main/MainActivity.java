@@ -168,7 +168,6 @@ public class MainActivity extends BaseActivity {
                 .addToBackStack("upload_song")
                 .commit();
 
-        android.util.Log.d("MainActivity", "Navigating to UploadSongFragment");
     }
 
 
@@ -203,7 +202,6 @@ public class MainActivity extends BaseActivity {
                 .addToBackStack("edit_song")
                 .commit();
 
-        android.util.Log.d("MainActivity", "Navigating to UploadSongFragment for edit, songId: " + songId);
     }
 
     @Override

@@ -63,13 +63,9 @@ public class LikedSongPlaylistFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        android.util.Log.d("LikedSongPlaylistFragment", "🔄 onViewCreated called - Initializing LikedSongPlaylistFragment");
-
         // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(LikedSongPlaylistViewModel.class);
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
-
-        android.util.Log.d("LikedSongPlaylistFragment", "✅ ViewModels initialized");
 
         // Test database connection
         viewModel.testDatabaseConnection();
@@ -78,8 +74,6 @@ public class LikedSongPlaylistFragment extends Fragment {
         setupRecyclerView();
         setupClickListeners();
         observeViewModel();
-
-        android.util.Log.d("LikedSongPlaylistFragment", "✅ LikedSongPlaylistFragment setup completed");
     }
 
     private void initViews(View view) {
@@ -116,17 +110,8 @@ public class LikedSongPlaylistFragment extends Fragment {
 
     private void observeViewModel() {
         // Observer liked songs
-        android.util.Log.d("LikedSongPlaylistFragment", "🔍 Setting up observers...");
-
         viewModel.getLikedSongs().observe(getViewLifecycleOwner(), songs -> {
-            android.util.Log.d("LikedSongPlaylistFragment", "🎵 Liked songs observer triggered - Songs: " +
-                    (songs != null ? songs.size() + " items" : "NULL"));
-
             if (songs != null) {
-                for (int i = 0; i < Math.min(songs.size(), 3); i++) {
-                    Song song = songs.get(i);
-                    android.util.Log.d("LikedSongPlaylistFragment", "   Song " + i + ": " + song.getTitle() + " (ID: " + song.getId() + ")");
-                }
 
                 currentLikedSongs = songs;
                 songsAdapter.updateData(songs);
@@ -288,7 +273,6 @@ public class LikedSongPlaylistFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        android.util.Log.d("LikedSongPlaylistFragment", "🔄 onResume called - Refreshing liked songs data");
 
         // Refresh data để ensure real-time sync
         if (viewModel != null) {

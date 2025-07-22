@@ -147,7 +147,6 @@ public class SongDetailViewModel extends AndroidViewModel {
      * Toggle song like status
      */
     public void toggleLike(long songId, long userId) {
-        android.util.Log.d("SongDetailViewModel", "🔄 toggleLike(songId: " + songId + ", userId: " + userId + ") starting...");
         
         executor.execute(() -> {
             try {
@@ -384,7 +383,6 @@ public class SongDetailViewModel extends AndroidViewModel {
     public void playSongAtIndex(int position) {
         // ✅ SIMPLE: No .get() call - result will be notified via observers
         mediaPlayerRepository.jumpToIndex(position);
-        android.util.Log.d("SongDetailViewModel", "✅ Jump to index " + position + " requested");
     }
 
     /**
@@ -393,7 +391,6 @@ public class SongDetailViewModel extends AndroidViewModel {
     public void moveSongInQueue(int fromPosition, int toPosition) {
         // ✅ SIMPLE: No .get() call - result will be notified via observers
         mediaPlayerRepository.moveItemInList(fromPosition, toPosition);
-        android.util.Log.d("SongDetailViewModel", "✅ Move song " + fromPosition + " -> " + toPosition + " requested");
     }
 
     // ========== MEDIA PLAYBACK METHODS ==========
@@ -610,7 +607,6 @@ public class SongDetailViewModel extends AndroidViewModel {
                 MediaPlayerState.QueueInfo queueInfo = mediaPlayerRepository.getQueueInfo().getValue();
 
                 if (queueInfo == null || queueInfo.getTotalSongs() == 0) {
-                    android.util.Log.d("SongDetailViewModel", "No queue found - creating single song queue");
 
                     // Get current song from MediaPlayerRepository
                     MediaPlayerState.CurrentPlaybackState currentState = mediaPlayerRepository.getCurrentPlaybackState().getValue();
@@ -621,8 +617,6 @@ public class SongDetailViewModel extends AndroidViewModel {
                         mediaPlayerRepository.ensurePlayerVisibility();
                     }
                 } else {
-                    android.util.Log.d("SongDetailViewModel", "Queue already exists: " +
-                        queueInfo.getQueueTitle() + " (" + queueInfo.getCurrentIndex() + "/" + queueInfo.getTotalSongs() + ")");
                 }
             } catch (Exception e) {
                 android.util.Log.e("SongDetailViewModel", "Error setting up queue", e);

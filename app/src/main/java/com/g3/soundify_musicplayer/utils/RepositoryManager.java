@@ -34,7 +34,6 @@ public class RepositoryManager {
             synchronized (RepositoryManager.class) {
                 if (INSTANCE == null) {
                     INSTANCE = new RepositoryManager(application);
-                    android.util.Log.d("RepositoryManager", "✅ RepositoryManager singleton created");
                 }
             }
         }
@@ -47,19 +46,10 @@ public class RepositoryManager {
      * vì SongDetailRepository có thể phụ thuộc vào MediaPlayerRepository
      */
     private void initializeRepositories() {
-        android.util.Log.d("RepositoryManager", "🔄 Initializing singleton repositories...");
         
         // Tạo MediaPlayerRepository trước (quan trọng cho service binding)
         mediaPlayerRepository = new MediaPlayerRepository(application);
-        android.util.Log.d("RepositoryManager", "✅ MediaPlayerRepository singleton created: " + 
-            mediaPlayerRepository.hashCode());
-        
-        // Tạo SongDetailRepository
         songDetailRepository = new SongDetailRepository(application);
-        android.util.Log.d("RepositoryManager", "✅ SongDetailRepository singleton created: " + 
-            songDetailRepository.hashCode());
-        
-        android.util.Log.d("RepositoryManager", "🎉 All singleton repositories initialized successfully!");
     }
     
     /**
@@ -70,8 +60,6 @@ public class RepositoryManager {
         if (mediaPlayerRepository == null) {
             throw new IllegalStateException("MediaPlayerRepository not initialized!");
         }
-        android.util.Log.d("RepositoryManager", "📱 Providing MediaPlayerRepository singleton: " + 
-            mediaPlayerRepository.hashCode());
         return mediaPlayerRepository;
     }
     
@@ -82,8 +70,6 @@ public class RepositoryManager {
         if (songDetailRepository == null) {
             throw new IllegalStateException("SongDetailRepository not initialized!");
         }
-        android.util.Log.d("RepositoryManager", "📱 Providing SongDetailRepository singleton: " + 
-            songDetailRepository.hashCode());
         return songDetailRepository;
     }
     
@@ -91,21 +77,16 @@ public class RepositoryManager {
      * Cleanup method - call when application is destroyed
      */
     public void cleanup() {
-        android.util.Log.d("RepositoryManager", "🧹 Cleaning up repositories...");
-        
         if (mediaPlayerRepository != null) {
             mediaPlayerRepository.shutdown();
-            android.util.Log.d("RepositoryManager", "✅ MediaPlayerRepository cleaned up");
         }
         
         if (songDetailRepository != null) {
             songDetailRepository.shutdown();
-            android.util.Log.d("RepositoryManager", "✅ SongDetailRepository cleaned up");
         }
         
         // Reset instance
         INSTANCE = null;
-        android.util.Log.d("RepositoryManager", "🎉 RepositoryManager cleanup completed");
     }
     
     /**

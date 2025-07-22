@@ -90,7 +90,6 @@ public class FullPlayerFragment extends Fragment {
         // THỐNG NHẤT: SỬ DỤNG SONGDETAILVIEWMODEL GIỐNG MINIPLAYER
         viewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
 
-        android.util.Log.d("FullPlayerFragment", "SongDetailViewModel initialized: " + viewModel.hashCode());
 
         // SỬA LỖI: KHÔNG sync data ở đây vì UI chưa được khởi tạo
 
@@ -98,7 +97,6 @@ public class FullPlayerFragment extends Fragment {
         // Song data đã có sẵn trong SongDetailViewModel (shared instance)
         if (getArguments() != null) {
             long songId = getArguments().getLong(ARG_SONG_ID);
-            android.util.Log.d("FullPlayerFragment", "FullPlayer opened for song ID: " + songId);
             // Data sẽ được sync qua observers
         }
     }
@@ -124,20 +122,16 @@ public class FullPlayerFragment extends Fragment {
             long songId = getArguments().getLong(ARG_SONG_ID);
     
 
-            android.util.Log.d("FullPlayerFragment", "FullPlayer opened for song ID: " + songId);
 
             // FIXED: FullPlayer is now a COMPLETELY PASSIVE VIEW
             // It ONLY observes existing state from singleton MediaPlayerRepository
             // NO database calls, NO network calls, NO playback commands
 
-            android.util.Log.d("FullPlayerFragment", "FullPlayer will display current playback state from singleton repository");
-            android.util.Log.d("FullPlayerFragment", "All data will come from MediaPlayerRepository centralized state");
         }
 
         // XÓA syncCurrentSongData() - THỪA vì data đã được sync qua Observer pattern
         // Khi MediaPlaybackService gọi onSongChanged() → ViewModel update LiveData → UI tự động update
 
-        android.util.Log.d("FullPlayerFragment", "FullPlayer UI setup completed");
     }
 
     private void setupActivityResultLaunchers() {
@@ -169,9 +163,6 @@ public class FullPlayerFragment extends Fragment {
         
         // Playback controls
         seekbarProgress = view.findViewById(R.id.seekbar_progress);
-        // SỬA LỖI: Khởi tạo SeekBar với max = 100 để sử dụng percentage system
-        android.util.Log.d("FullPlayerFragment", "Initializing SeekBar - current max: " +
-            seekbarProgress.getMax() + ", setting to 100");
         seekbarProgress.setMax(100);
         seekbarProgress.setProgress(0);
 
@@ -195,8 +186,6 @@ public class FullPlayerFragment extends Fragment {
     private void setupClickListeners() {
         // Header actions
         btnMinimize.setOnClickListener(v -> {
-            // ✅ FIXED: Safe minimize with state preservation
-            android.util.Log.d("FullPlayerFragment", "🔻 Minimize button clicked");
             
             try {
                 // Pause ViewModel updates to prevent thread leaks during transition
@@ -235,7 +224,6 @@ public class FullPlayerFragment extends Fragment {
         
         // Playback controls
         btnPrevious.setOnClickListener(v -> {
-            android.util.Log.d("FullPlayerFragment", "Previous button clicked - calling viewModel.playPrevious()");
             viewModel.playPrevious();
             showToast("Previous track");
         });
@@ -243,16 +231,13 @@ public class FullPlayerFragment extends Fragment {
         btnPlayPause.setOnClickListener(v -> {
             // ✅ SAFE: Add error handling for play/pause
             try {
-                android.util.Log.d("FullPlayerFragment", "▶️ Play/Pause button clicked");
                 viewModel.togglePlayPause();
             } catch (Exception e) {
-                android.util.Log.e("FullPlayerFragment", "Error during play/pause", e);
                 showToast("Playback error occurred");
             }
         });
 
         btnNext.setOnClickListener(v -> {
-            android.util.Log.d("FullPlayerFragment", "Next button clicked - calling viewModel.playNext()");
             viewModel.playNext();
             showToast("Next track");
         });
@@ -387,9 +372,6 @@ public class FullPlayerFragment extends Fragment {
                 btnPrevious.setEnabled(true); // Always enabled - handles 3-second logic
                 btnNext.setEnabled(true);     // Always enabled - will restart if at end
 
-                android.util.Log.d("FullPlayerFragment", "Queue updated: " +
-                    queueInfo.getCurrentIndex() + "/" + queueInfo.getTotalSongs() +
-                    " - " + queueInfo.getQueueTitle());
             }
         });
     }

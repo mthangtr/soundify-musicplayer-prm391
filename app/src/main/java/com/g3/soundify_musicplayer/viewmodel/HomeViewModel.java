@@ -116,7 +116,6 @@ public class HomeViewModel extends AndroidViewModel {
         long currentUserId = authManager.getCurrentUserId();
         if (currentUserId != -1) {
             songRepository.trackRecentlyPlayed(currentUserId, songId);
-            android.util.Log.d("HomeViewModel", "Tracked recently played: userId=" + currentUserId + ", songId=" + songId);
 
             // Refresh recent songs to show the newly tracked song
             refreshRecentSongs();
@@ -133,7 +132,6 @@ public class HomeViewModel extends AndroidViewModel {
         long currentUserId = authManager.getCurrentUserId();
         if (currentUserId != -1) {
             playlistRepository.trackPlaylistAccess(currentUserId, playlistId);
-            android.util.Log.d("HomeViewModel", "Tracked playlist access: userId=" + currentUserId + ", playlistId=" + playlistId);
         } else {
             android.util.Log.w("HomeViewModel", "Cannot track playlist access - user not logged in");
         }

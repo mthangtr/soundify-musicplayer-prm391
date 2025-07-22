@@ -54,14 +54,11 @@ public class FullPlayerActivity extends AppCompatActivity {
         // QUAN TRỌNG: Phải tạo ViewModel trước khi Fragment được tạo
         SongDetailViewModelFactory factory = new SongDetailViewModelFactory(getApplication());
         viewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
-        android.util.Log.d("FullPlayerActivity", "SongDetailViewModel initialized with singleton repositories: " +
-            viewModel.hashCode());
 
         // Get data from intent
         long songId = getIntent().getLongExtra(EXTRA_SONG_ID, -1);
 
         if (songId == -1) {
-            android.util.Log.e("FullPlayerActivity", "No song ID provided");
             finish();
             return;
         }
@@ -132,13 +129,10 @@ public class FullPlayerActivity extends AppCompatActivity {
      * ✅ FIXED: Minimize to mini player with proper state preservation
      */
     public void minimizeToMiniPlayer() {
-        android.util.Log.d("FullPlayerActivity", "Minimizing to mini player");
         
         try {
             // ✅ CRITICAL: Ensure service connection is stable before finishing
             if (viewModel != null) {
-                // Stop any progress updates to prevent thread leaks
-                android.util.Log.d("FullPlayerActivity", "Ensuring clean ViewModel state before minimize");
             }
             
             // ✅ IMPORTANT: Service will continue running for MiniPlayer

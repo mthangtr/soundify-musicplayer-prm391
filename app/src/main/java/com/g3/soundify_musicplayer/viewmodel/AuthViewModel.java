@@ -86,9 +86,6 @@ public class AuthViewModel extends AndroidViewModel {
         // Hash password and authenticate
         String passwordHash = AuthManager.hashPassword(password);
 
-        // Debug: Log the hash for testing
-        android.util.Log.d("AuthViewModel", "Login attempt - Username: " + username + ", Hash: " + passwordHash);
-
         // Perform authentication in background thread
         Future<User> authFuture = userRepository.authenticateUser(username, passwordHash);
 
@@ -98,15 +95,6 @@ public class AuthViewModel extends AndroidViewModel {
                 // Debug: Check if user exists first
                 Future<User> userCheckFuture = userRepository.getUserByUsername(username);
                 User existingUser = userCheckFuture.get();
-
-                if (existingUser != null) {
-                    android.util.Log.d("AuthViewModel", "User found - Stored hash: " + existingUser.getPasswordHash());
-                    android.util.Log.d("AuthViewModel", "Input hash: " + passwordHash);
-                    android.util.Log.d("AuthViewModel", "Hashes match: " + passwordHash.equals(existingUser.getPasswordHash()));
-                } else {
-                    android.util.Log.d("AuthViewModel", "User not found: " + username);
-                }
-
                 User user = authFuture.get();
 
                 // Post results to main thread
@@ -169,7 +157,6 @@ public class AuthViewModel extends AndroidViewModel {
                 
                 // Create new user
                 String passwordHash = AuthManager.hashPassword(password);
-                android.util.Log.d("AuthViewModel", "Register - Username: " + username + ", Hash: " + passwordHash);
                 User newUser = new User(username, displayName, email, passwordHash);
 
                 Future<Long> insertFuture = userRepository.insert(newUser);

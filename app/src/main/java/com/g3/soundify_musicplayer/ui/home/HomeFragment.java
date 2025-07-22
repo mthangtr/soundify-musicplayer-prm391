@@ -282,11 +282,11 @@ public class HomeFragment extends Fragment {
                 if (itemCount <= 3) {
                     // Few items: reduce top margin to bring closer to title
                     layoutParams.topMargin = 0; // No margin
-                    android.util.Log.d("HomeFragment", "Adjusted spacing for " + itemCount + " items: 0dp margin");
+
                 } else {
                     // Many items: use normal margin
                     layoutParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density); // 8dp
-                    android.util.Log.d("HomeFragment", "Normal spacing for " + itemCount + " items: 8dp margin");
+
                 }
 
                 rvSongs.setLayoutParams(layoutParams);

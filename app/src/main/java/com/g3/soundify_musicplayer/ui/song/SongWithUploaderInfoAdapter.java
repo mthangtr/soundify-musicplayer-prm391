@@ -48,11 +48,6 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
     public void onBindViewHolder(@NonNull SongVH holder, int position) {
         SongWithUploaderInfo song = data.get(position);
 
-        // Log for debugging - check if data is null
-        android.util.Log.d("SongAdapter", "Binding position " + position +
-                ", song: " + (song != null ? song.getTitle() : "NULL") +
-                " by " + (song != null ? song.getDisplayUploaderName() : "NULL"));
-
         if (song == null) {
             android.util.Log.e("SongAdapter", "Song at position " + position + " is null!");
             return;
@@ -117,14 +112,10 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
         data.clear();
         if (newData != null) {
             data.addAll(newData);
-            android.util.Log.d("SongWithUploaderInfoAdapter", "Updated data: " + newData.size() + " items");
             for (int i = 0; i < newData.size(); i++) {
                 SongWithUploaderInfo song = newData.get(i);
-                android.util.Log.d("SongWithUploaderInfoAdapter", "Item " + i + ": " +
-                    (song != null ? song.getTitle() : "NULL"));
             }
         } else {
-            android.util.Log.d("SongWithUploaderInfoAdapter", "Updated data: NULL");
         }
         notifyDataSetChanged();
     }

@@ -100,7 +100,6 @@ public class MiniPlayerFragment extends Fragment {
         btnNext.setOnClickListener(v -> {
             // ✅ SAFE: Add error handling for next track
             try {
-                android.util.Log.d("MiniPlayerFragment", "⏭️ Next button clicked");
                 viewModel.playNext();
                 showToast("Next track");
             } catch (Exception e) {
@@ -213,31 +212,16 @@ public class MiniPlayerFragment extends Fragment {
         }
 
         try {
-            // ✅ SAFE: Ensure service state is stable before navigation
-            android.util.Log.d("MiniPlayerFragment", "🔼 Expanding to full player");
-            
             Intent intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId());
-            android.util.Log.d("MiniPlayerFragment", "Creating intent with Zero Queue Rule");
-
-            // ✅ CRITICAL: Resume ViewModel updates after returning from FullPlayer
-            // This ensures MiniPlayer stays synced when user comes back
-            
-            // Start FullPlayerActivity with animation (if possible)
             try {
                 ActivityOptions options = ActivityOptions.makeCustomAnimation(
                     getContext(), R.anim.slide_up_in, R.anim.fade_in);
                 startActivity(intent, options.toBundle());
             } catch (Exception animationError) {
-                // Fallback: start activity without animation
-                android.util.Log.w("MiniPlayerFragment", "Animation failed, starting without animation", animationError);
                 startActivity(intent);
             }
 
-            android.util.Log.d("MiniPlayerFragment", "Successfully started FullPlayerActivity for song: " +
-                currentSong.getTitle());
-
         } catch (Exception e) {
-            android.util.Log.e("MiniPlayerFragment", "Failed to expand to full player", e);
             showToast("Cannot open full player");
         }
     }
@@ -246,7 +230,6 @@ public class MiniPlayerFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        // ✅ CRITICAL: Resume updates when coming back from FullPlayer
         if (viewModel != null) {
             viewModel.resumeUpdates();
         }

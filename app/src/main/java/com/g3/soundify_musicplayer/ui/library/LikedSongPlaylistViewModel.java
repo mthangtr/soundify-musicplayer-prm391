@@ -44,17 +44,11 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
      */
     private void loadLikedSongs() {
         long currentUserId = authManager.getCurrentUserId();
-        
-        android.util.Log.d("LikedSongPlaylistViewModel", "🔍 Loading liked songs for userId: " + currentUserId);
-        android.util.Log.d("LikedSongPlaylistViewModel", "🔍 User logged in: " + authManager.isLoggedIn());
-        
         if (currentUserId != -1) {
             isLoading.setValue(true);
             
             // Get liked songs from repository - this returns LiveData
             likedSongs = musicPlayerRepository.getLikedSongsByUser(currentUserId);
-            
-            android.util.Log.d("LikedSongPlaylistViewModel", "🔍 LiveData<List<Song>> created: " + (likedSongs != null ? "SUCCESS" : "NULL"));
             
             // Note: songCount will be updated via observer in Fragment
             isLoading.setValue(false);
@@ -69,7 +63,6 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
      * Refresh liked songs data
      */
     public void refreshLikedSongs() {
-        android.util.Log.d("LikedSongPlaylistViewModel", "🔄 refreshLikedSongs() called");
         loadLikedSongs();
     }
 
@@ -78,7 +71,6 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
      */
     public void testDatabaseConnection() {
         long currentUserId = authManager.getCurrentUserId();
-        android.util.Log.d("LikedSongPlaylistViewModel", "🧪 Testing database connection for userId: " + currentUserId);
         
         if (currentUserId != -1) {
             // Test with executor to check database directly
@@ -87,10 +79,8 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
                 try {
                     // Try to get song like info directly
                     int likeCount = musicPlayerRepository.getLikeCountForSong(1L).get(); // Test with songId = 1
-                    android.util.Log.d("LikedSongPlaylistViewModel", "🧪 Database test - Like count for song 1: " + likeCount);
                     
                     boolean isLiked = musicPlayerRepository.isSongLikedByUser(1L, currentUserId).get();
-                    android.util.Log.d("LikedSongPlaylistViewModel", "🧪 Database test - Song 1 liked by user " + currentUserId + ": " + isLiked);
                     
                 } catch (Exception e) {
                     android.util.Log.e("LikedSongPlaylistViewModel", "❌ Database test failed", e);
