@@ -22,15 +22,12 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 
-
 /**
  * Mini Player Fragment - Persistent component that appears on all screens.
  * Provides basic playback controls and expands to full player when tapped.
- * Sử dụng SongDetailViewModel để kết nối với backend thật qua MediaPlaybackService.
  */
 public class MiniPlayerFragment extends Fragment {
 
-    // UI Components
     private View rootView;
     private ImageView imageAlbumArt;
     private TextView textSongTitle;
@@ -40,10 +37,8 @@ public class MiniPlayerFragment extends Fragment {
     private ImageButton btnClose;
     private ProgressBar progressBar;
 
-    // ViewModel THỐNG NHẤT
     private SongDetailViewModel viewModel;
 
-    // Current data
     private Song currentSong;
     private User currentArtist;
     private boolean isPlaying = false;
@@ -77,20 +72,17 @@ public class MiniPlayerFragment extends Fragment {
     }
 
     private void setupViewModel() {
-        // Sử dụng SongDetailViewModel THỐNG NHẤT cho cả Mini và Full Player
         viewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
     }
 
     private void setupClickListeners() {
-        // Expand to full player when main area is tapped
+        // Click để chuyển sang FullPlayer
         rootView.setOnClickListener(v -> expandToFullPlayer());
 
         // Play/Pause button
         btnPlayPause.setOnClickListener(v -> {
-            // ✅ SAFE: Add error handling for play/pause
             try {
                 viewModel.togglePlayPause();
-                showToast(isPlaying ? "Paused" : "Playing");
             } catch (Exception e) {
                 android.util.Log.e("MiniPlayerFragment", "Error during play/pause", e);
                 showToast("Playback error occurred");
@@ -204,9 +196,6 @@ public class MiniPlayerFragment extends Fragment {
         String username = artist.getUsername();
         String finalName = displayName != null && !displayName.isEmpty() ? displayName : username;
 
-        android.util.Log.d("MiniPlayerFragment", "updateArtistInfo called - displayName: " + displayName +
-            ", username: " + username + ", finalName: " + finalName);
-
         textArtistName.setText(finalName);
 
         android.util.Log.d("MiniPlayerFragment", "Artist name set to TextView: " + finalName);
@@ -223,8 +212,6 @@ public class MiniPlayerFragment extends Fragment {
     private void updateProgress(int progressPercent) {
         progressBar.setProgress(progressPercent);
     }
-
-    // Xóa updateProgressFromPosition - không sử dụng
 
     private void expandToFullPlayer() {
         if (getActivity() == null || currentSong == null) {
@@ -259,10 +246,10 @@ public class MiniPlayerFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-
-        // ✅ IMPORTANT: Don't pause updates here unless activity is finishing
-        // MiniPlayer should continue updating even when FullPlayer is open
-        // Only pause if parent activity is actually finishing
+        //Khi user mở  FullPlayerActivity từ  MiniPlayerFragment, fragment sẽ gọi onPause() nhưng KHÔNG nên dừng progress updates.
+        //MiniPlayer vẫn cần hoạt động khi FullPlayer mở
+        //User có thể minimize FullPlayer về MiniPlayer bất cứ lúc nào
+        //Progress bar phải tiếp tục cập nhật để sync với nhạc đang phát
     }
 
     private void showToast(String message) {

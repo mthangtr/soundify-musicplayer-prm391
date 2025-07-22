@@ -1,31 +1,25 @@
 package com.g3.soundify_musicplayer.ui.player;
 
 import android.app.Application;
-// REMOVED: ServiceConnection imports - không cần thiết nữa
 import android.os.Handler;
-// REMOVED: IBinder import - không cần thiết nữa
 import android.os.Looper;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Transformations;
-
-import com.g3.soundify_musicplayer.data.entity.Comment;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.model.MediaPlayerState;
 
-// REMOVED: SimpleQueueManager import - using Zero Queue Rule
 import com.g3.soundify_musicplayer.data.repository.MediaPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.SongDetailRepository;
-// REMOVED: MediaPlaybackService import - không tương tác trực tiếp nữa
+
 import com.g3.soundify_musicplayer.utils.AuthManager;
 import com.g3.soundify_musicplayer.utils.RepositoryManager;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -48,12 +42,10 @@ public class SongDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<List<Long>> playlistsContainingSong = new MutableLiveData<>();
     private final MutableLiveData<List<Song>> relatedSongs = new MutableLiveData<>();
     private final MutableLiveData<List<Song>> moreSongsByArtist = new MutableLiveData<>();
-    
-    // Status LiveData
+
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
 
-    // Playback LiveData
     private final MutableLiveData<Boolean> isPlaying = new MutableLiveData<>(false);
     // Note: isVisible is now managed by MediaPlayerRepository, accessed via getIsVisible()
     private final MutableLiveData<Integer> progress = new MutableLiveData<>(0);
@@ -61,61 +53,47 @@ public class SongDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<Long> duration = new MutableLiveData<>(0L);
     private final MutableLiveData<Boolean> isFollowing = new MutableLiveData<>(false);
 
-
-
-    // REMOVED: SimpleQueueManager - using Zero Queue Rule in MediaPlayerRepository
-
-    // Handler để update progress
-    private Handler progressHandler = new Handler(Looper.getMainLooper());
+    private final Handler progressHandler = new Handler(Looper.getMainLooper());
     private Runnable progressRunnable;
-    
-    // REFACTORED: Constructor now accepts Repository instances (Singleton pattern)
+
     public SongDetailViewModel(@NonNull Application application,
-                              SongDetailRepository repository,
-                              MediaPlayerRepository mediaPlayerRepository) {
+                               SongDetailRepository repository,
+                               MediaPlayerRepository mediaPlayerRepository) {
         super(application);
         this.repository = repository;
         this.mediaPlayerRepository = mediaPlayerRepository;
         this.authManager = new AuthManager(application);
         this.executor = Executors.newFixedThreadPool(2);
 
-        // Initialize values
         isLoading.setValue(false);
         isLiked.setValue(false);
         likeCount.setValue(0);
         commentCount.setValue(0);
 
-        // REMOVED: Repository creation - now injected as Singleton instances
-        // Service binding sẽ được xử lý bởi MediaPlayerRepository singleton
-
-        // Setup observers để sync state từ MediaPlayerRepository
         setupMediaPlayerObservers();
     }
 
-    // DEPRECATED: Keep old constructor for backward compatibility (will be removed later)
     @Deprecated
     public SongDetailViewModel(@NonNull Application application) {
         this(application,
-             RepositoryManager.getInstance(application).getSongDetailRepository(),
-             RepositoryManager.getInstance(application).getMediaPlayerRepository());
+                RepositoryManager.getInstance(application).getSongDetailRepository(),
+                RepositoryManager.getInstance(application).getMediaPlayerRepository());
     }
-    
-    // ========== PUBLIC METHODS ==========
-    
+
     /**
      * Load song detail data
      */
     public void loadSongDetail(long songId, long userId) {
         android.util.Log.d("SongDetailViewModel", "🔍 loadSongDetail() called - songId: " + songId + ", userId: " + userId);
         isLoading.postValue(true); // FIXED: Use postValue() to avoid IllegalStateException
-        
+
         executor.execute(() -> {
             try {
                 android.util.Log.d("SongDetailViewModel", "🔍 Executing loadSongDetail in background thread");
                 // Get comprehensive song detail data
                 SongDetailRepository.SongDetailData data = repository.getSongDetailData(songId, userId).get();
                 android.util.Log.d("SongDetailViewModel", "🔍 getSongDetailData returned: " + (data != null ? "SUCCESS" : "NULL"));
-                
+
                 if (data != null) {
                     android.util.Log.d("SongDetailViewModel", "🔍 Processing song data - Song: " + data.song.getTitle() + ", UploaderId: " + data.song.getUploaderId());
                     // Update UI data
@@ -133,11 +111,11 @@ public class SongDetailViewModel extends AndroidViewModel {
                     loadRelatedSongs(data.song.getGenre(), songId);
                     loadMoreSongsByArtist(data.song.getUploaderId(), songId);
                     loadUserPlaylists(userId);
-                    
+
                 } else {
                     errorMessage.postValue("Không thể tải thông tin bài hát");
                 }
-                
+
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi tải dữ liệu: " + e.getMessage());
             } finally {
@@ -145,12 +123,12 @@ public class SongDetailViewModel extends AndroidViewModel {
             }
         });
     }
-    
+
     /**
      * Toggle song like status
      */
     public void toggleLike(long songId, long userId) {
-        
+
         executor.execute(() -> {
             try {
                 Boolean newLikeStatus = repository.toggleSongLike(songId, userId).get();
@@ -161,14 +139,14 @@ public class SongDetailViewModel extends AndroidViewModel {
                 MusicPlayerRepository.SongLikeInfo likeInfo = repository.getSongLikeInfo(songId, userId).get();
 
                 likeCount.postValue(likeInfo.likeCount);
-                
+
             } catch (Exception e) {
                 android.util.Log.e("SongDetailViewModel", "❌ Error in toggleLike", e);
                 errorMessage.postValue("Lỗi khi thực hiện like: " + e.getMessage());
             }
         });
     }
-    
+
     /**
      * Add comment to song
      */
@@ -208,7 +186,7 @@ public class SongDetailViewModel extends AndroidViewModel {
             }
         });
     }
-    
+
     /**
      * Add song to selected playlists
      */
@@ -217,21 +195,21 @@ public class SongDetailViewModel extends AndroidViewModel {
             errorMessage.postValue("Vui lòng chọn ít nhất một playlist"); // FIXED: Use postValue()
             return;
         }
-        
+
         executor.execute(() -> {
             try {
                 repository.addSongToMultiplePlaylists(songId, selectedPlaylistIds).get();
-                
+
                 // Update playlists containing song
                 List<Long> updatedPlaylistIds = repository.getPlaylistIdsContainingSong(songId, getCurrentUserId()).get();
                 playlistsContainingSong.postValue(updatedPlaylistIds);
-                
+
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi thêm vào playlist: " + e.getMessage());
             }
         });
     }
-    
+
     /**
      * Create new playlist and add song to it
      */
@@ -241,17 +219,17 @@ public class SongDetailViewModel extends AndroidViewModel {
             errorMessage.postValue("Tên playlist không được để trống"); // FIXED: Use postValue()
             return;
         }
-        
+
         executor.execute(() -> {
             try {
                 Long playlistId = repository.createPlaylistWithSong(
-                    playlistName.trim(), 
-                    description != null ? description.trim() : "", 
-                    isPublic, 
-                    ownerId, 
-                    songId
+                        playlistName.trim(),
+                        description != null ? description.trim() : "",
+                        isPublic,
+                        ownerId,
+                        songId
                 ).get();
-                
+
                 if (playlistId != null && playlistId > 0) {
                     // Reload user playlists and playlists containing song
                     loadUserPlaylists(ownerId);
@@ -260,15 +238,15 @@ public class SongDetailViewModel extends AndroidViewModel {
                 } else {
                     errorMessage.postValue("Không thể tạo playlist");
                 }
-                
+
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi tạo playlist: " + e.getMessage());
             }
         });
     }
-    
+
     // ========== PRIVATE HELPER METHODS ==========
-    
+
     private void loadRelatedSongs(String genre, long excludeSongId) {
         executor.execute(() -> {
             try {
@@ -279,7 +257,7 @@ public class SongDetailViewModel extends AndroidViewModel {
             }
         });
     }
-    
+
     private void loadMoreSongsByArtist(long uploaderId, long excludeSongId) {
         executor.execute(() -> {
             try {
@@ -309,7 +287,7 @@ public class SongDetailViewModel extends AndroidViewModel {
             }
         });
     }
-    
+
     private void loadUserPlaylists(long userId) {
         executor.execute(() -> {
             try {
@@ -320,148 +298,81 @@ public class SongDetailViewModel extends AndroidViewModel {
             }
         });
     }
-    
+
     private long getCurrentUserId() {
         if (authManager != null) {
-            long userId = authManager.getCurrentUserId();
-            return userId;
+            return authManager.getCurrentUserId();
         }
         android.util.Log.w("SongDetailViewModel", "AuthManager is null, using fallback userId: 1");
         return 1L; // Fallback user ID
     }
-    
+
     // ========== GETTERS FOR LIVEDATA ==========
-    
-    public LiveData<Song> getCurrentSong() { return currentSong; }
-    public LiveData<Boolean> getIsLiked() { return isLiked; }
-    @SuppressWarnings("unused") public LiveData<Integer> getLikeCount() { return likeCount; }
-    @SuppressWarnings("unused") public LiveData<Integer> getCommentCount() { return commentCount; }
-    @SuppressWarnings("unused") public LiveData<List<Playlist>> getUserPlaylists() { return userPlaylists; }
-    @SuppressWarnings("unused") public LiveData<List<Long>> getPlaylistsContainingSong() { return playlistsContainingSong; }
-    @SuppressWarnings("unused") public LiveData<List<Song>> getRelatedSongs() { return relatedSongs; }
-    @SuppressWarnings("unused") public LiveData<List<Song>> getMoreSongsByArtist() { return moreSongsByArtist; }
-    public LiveData<Boolean> getIsLoading() { return isLoading; }
-    public LiveData<String> getErrorMessage() { return errorMessage; }
-    
-    // Get LiveData from repository
-    public LiveData<List<Comment>> getCommentsBySong(long songId) {
-        return repository.getCommentsBySong(songId);
+
+    public LiveData<Song> getCurrentSong() {
+        return currentSong;
     }
-    
+
+    public LiveData<Boolean> getIsLiked() {
+        return isLiked;
+    }
+
+    @SuppressWarnings("unused")
+    public LiveData<Integer> getLikeCount() {
+        return likeCount;
+    }
+
+    @SuppressWarnings("unused")
+    public LiveData<Integer> getCommentCount() {
+        return commentCount;
+    }
+
+    @SuppressWarnings("unused")
+    public LiveData<List<Playlist>> getUserPlaylists() {
+        return userPlaylists;
+    }
+
+    @SuppressWarnings("unused")
+    public LiveData<List<Long>> getPlaylistsContainingSong() {
+        return playlistsContainingSong;
+    }
+
+    @SuppressWarnings("unused")
+    public LiveData<List<Song>> getRelatedSongs() {
+        return relatedSongs;
+    }
+
+    @SuppressWarnings("unused")
+    public LiveData<List<Song>> getMoreSongsByArtist() {
+        return moreSongsByArtist;
+    }
+
+    public LiveData<Boolean> getIsLoading() {
+        return isLoading;
+    }
+
+    public LiveData<String> getErrorMessage() {
+        return errorMessage;
+    }
+
     @SuppressWarnings("unused") // Method có thể được sử dụng trong tương lai
     public LiveData<List<User>> getUsersWhoLikedSong(long songId) {
         return repository.getUsersWhoLikedSong(songId);
-    }
-
-    // Get LiveData from MediaPlayerRepository
-    public LiveData<MediaPlayerState.CurrentPlaybackState> getCurrentPlaybackState() {
-        return mediaPlayerRepository.getCurrentPlaybackState();
-    }
-
-    public LiveData<Boolean> getIsPlayerVisible() {
-        return mediaPlayerRepository.getIsPlayerVisible();
     }
 
     public LiveData<MediaPlayerState.QueueInfo> getQueueInfo() {
         return mediaPlayerRepository.getQueueInfo();
     }
 
-    /**
-     * Get current queue as list of songs for Queue screen
-     */
-    public List<Song> getCurrentQueue() {
-        return mediaPlayerRepository.getCurrentQueue();
-    }
-
-    /**
-     * Get current queue as LiveData for Queue screen (only updates when queue changes)
-     */
-    public LiveData<List<Song>> getCurrentQueueLiveData() {
-        // Transform QueueInfo to extract queue list - only updates when queue actually changes
-        return Transformations.map(mediaPlayerRepository.getQueueInfo(),
-            queueInfo -> queueInfo != null ? mediaPlayerRepository.getCurrentQueue() : new ArrayList<>());
-    }
-
-    /**
-     * ✅ Get current queue index for Queue screen (Zero Queue Rule)
-     * Delegate to MediaPlayerRepository's direct LiveData
-     */
-    public LiveData<Integer> getCurrentQueueIndex() {
-        // ✅ FIXED: Use MediaPlayerRepository's direct index LiveData instead of state transformation
-        return mediaPlayerRepository.getCurrentIndexLiveData();
-    }
-
-    /**
-     * Get current artist directly (for Queue screen)
-     */
-    public User getCurrentArtistDirect() {
-        MediaPlayerState.CurrentPlaybackState currentState = mediaPlayerRepository.getCurrentPlaybackState().getValue();
-        return currentState != null ? currentState.getCurrentArtist() : null;
-    }
-
-    /**
-     * ✅ Jump to song at specific index (Zero Queue Rule) - NO DEADLOCK
-     */
-    public void playSongAtIndex(int position) {
-        // ✅ SIMPLE: No .get() call - result will be notified via observers
-        mediaPlayerRepository.jumpToIndex(position);
-    }
-
-    /**
-     * ✅ Move song in queue (Zero Queue Rule) - NO DEADLOCK
-     */
-    public void moveSongInQueue(int fromPosition, int toPosition) {
-        // ✅ SIMPLE: No .get() call - result will be notified via observers
-        mediaPlayerRepository.moveItemInList(fromPosition, toPosition);
-    }
-
-    // ========== MEDIA PLAYBACK METHODS ==========
-
-    // REMOVED: bindToService method - chỉ MediaPlayerRepository được phép bind service
-
-    // REMOVED: ServiceConnection - chỉ MediaPlayerRepository được phép bind service
-    // Tất cả callback từ service sẽ được xử lý thông qua MediaPlayerRepository
-    
-    /**
-     * ✅ SINGLE METHOD - Play from any view (TRUE Zero Queue Rule)
-     * All fragments use this method for 100% consistent behavior
-     */
     public void playFromView(List<Song> songs, String viewTitle, int startIndex) {
-        android.util.Log.d("SongDetailViewModel", "🎵 playFromView() called - viewTitle: " + viewTitle + ", startIndex: " + startIndex + ", songs count: " + (songs != null ? songs.size() : 0));
+        // gọi replaceListAndPlay() của MediaPlayerRepository để thay thế queue và phát nhạc
+        mediaPlayerRepository.replaceListAndPlay(songs, viewTitle, startIndex);
 
-        if (songs != null && !songs.isEmpty() && startIndex >= 0 && startIndex < songs.size()) {
-            // Use the ONE AND ONLY queue method for consistency
-            mediaPlayerRepository.replaceListAndPlay(songs, viewTitle, startIndex);
+        // cập nhật UI để cho biết bài đang chọn chính là bài bắt đầu
+        Song selectedSong = songs.get(startIndex);
 
-            // Update UI state
-            Song selectedSong = songs.get(startIndex);
-            android.util.Log.d("SongDetailViewModel", "🎵 Selected song: " + selectedSong.getTitle() + " (ID: " + selectedSong.getId() + ", UploaderId: " + selectedSong.getUploaderId() + ")");
-            currentSong.postValue(selectedSong);
-
-            // FIXED: Load song detail data including artist information
-            android.util.Log.d("SongDetailViewModel", "🎵 Calling loadSongDetail for song ID: " + selectedSong.getId());
-            loadSongDetail(selectedSong.getId(), 1L);
-        } else {
-            android.util.Log.w("SongDetailViewModel", "🎵 Invalid song selection - songs: " + (songs != null ? songs.size() : "null") + ", startIndex: " + startIndex);
-            errorMessage.postValue("Invalid song selection");
-        }
-    }
-
-    /**
-     * ✅ BACKWARD COMPATIBILITY - All old methods delegate to playFromView
-     */
-    public void playSong(Song song, User artist) {
-        android.util.Log.d("SongDetailViewModel", "🎵 playSong() called - Song: " + (song != null ? song.getTitle() : "null") + ", Artist: " + (artist != null ? artist.getDisplayName() : "null"));
-        if (song != null) {
-            playFromView(List.of(song), "Single Song", 0);
-        } else {
-            android.util.Log.w("SongDetailViewModel", "🎵 playSong() called with null song");
-            errorMessage.postValue("Thông tin bài hát không hợp lệ");
-        }
-    }
-
-    public void playSongWithContext(Song song, User artist, Object context) {
-        playSong(song, artist);
+        // load thông tin bài hát hiện tại
+        loadSongDetail(selectedSong.getId(), 1L);
     }
 
     /**
@@ -557,12 +468,12 @@ public class SongDetailViewModel extends AndroidViewModel {
                         // ViewModel was cleared, stop updates
                         return;
                     }
-                    
+
                     MediaPlayerState.CurrentPlaybackState state = mediaPlayerRepository.getCurrentPlaybackState().getValue();
                     if (state != null && state.isPlaying()) {
                         long currentPos = state.getCurrentPosition();
                         long dur = state.getDuration();
-                        
+
                         // ✅ SAFE: Only update if values are valid
                         if (currentPos >= 0 && dur > 0) {
                             currentPosition.postValue(currentPos);
@@ -570,7 +481,7 @@ public class SongDetailViewModel extends AndroidViewModel {
                             int progressPercent = (int) ((currentPos * 100) / dur);
                             progress.postValue(progressPercent);
                         }
-                        
+
                         // ✅ CRITICAL: Only schedule next update if still playing AND runnable exists
                         if (state.isPlaying() && progressRunnable != null) {
                             progressHandler.postDelayed(this, 500);
@@ -582,7 +493,7 @@ public class SongDetailViewModel extends AndroidViewModel {
                 }
             }
         };
-        
+
         // ✅ SAFE: Only start if handler is valid
         if (progressHandler != null) {
             progressHandler.post(progressRunnable);
@@ -605,9 +516,7 @@ public class SongDetailViewModel extends AndroidViewModel {
     public void playNext() {
         executor.execute(() -> {
             try {
-                // Always try to navigate - MediaPlayerRepository will handle boundaries
-                boolean success = mediaPlayerRepository.playNext().get();
-                // success=true means either navigated or restarted current song (both are valid)
+                mediaPlayerRepository.playNext().get();
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi chuyển bài tiếp theo: " + e.getMessage());
             }
@@ -620,7 +529,6 @@ public class SongDetailViewModel extends AndroidViewModel {
     public void playPrevious() {
         executor.execute(() -> {
             try {
-                // Always try to navigate - MediaPlayerRepository will handle boundaries and 3-second logic
                 mediaPlayerRepository.playPrevious().get();
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi chuyển bài trước đó: " + e.getMessage());
@@ -628,50 +536,6 @@ public class SongDetailViewModel extends AndroidViewModel {
         });
     }
 
-
-
-    /**
-     * Reuse existing queue or create single-song queue if none exists
-     */
-    public void reuseExistingQueueOrInit() {
-        executor.execute(() -> {
-            try {
-                MediaPlayerState.QueueInfo queueInfo = mediaPlayerRepository.getQueueInfo().getValue();
-
-                if (queueInfo == null || queueInfo.getTotalSongs() == 0) {
-
-                    // Get current song from MediaPlayerRepository
-                    MediaPlayerState.CurrentPlaybackState currentState = mediaPlayerRepository.getCurrentPlaybackState().getValue();
-                    if (currentState != null && currentState.getCurrentSong() != null) {
-                        // Create single-song queue
-                        mediaPlayerRepository.setSingleSongQueue(currentState.getCurrentSong());
-                        // Ensure mini player visibility
-                        mediaPlayerRepository.ensurePlayerVisibility();
-                    }
-                } else {
-                }
-            } catch (Exception e) {
-                android.util.Log.e("SongDetailViewModel", "Error setting up queue", e);
-            }
-        });
-    }
-
-    /**
-     * Ensure queue context is properly setup
-     */
-    public void ensureQueueContext() {
-        executor.execute(() -> {
-            try {
-                MediaPlayerState.QueueInfo queueInfo = mediaPlayerRepository.getQueueInfo().getValue();
-
-                if (queueInfo == null || queueInfo.getTotalSongs() == 0) {
-                    android.util.Log.w("SongDetailViewModel", "No queue context available - navigation may not work");
-                }
-            } catch (Exception e) {
-                android.util.Log.e("SongDetailViewModel", "Error checking queue context", e);
-            }
-        });
-    }
 
     /**
      * Hide mini player
@@ -688,7 +552,6 @@ public class SongDetailViewModel extends AndroidViewModel {
         });
     }
 
-    // Current artist LiveData (thêm field riêng để tránh memory leak)
     private final MutableLiveData<User> currentArtist = new MutableLiveData<>();
 
     /**
@@ -710,70 +573,55 @@ public class SongDetailViewModel extends AndroidViewModel {
      */
     public void toggleLike() {
         Song song = currentSong.getValue();
-
-        if (song != null) {
-            // FIXED: Get real current user ID instead of hardcoded 1
-            long currentUserId = getCurrentUserId(); // This should get the actual logged-in user
-            toggleLike(song.getId(), currentUserId);
-        } else {
-            android.util.Log.e("SongDetailViewModel", "No song selected to like");
-            errorMessage.postValue("No song selected to like");
-        }
+        long currentUserId = getCurrentUserId();
+        assert song != null;
+        toggleLike(song.getId(), currentUserId);
     }
 
-    // Getters cho playback LiveData
-    public LiveData<Boolean> getIsPlaying() { return isPlaying; }
-    public LiveData<Boolean> getIsVisible() { return mediaPlayerRepository.getIsPlayerVisible(); }
-    public LiveData<Integer> getProgress() { return progress; }
-    public LiveData<Long> getCurrentPosition() { return currentPosition; }
-    public LiveData<Long> getDuration() { return duration; }
-    public LiveData<Boolean> getIsFollowing() { return isFollowing; }
-    // REMOVED: getCurrentNavigationContext() - using Simple Queue approach
+    public LiveData<Boolean> getIsPlaying() {
+        return isPlaying;
+    }
 
-    // ========== 🎯 SIMPLE QUEUE METHODS - THAY THẾ LOGIC PHỨC TẠP ==========
+    public LiveData<Boolean> getIsVisible() {
+        return mediaPlayerRepository.getIsPlayerVisible();
+    }
 
-    /**
-     * ✅ DEPRECATED - Use playFromView() instead for consistency
-     */
-    public void replaceQueueAndPlay(List<Song> songs, String queueTitle, int startIndex) {
-        playFromView(songs, queueTitle, startIndex);
+    public LiveData<Integer> getProgress() {
+        return progress;
+    }
+
+    public LiveData<Long> getCurrentPosition() {
+        return currentPosition;
+    }
+
+    public LiveData<Long> getDuration() {
+        return duration;
+    }
+
+    public LiveData<Boolean> getIsFollowing() {
+        return isFollowing;
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        
-        // ✅ CRITICAL: Comprehensive cleanup to prevent crashes
         try {
-            // Stop progress updates first to prevent thread leaks
             stopProgressUpdates();
-
-            // ⚠️ IMPORTANT: DO NOT shutdown MediaPlayerRepository here!
-            // It's a singleton that must persist across activity changes
-            // Only shutdown local repository
             if (repository != null) {
                 repository.shutdown();
             }
-
             if (executor != null) {
                 executor.shutdown();
             }
-
         } catch (Exception e) {
             android.util.Log.e("SongDetailViewModel", "Error during ViewModel cleanup", e);
         }
     }
-    
-    /**
-     * ✅ NEW: Manual cleanup method for activity transitions
-     */
+
     public void pauseUpdates() {
         stopProgressUpdates();
     }
 
-    /**
-     * ✅ NEW: Resume updates method for activity transitions
-     */
     public void resumeUpdates() {
         MediaPlayerState.CurrentPlaybackState state = mediaPlayerRepository.getCurrentPlaybackState().getValue();
         if (state != null && state.isPlaying()) {

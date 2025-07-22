@@ -6,6 +6,7 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
@@ -67,6 +68,16 @@
             android:parentActivityName=".ui.main.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Soundifymusicplayer.FullScreen" />
+
+        <activity
+            android:name=".ui.player.comment.CommentActivity"
+            android:parentActivityName=".ui.player.FullPlayerActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.player.queue.QueueActivity"
+            android:parentActivityName=".ui.player.FullPlayerActivity"
+            android:exported="false" />
 
         <!-- Playlist Activities -->
         <activity

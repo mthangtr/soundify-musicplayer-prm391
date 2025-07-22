@@ -34,7 +34,7 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
     private final MutableLiveData<Boolean> isPlayerVisible;
 
     // Zero Queue Rule - 3 fields only
-    private List<Song> currentSongList = new ArrayList<>();
+    private final List<Song> currentSongList = new ArrayList<>();
     private int currentIndex = 0;
     private String currentListTitle = "";
 
@@ -48,7 +48,7 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
     public MediaPlayerRepository(Application application) {
         super(application);
         this.application = application;
-        executor = Executors.newFixedThreadPool(2);
+        executor = Executors.newSingleThreadExecutor();
 
         // Initialize LiveData
         currentPlaybackState = new MutableLiveData<>();
@@ -104,14 +104,14 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
     /**
      * Replace entire list and play (Zero Queue Rule)
      */
-    public Future<Boolean> replaceListAndPlay(List<Song> songs, String title, int startIndex) {
-        return executor.submit(() -> {
+    public void replaceListAndPlay(List<Song> songs, String title, int startIndex) {
+        executor.execute(() -> {
             try {
                 // Clear and replace
                 currentSongList.clear();
                 currentSongList.addAll(songs);
                 currentListTitle = title;
-                currentIndex = Math.max(0, Math.min(startIndex, songs.size() - 1));
+                currentIndex = startIndex;
 
                 // Update state
                 Song songToPlay = currentSongList.get(currentIndex);
@@ -124,14 +124,11 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
                 }
 
                 isPlayerVisible.postValue(true);
-                return true;
-
             } catch (Exception e) {
-                return false;
+                android.util.Log.e("MediaPlayerRepository", "Error in replaceListAndPlay", e);
             }
         });
     }
-
 
 
     /**
@@ -173,7 +170,7 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
                 }
 
                 // Get current position
-                long currentPosition = 0;
+                long currentPosition;
                 if (mediaService != null) {
                     currentPosition = mediaService.getCurrentPosition();
                 } else {
@@ -230,7 +227,7 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
      * Pause playback
      */
     public Future<Boolean> pause() {
-        return executor.submit(() -> pauseSync());
+        return executor.submit(this::pauseSync);
     }
 
     private boolean pauseSync() {
@@ -281,8 +278,8 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
     /**
      * Jump to specific index in current list
      */
-    public Future<Boolean> jumpToIndex(int position) {
-        return executor.submit(() -> {
+    public void jumpToIndex(int position) {
+        executor.submit(() -> {
             try {
                 if (position >= 0 && position < currentSongList.size()) {
                     currentIndex = position;
@@ -307,11 +304,11 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
     /**
      * Move item in current list (for drag & drop)
      */
-    public Future<Boolean> moveItemInList(int fromPosition, int toPosition) {
-        return executor.submit(() -> {
+    public void moveItemInList(int fromPosition, int toPosition) {
+        executor.submit(() -> {
             try {
                 if (fromPosition >= 0 && fromPosition < currentSongList.size() &&
-                    toPosition >= 0 && toPosition < currentSongList.size()) {
+                        toPosition >= 0 && toPosition < currentSongList.size()) {
 
                     // Move the song
                     Song songToMove = currentSongList.remove(fromPosition);
@@ -354,27 +351,9 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
         return isPlayerVisible;
     }
 
-    public LiveData<List<Song>> getCurrentSongListLiveData() {
-        return androidx.lifecycle.Transformations.map(queueInfo, info -> new ArrayList<>(currentSongList));
-    }
-
-    public LiveData<Integer> getCurrentIndexLiveData() {
-        return androidx.lifecycle.Transformations.map(queueInfo, info -> currentIndex);
-    }
-
-    public LiveData<String> getCurrentListTitleLiveData() {
-        return androidx.lifecycle.Transformations.map(queueInfo, info -> currentListTitle);
-    }
-
-    public void showPlayer() {
-        isPlayerVisible.setValue(true);
-    }
-
     public void hidePlayer() {
         isPlayerVisible.setValue(false);
     }
-
-    // ========== HELPER METHODS ==========
 
     private void updateQueueInfo() {
         MediaPlayerState.QueueInfo info = new MediaPlayerState.QueueInfo(
@@ -398,8 +377,6 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
         isServiceBound = false;
         serviceConnection = null;
     }
-
-    // ========== SERVICE LISTENER IMPLEMENTATION ==========
 
     @Override
     public void onPlaybackStateChanged(boolean isPlaying) {
@@ -441,8 +418,6 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
         currentPlaybackState.postValue(currentState);
     }
 
-    // ========== MISSING METHODS - ADDED FOR COMPATIBILITY ==========
-
     /**
      * Check service binding status
      * Called from RepositoryManager to verify service connection
@@ -451,57 +426,6 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
         if (!isServiceBound || mediaService == null) {
             android.util.Log.w("MediaPlayerRepository", "Service not properly connected - attempting rebind");
             bindToMediaService();
-        }
-    }
-
-    /**
-     * Set single song queue (for compatibility)
-     * Creates a single-song queue with the provided song
-     */
-    public Future<Boolean> setSingleSongQueue(Song song) {
-        return executor.submit(() -> {
-            try {
-                if (song != null) {
-                    // Create single song list
-                    currentSongList.clear();
-                    currentSongList.add(song);
-                    currentListTitle = "Single Song: " + song.getTitle();
-                    currentIndex = 0;
-
-                    // Update state
-                    currentState.setCurrentSong(song);
-                    updateQueueInfo();
-
-                    return true;
-                } else {
-                    android.util.Log.e("MediaPlayerRepository", "Cannot set queue with null song");
-                    return false;
-                }
-            } catch (Exception e) {
-                android.util.Log.e("MediaPlayerRepository", "Error setting single song queue", e);
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Ensure player visibility (for compatibility)
-     * Makes sure the mini player is visible when there's active content
-     */
-    public void ensurePlayerVisibility() {
-        try {
-            // Check if we have current content
-            boolean hasContent = !currentSongList.isEmpty() && currentIndex >= 0 && currentIndex < currentSongList.size();
-
-            if (hasContent) {
-                isPlayerVisible.postValue(true);
-            } else {
-                isPlayerVisible.postValue(false);
-            }
-        } catch (Exception e) {
-            android.util.Log.e("MediaPlayerRepository", "Error ensuring player visibility", e);
-            // Default to visible if there's an error
-            isPlayerVisible.postValue(true);
         }
     }
 

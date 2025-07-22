@@ -11,6 +11,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.media3.common.MediaItem;
@@ -58,13 +59,13 @@ public class MediaPlaybackService extends Service {
          */
         void onPlayerError(String error);
     }
-    
+
     private static final String CHANNEL_ID = "MediaPlaybackChannel";
     private static final int NOTIFICATION_ID = 1;
-    
+
     // Binder để communicate với clients
     private final IBinder binder = new MediaPlaybackBinder();
-    
+
     // ExoPlayer instance
     private ExoPlayer exoPlayer;
 
@@ -82,29 +83,29 @@ public class MediaPlaybackService extends Service {
 
     // FIXED: Giao tiếp hai chiều - Repository sẽ lắng nghe Service
     private PlaybackStateListener playbackStateListener;
-    
+
     public class MediaPlaybackBinder extends Binder {
         public MediaPlaybackService getService() {
             return MediaPlaybackService.this;
         }
     }
-    
+
     @Override
     public void onCreate() {
         super.onCreate();
+        // mainHandler và progressHandler đảm bảo ExoPlayer operations chạy trên Main Thread
         mainHandler = new Handler(Looper.getMainLooper());
         progressHandler = new Handler(Looper.getMainLooper());
         initializePlayer();
         createNotificationChannel();
     }
-    
+
     /**
      * Khởi tạo ExoPlayer
      */
     private void initializePlayer() {
         exoPlayer = new ExoPlayer.Builder(this).build();
-        
-        // Lắng nghe các sự kiện từ ExoPlayer
+
         exoPlayer.addListener(new Player.Listener() {
             @Override
             public void onPlaybackStateChanged(int playbackState) {
@@ -144,11 +145,7 @@ public class MediaPlaybackService extends Service {
             }
         });
     }
-    
-    /**
-     * Phát bài hát mới - LUÔN restart từ đầu
-     * Đảm bảo tất cả ExoPlayer operations chạy trên main thread
-     */
+
     public void playSong(Song song, User artist) {
         if (song == null || song.getAudioUrl() == null) {
             return;
@@ -188,7 +185,7 @@ public class MediaPlaybackService extends Service {
             }
         });
     }
-    
+
     /**
      * Play/Pause toggle
      * Đảm bảo ExoPlayer operations chạy trên main thread
@@ -239,7 +236,7 @@ public class MediaPlaybackService extends Service {
     public User getCurrentArtist() {
         return currentArtist;
     }
-    
+
     /**
      * Pause playback
      * Đảm bảo ExoPlayer operations chạy trên main thread
@@ -263,7 +260,7 @@ public class MediaPlaybackService extends Service {
     public void stop() {
         mainHandler.post(() -> exoPlayer.stop());
     }
-    
+
     /**
      * Seek đến vị trí cụ thể
      * Đảm bảo ExoPlayer operations chạy trên main thread
@@ -290,18 +287,13 @@ public class MediaPlaybackService extends Service {
             }
         });
     }
-    
+
     /**
      * Lấy vị trí hiện tại
      * Thread-safe getter
      */
     public long getCurrentPosition() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            return exoPlayer.getCurrentPosition();
-        } else {
-            // Return cached value or 0 if called from background thread
-            return 0;
-        }
+        return exoPlayer.getCurrentPosition();
     }
 
     /**
@@ -309,12 +301,7 @@ public class MediaPlaybackService extends Service {
      * Thread-safe getter
      */
     public long getDuration() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            return exoPlayer.getDuration();
-        } else {
-            // Return cached value or 0 if called from background thread
-            return 0;
-        }
+        return exoPlayer.getDuration();
     }
 
     /**
@@ -322,18 +309,13 @@ public class MediaPlaybackService extends Service {
      * Thread-safe getter
      */
     public boolean isPlaying() {
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            return exoPlayer.isPlaying();
-        } else {
-            // Return false if called from background thread
-            return false;
-        }
+        return exoPlayer.isPlaying();
     }
-    
+
     // XÓA duplicate methods - đã có ở lines 170-179
-    
+
     // REMOVED: Duplicate setPlaybackStateListener() method - using enhanced version below
-    
+
     /**
      * Start foreground service với notification
      */
@@ -352,26 +334,24 @@ public class MediaPlaybackService extends Service {
             updateNotification();
         }
     }
-    
+
     /**
      * Tạo notification channel (Android 8.0+)
      */
     private void createNotificationChannel() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
+        NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
                 "Media Playback",
                 NotificationManager.IMPORTANCE_LOW
-            );
-            channel.setDescription("Hiển thị thông tin bài hát đang phát");
-            
-            NotificationManager manager = getSystemService(NotificationManager.class);
-            if (manager != null) {
-                manager.createNotificationChannel(channel);
-            }
+        );
+        channel.setDescription("Hiển thị thông tin bài hát đang phát");
+
+        NotificationManager manager = getSystemService(NotificationManager.class);
+        if (manager != null) {
+            manager.createNotificationChannel(channel);
         }
     }
-    
+
     /**
      * Tạo notification cho media playback
      */
@@ -382,24 +362,24 @@ public class MediaPlaybackService extends Service {
         // Intent để mở app khi tap notification
         Intent intent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+                this, 0, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
         String title = currentSong != null ? currentSong.getTitle() : "Đang phát nhạc";
         String artist = currentArtist != null ? currentArtist.getDisplayName() : "Soundify Music Player";
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle(title)
-            .setContentText(artist)
-            .setSmallIcon(R.drawable.ic_music_note)
-            .setContentIntent(pendingIntent)
-            .setOngoing(true)
-            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .build();
+                .setContentTitle(title)
+                .setContentText(artist)
+                .setSmallIcon(R.drawable.ic_music_note)
+                .setContentIntent(pendingIntent)
+                .setOngoing(true)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .build();
     }
-    
+
     /**
      * Cập nhật notification
      */
@@ -412,7 +392,7 @@ public class MediaPlaybackService extends Service {
             }
         }
     }
-    
+
     /**
      * Start progress updates
      */
@@ -447,8 +427,6 @@ public class MediaPlaybackService extends Service {
             progressRunnable = null;
         }
     }
-
-    // ========== GIAO TIẾP HAI CHIỀU - PUBLIC METHODS ==========
 
     /**
      * Đăng ký listener để nhận trạng thái thực tế từ ExoPlayer

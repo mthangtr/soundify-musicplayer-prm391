@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- This layout file is now deprecated - FullPlayerActivity uses fragment_full_player.xml directly -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/primary_background"
     android:fitsSystemWindows="false">
 
-    <!-- Full Player Fragment Container -->
+    <!-- Deprecated: Fragment container no longer needed -->
     <FrameLayout
         android:id="@+id/full_player_container"
         android:layout_width="match_parent"

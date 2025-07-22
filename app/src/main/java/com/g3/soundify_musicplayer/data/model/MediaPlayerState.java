@@ -34,17 +34,10 @@ public class MediaPlayerState {
         private long currentPosition;       // Vị trí hiện tại (milliseconds)
         private long duration;              // Tổng thời lượng (milliseconds)
 
-        // ✅ REMOVED: Unnecessary fields for Zero Queue Rule
-        // private boolean isShuffleEnabled;    // ❌ No shuffle in Zero Queue Rule
-        // private RepeatMode repeatMode;       // ❌ No repeat in Zero Queue Rule
-        // private float playbackSpeed;         // ❌ Basic player doesn't need speed control
-        // private int currentQueueIndex;       // ❌ Duplicate with MediaPlayerRepository.currentIndex
-        
         public CurrentPlaybackState() {
             this.playbackState = PlaybackState.IDLE;
             this.currentPosition = 0;
             this.duration = 0;
-            // ✅ REMOVED: Initialization of unnecessary fields
         }
         
         public CurrentPlaybackState(Song currentSong, PlaybackState playbackState) {
@@ -115,16 +108,6 @@ public class MediaPlayerState {
         
         public long getDuration() { return duration; }
         public void setDuration(long duration) { this.duration = duration; }
-        
-        // ✅ REMOVED: Getters/setters for unnecessary fields
-        // public boolean isShuffleEnabled() { return isShuffleEnabled; }
-        // public void setShuffleEnabled(boolean shuffleEnabled) { isShuffleEnabled = shuffleEnabled; }
-        // public RepeatMode getRepeatMode() { return repeatMode; }
-        // public void setRepeatMode(RepeatMode repeatMode) { this.repeatMode = repeatMode; }
-        // public float getPlaybackSpeed() { return playbackSpeed; }
-        // public void setPlaybackSpeed(float playbackSpeed) { this.playbackSpeed = playbackSpeed; }
-        // public int getCurrentQueueIndex() { return currentQueueIndex; }
-        // public void setCurrentQueueIndex(int currentQueueIndex) { this.currentQueueIndex = currentQueueIndex; }
     }
     
     /**

@@ -21,17 +21,13 @@ import androidx.lifecycle.ViewModelProvider;
 public abstract class BaseActivity extends AppCompatActivity {
 
     private FrameLayout miniPlayerContainer;
-    private MiniPlayerFragment miniPlayerFragment;
-    private SongDetailViewModel songDetailViewModel;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // Set the content view first
+
         setContentView(getLayoutResourceId());
         
-        // Initialize mini player after content view is set
         initMiniPlayer();
     }
 
@@ -46,18 +42,20 @@ public abstract class BaseActivity extends AppCompatActivity {
     private void initMiniPlayer() {
         // Find or create mini player container
         miniPlayerContainer = findViewById(R.id.mini_player_container);
-        
+
+        // kiểm tra xem có mini player container không
         if (miniPlayerContainer != null) {
-            // Create and add mini player fragment
-            miniPlayerFragment = new MiniPlayerFragment();
-            
+
+            MiniPlayerFragment miniPlayerFragment = new MiniPlayerFragment();
+
+            // FragmentTransaction để replace mini player container
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
             transaction.replace(R.id.mini_player_container, miniPlayerFragment);
             transaction.commit();
 
             // Initialize ViewModel THỐNG NHẤT với Singleton Repository pattern
             SongDetailViewModelFactory factory = new SongDetailViewModelFactory(getApplication());
-            songDetailViewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
+            SongDetailViewModel songDetailViewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
 
             songDetailViewModel.getIsVisible().observe(this, isVisible -> {
                 if (shouldShowMiniPlayer() && isVisible != null && isVisible) {
@@ -67,13 +65,6 @@ public abstract class BaseActivity extends AppCompatActivity {
                 }
             });
         }
-    }
-
-    /**
-     * Get the mini player fragment instance
-     */
-    protected MiniPlayerFragment getMiniPlayerFragment() {
-        return miniPlayerFragment;
     }
 
     /**
