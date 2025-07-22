@@ -19,7 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
 import com.g3.soundify_musicplayer.ui.home.SongAdapter;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 
@@ -170,7 +170,7 @@ public class LikedSongPlaylistFragment extends Fragment {
             return;
         }
 
-        // Tạo NavigationContext cho Liked Songs
+        // Play liked song
         List<Long> songIds = new ArrayList<>();
         int clickedPosition = 0;
 
@@ -183,17 +183,8 @@ public class LikedSongPlaylistFragment extends Fragment {
             }
         }
 
-        NavigationContext context = NavigationContext.fromGeneral(
-            "Liked Songs",
-            songIds,
-            clickedPosition
-        );
-
-        // Tạo mock artist
-        User mockArtist = createMockArtist(song.getUploaderId());
-
-        // Phát bài hát với context
-        songDetailViewModel.playSongWithContext(song, mockArtist, context);
+        // ✅ CONSISTENT: Use playFromView with full liked songs for navigation
+        songDetailViewModel.playFromView(currentLikedSongs, "Liked Songs", clickedPosition);
 
         showToast("Đang phát: " + song.getTitle());
     }
@@ -210,23 +201,19 @@ public class LikedSongPlaylistFragment extends Fragment {
         // Lấy bài đầu tiên để bắt đầu phát
         Song firstSong = currentLikedSongs.get(0);
         
-        // Tạo NavigationContext
+        // Play all songs
         List<Long> songIds = new ArrayList<>();
         for (Song song : currentLikedSongs) {
             songIds.add(song.getId());
         }
 
-        NavigationContext context = NavigationContext.fromGeneral(
-            "Liked Songs" + (shuffle ? " (Shuffle)" : ""),
-            songIds,
-            0
-        );
+        // REMOVED: NavigationContext - using Simple Queue approach
 
         // Tạo mock artist
         User mockArtist = createMockArtist(firstSong.getUploaderId());
 
-        // Phát với context
-        songDetailViewModel.playSongWithContext(firstSong, mockArtist, context);
+        // ✅ CONSISTENT: Use playFromView with full liked songs for navigation
+        songDetailViewModel.playFromView(currentLikedSongs, "Liked Songs", 0);
 
         // TODO: Implement shuffle logic nếu cần
         if (shuffle) {

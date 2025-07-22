@@ -25,7 +25,8 @@ import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
+// REMOVED: SimplePlaybackHandler import - using Zero Queue Rule
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.google.android.material.tabs.TabLayout;
@@ -131,15 +132,21 @@ public class LibraryFragment extends Fragment {
             @Override
             public void onPlay(SongWithUploaderInfo songInfo) {
                 showToast("Playing: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
-                showMiniPlayerWithSongInfo(songInfo);
+
+                // ✅ CONSISTENT: Use playFromView for all fragments
+                List<Song> allSongs = convertToSongs(mySongsAdapter.getCurrentData());
+                int position = findSongPosition(songInfo, mySongsAdapter.getCurrentData());
+                songDetailViewModel.playFromView(allSongs, "My Songs", position);
             }
 
             @Override
             public void onOpenDetail(SongWithUploaderInfo songInfo) {
                 showToast("Open detail: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
 
-                // QUAN TRỌNG: Gọi method để phát nhạc với queue
-                showMiniPlayerWithSongInfo(songInfo);
+                // ✅ CONSISTENT: Use playFromView for all fragments
+                List<Song> allSongs = convertToSongs(mySongsAdapter.getCurrentData());
+                int position = findSongPosition(songInfo, mySongsAdapter.getCurrentData());
+                songDetailViewModel.playFromView(allSongs, "My Songs", position);
             }
         });
         mySongsRecyclerView.setAdapter(mySongsAdapter);
@@ -313,90 +320,73 @@ public class LibraryFragment extends Fragment {
     }
 
     private void showMiniPlayer(Song song) {
-        // Create a mock artist for the song
-        User mockArtist = createMockArtist(song.getUploaderId());
-
-        // TẠO NAVIGATION CONTEXT dựa trên tab hiện tại
-        createLibraryNavigationContextAndPlay(song, mockArtist);
+        // ✅ CONSISTENT: Use playFromView for all fragments
+        List<Song> allSongs = getCurrentTabSongs();
+        int position = findSongPositionInSongList(song, allSongs);
+        songDetailViewModel.playFromView(allSongs, getCurrentTabTitle(), position);
     }
 
     private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
-        // Convert SongWithUploaderInfo to Song and User
-        Song song = convertToSong(songInfo);
-        User uploader = convertToUser(songInfo);
-
-        // TẠO NAVIGATION CONTEXT dựa trên tab hiện tại
-        createLibraryNavigationContextAndPlay(song, uploader);
+        // ✅ CONSISTENT: Use playFromView for all fragments
+        List<Song> allSongs = convertToSongs(getCurrentTabSongsInfo());
+        int position = findSongPosition(songInfo, getCurrentTabSongsInfo());
+        songDetailViewModel.playFromView(allSongs, getCurrentTabTitle(), position);
     }
 
     /**
-     * Tạo NavigationContext từ Library tab hiện tại và phát bài hát với queue
+     * ✅ Get current tab songs as Song objects
      */
-    private void createLibraryNavigationContextAndPlay(Song song, User artist) {
-        java.util.List<Song> currentSongs = null;
-        String contextTitle = "";
-
-        // Lấy danh sách songs dựa trên tab hiện tại
+    private List<Song> getCurrentTabSongs() {
+        int currentTab = tabLayout.getSelectedTabPosition();
         switch (currentTab) {
             case 0: // My Songs
-                // Convert SongWithUploaderInfo to Song for navigation context
-                List<SongWithUploaderInfo> songsWithInfo = mySongsAdapter.getCurrentData();
-                currentSongs = new ArrayList<>();
-                if (songsWithInfo != null) {
-                    for (SongWithUploaderInfo songInfo : songsWithInfo) {
-                        currentSongs.add(convertToSong(songInfo));
-                    }
-                }
-                contextTitle = "My Songs";
-                break;
+                return convertToSongs(mySongsAdapter != null ? mySongsAdapter.getCurrentData() : new ArrayList<>());
             case 2: // Liked Songs
-                currentSongs = likedSongsAdapter.getCurrentData();
-                contextTitle = "Liked Songs";
-                break;
+                return likedSongsAdapter != null ? likedSongsAdapter.getCurrentData() : new ArrayList<>();
             default:
-                // Fallback cho tab Playlists hoặc unknown
-                java.util.List<Long> singleSongIds = new java.util.ArrayList<>();
-                singleSongIds.add(song.getId());
-                NavigationContext fallbackContext = NavigationContext.fromGeneral(
-                    "Library", singleSongIds, 0);
-                songDetailViewModel.playSongWithContext(song, artist, fallbackContext);
-                return;
+                return new ArrayList<>();
         }
-
-        if (currentSongs == null || currentSongs.isEmpty()) {
-            // Fallback: phát bài đơn lẻ nếu không có danh sách
-            songDetailViewModel.playSong(song, artist);
-            android.util.Log.w("LibraryFragment", "No songs list available, playing single song");
-            return;
-        }
-
-        // Tạo danh sách song IDs và tìm vị trí của bài hát được click
-        java.util.List<Long> songIds = new java.util.ArrayList<>();
-        int clickedPosition = 0;
-
-        for (int i = 0; i < currentSongs.size(); i++) {
-            Song s = currentSongs.get(i);
-            songIds.add(s.getId());
-
-            if (s.getId() == song.getId()) {
-                clickedPosition = i;
-            }
-        }
-
-        // Tạo NavigationContext từ Library
-        NavigationContext context = NavigationContext.fromGeneral(
-            "Library - " + contextTitle,
-            songIds,
-            clickedPosition
-        );
-
-        // Phát bài hát với context để tạo queue
-        songDetailViewModel.playSongWithContext(song, artist, context);
-
-        android.util.Log.d("LibraryFragment", "Playing song with context - Tab: " +
-            contextTitle + ", Queue size: " + songIds.size() +
-            ", Position: " + clickedPosition);
     }
+
+    /**
+     * ✅ Get current tab songs as SongWithUploaderInfo
+     */
+    private List<SongWithUploaderInfo> getCurrentTabSongsInfo() {
+        int currentTab = tabLayout.getSelectedTabPosition();
+        switch (currentTab) {
+            case 0: // My Songs
+                return mySongsAdapter != null ? mySongsAdapter.getCurrentData() : new ArrayList<>();
+            case 2: // Liked Songs - convert Song to SongWithUploaderInfo
+                List<Song> likedSongs = likedSongsAdapter != null ? likedSongsAdapter.getCurrentData() : new ArrayList<>();
+                List<SongWithUploaderInfo> likedSongsInfo = new ArrayList<>();
+                for (Song song : likedSongs) {
+                    SongWithUploaderInfo songInfo = new SongWithUploaderInfo();
+                    songInfo.setId(song.getId());
+                    songInfo.setTitle(song.getTitle());
+                    songInfo.setUploaderId(song.getUploaderId());
+                    likedSongsInfo.add(songInfo);
+                }
+                return likedSongsInfo;
+            default:
+                return new ArrayList<>();
+        }
+    }
+
+    /**
+     * ✅ Get current tab title
+     */
+    private String getCurrentTabTitle() {
+        int currentTab = tabLayout.getSelectedTabPosition();
+        switch (currentTab) {
+            case 0: return "My Songs";
+            case 1: return "My Playlists";
+            case 2: return "Liked Songs";
+            default: return "Library";
+        }
+    }
+
+    // ========== 🗑️ REMOVED: Complex NavigationContext method ==========
+    // Replaced by SimplePlaybackHandler.playFromCurrentView() pattern
 
     private User createMockArtist(long artistId) {
         User artist = new User();
@@ -518,10 +508,60 @@ public class LibraryFragment extends Fragment {
         android.util.Log.d("LibraryFragment", "✅ Navigation to LikedSongPlaylistFragment completed");
     }
 
+    // ========== 🔥 ZERO QUEUE RULE - HELPER METHODS ==========
+
+    /**
+     * ✅ Convert list of SongWithUploaderInfo to Song objects
+     */
+    private List<Song> convertToSongs(List<SongWithUploaderInfo> songInfoList) {
+        List<Song> songs = new ArrayList<>();
+        if (songInfoList != null) {
+            for (SongWithUploaderInfo songInfo : songInfoList) {
+                songs.add(convertToSong(songInfo));
+            }
+        }
+        return songs;
+    }
+
+    /**
+     * Helper method để tìm position của song trong list
+     */
+    private int findSongPosition(SongWithUploaderInfo targetSong, List<SongWithUploaderInfo> songList) {
+        if (targetSong == null || songList == null) return 0;
+
+        for (int i = 0; i < songList.size(); i++) {
+            SongWithUploaderInfo song = songList.get(i);
+            if (song != null && song.getId() == targetSong.getId()) {
+                return i;
+            }
+        }
+        return 0; // Default to first position if not found
+    }
+
+    /**
+     * Helper method để tìm position của Song trong Song list
+     */
+    private int findSongPositionInSongList(Song targetSong, List<Song> songList) {
+        if (targetSong == null || songList == null) return 0;
+
+        for (int i = 0; i < songList.size(); i++) {
+            Song song = songList.get(i);
+            if (song != null && song.getId() == targetSong.getId()) {
+                return i;
+            }
+        }
+        return 0; // Default to first position if not found
+    }
+
+    // REMOVED: getCurrentViewSongsInfo - replaced by getCurrentTabSongsInfo
+
     /**
      * Convert SongWithUploaderInfo to Song
+     * Made public to match interface requirement
      */
-    private Song convertToSong(SongWithUploaderInfo songInfo) {
+    public Song convertToSong(SongWithUploaderInfo songInfo) {
+        if (songInfo == null) return null;
+
         Song song = new Song(songInfo.getUploaderId(), songInfo.getTitle(), songInfo.getAudioUrl());
         song.setId(songInfo.getId());
         song.setDescription(songInfo.getDescription());
@@ -537,6 +577,8 @@ public class LibraryFragment extends Fragment {
      * Convert SongWithUploaderInfo to User
      */
     private User convertToUser(SongWithUploaderInfo songInfo) {
+        if (songInfo == null) return null;
+
         User user = new User(songInfo.getUploaderUsername(), songInfo.getUploaderDisplayName(), "dummy@email.com", "password");
         user.setId(songInfo.getUploaderId());
         user.setAvatarUrl(songInfo.getUploaderAvatarUrl());

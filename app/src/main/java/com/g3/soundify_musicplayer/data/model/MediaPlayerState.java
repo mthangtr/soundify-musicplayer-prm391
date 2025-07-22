@@ -21,37 +21,30 @@ public class MediaPlayerState {
         ERROR           // Lỗi
     }
     
-    /**
-     * Enum định nghĩa các chế độ repeat
-     */
-    public enum RepeatMode {
-        OFF,            // Không repeat
-        ONE,            // Repeat một bài
-        ALL             // Repeat toàn bộ queue
-    }
+    // ✅ REMOVED: RepeatMode enum - Zero Queue Rule không cần repeat
     
     /**
      * Class chứa thông tin trạng thái playback hiện tại
      */
     public static class CurrentPlaybackState {
+        // ✅ SIMPLIFIED: Only 5 essential fields for Zero Queue Rule
         private Song currentSong;
-        private User currentArtist; // ADDED: Centralized artist state
+        private User currentArtist;         // Centralized artist state
         private PlaybackState playbackState;
         private long currentPosition;       // Vị trí hiện tại (milliseconds)
         private long duration;              // Tổng thời lượng (milliseconds)
-        private boolean isShuffleEnabled;
-        private RepeatMode repeatMode;
-        private float playbackSpeed;        // Tốc độ phát (1.0f = normal)
-        private int currentQueueIndex;      // Vị trí trong queue
+
+        // ✅ REMOVED: Unnecessary fields for Zero Queue Rule
+        // private boolean isShuffleEnabled;    // ❌ No shuffle in Zero Queue Rule
+        // private RepeatMode repeatMode;       // ❌ No repeat in Zero Queue Rule
+        // private float playbackSpeed;         // ❌ Basic player doesn't need speed control
+        // private int currentQueueIndex;       // ❌ Duplicate with MediaPlayerRepository.currentIndex
         
         public CurrentPlaybackState() {
             this.playbackState = PlaybackState.IDLE;
             this.currentPosition = 0;
             this.duration = 0;
-            this.isShuffleEnabled = false;
-            this.repeatMode = RepeatMode.OFF;
-            this.playbackSpeed = 1.0f;
-            this.currentQueueIndex = -1;
+            // ✅ REMOVED: Initialization of unnecessary fields
         }
         
         public CurrentPlaybackState(Song currentSong, PlaybackState playbackState) {
@@ -123,17 +116,15 @@ public class MediaPlayerState {
         public long getDuration() { return duration; }
         public void setDuration(long duration) { this.duration = duration; }
         
-        public boolean isShuffleEnabled() { return isShuffleEnabled; }
-        public void setShuffleEnabled(boolean shuffleEnabled) { isShuffleEnabled = shuffleEnabled; }
-        
-        public RepeatMode getRepeatMode() { return repeatMode; }
-        public void setRepeatMode(RepeatMode repeatMode) { this.repeatMode = repeatMode; }
-        
-        public float getPlaybackSpeed() { return playbackSpeed; }
-        public void setPlaybackSpeed(float playbackSpeed) { this.playbackSpeed = playbackSpeed; }
-        
-        public int getCurrentQueueIndex() { return currentQueueIndex; }
-        public void setCurrentQueueIndex(int currentQueueIndex) { this.currentQueueIndex = currentQueueIndex; }
+        // ✅ REMOVED: Getters/setters for unnecessary fields
+        // public boolean isShuffleEnabled() { return isShuffleEnabled; }
+        // public void setShuffleEnabled(boolean shuffleEnabled) { isShuffleEnabled = shuffleEnabled; }
+        // public RepeatMode getRepeatMode() { return repeatMode; }
+        // public void setRepeatMode(RepeatMode repeatMode) { this.repeatMode = repeatMode; }
+        // public float getPlaybackSpeed() { return playbackSpeed; }
+        // public void setPlaybackSpeed(float playbackSpeed) { this.playbackSpeed = playbackSpeed; }
+        // public int getCurrentQueueIndex() { return currentQueueIndex; }
+        // public void setCurrentQueueIndex(int currentQueueIndex) { this.currentQueueIndex = currentQueueIndex; }
     }
     
     /**
@@ -145,7 +136,7 @@ public class MediaPlayerState {
         private boolean hasPrevious;
         private boolean hasNext;
         private String queueTitle;          // Tên playlist, artist, search query, etc.
-        private NavigationContext.Type contextType;
+        private String contextType;         // Simple string context type: "Recently Played", "My Songs", etc.
         
         public QueueInfo() {
             this.currentIndex = -1;
@@ -155,7 +146,7 @@ public class MediaPlayerState {
             this.queueTitle = "";
         }
         
-        public QueueInfo(int currentIndex, int totalSongs, String queueTitle, NavigationContext.Type contextType) {
+        public QueueInfo(int currentIndex, int totalSongs, String queueTitle, String contextType) {
             this.currentIndex = currentIndex;
             this.totalSongs = totalSongs;
             this.queueTitle = queueTitle;
@@ -170,24 +161,7 @@ public class MediaPlayerState {
             }
             return "";
         }
-        
-        public String getContextActionText() {
-            if (contextType == null) return "";
-            
-            switch (contextType) {
-                case FROM_PLAYLIST:
-                    return "View Playlist";
-                case FROM_ARTIST:
-                    return "View Artist Profile";
-                case FROM_SEARCH:
-                    return "Back to Search Results";
-                case FROM_GENERAL:
-                    return "Back to Browse";
-                default:
-                    return "";
-            }
-        }
-        
+
         // Getters and Setters
         public int getCurrentIndex() { return currentIndex; }
         public void setCurrentIndex(int currentIndex) { 
@@ -208,8 +182,8 @@ public class MediaPlayerState {
         public String getQueueTitle() { return queueTitle; }
         public void setQueueTitle(String queueTitle) { this.queueTitle = queueTitle; }
         
-        public NavigationContext.Type getContextType() { return contextType; }
-        public void setContextType(NavigationContext.Type contextType) { this.contextType = contextType; }
+        public String getContextType() { return contextType; }
+        public void setContextType(String contextType) { this.contextType = contextType; }
     }
     
     /**
