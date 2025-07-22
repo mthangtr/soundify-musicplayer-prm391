@@ -29,7 +29,6 @@ import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
 
 import java.util.List;
@@ -37,11 +36,11 @@ import java.util.List;
 /**
  * Fragment for displaying playlist details and managing songs
  */
-public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdapter.OnSongActionListener {
+public class PlaylistDetailFragment extends Fragment implements PlaylistSongCardAdapter.OnSongActionListener {
 
     private PlaylistDetailViewModel viewModel;
     private SongDetailViewModel songDetailViewModel;
-    private PlaylistSongAdapter adapter;
+    private PlaylistSongCardAdapter adapter;
     
     // UI Components
     private ShapeableImageView playlistCover;
@@ -53,7 +52,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
     private TextView songsHeader;
     private RecyclerView songsRecyclerView;
     private LinearLayout emptyStateLayout;
-    private FloatingActionButton fabAddSongs;
     
     // Constants
     private static final String ARG_PLAYLIST_ID = "playlist_id";
@@ -94,15 +92,15 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
         // Initialize UI
         initializeViews(view);
         setupRecyclerView();
         setupClickListeners();
-        setupObservers();
-        
-        // Load playlist data
+
+        // FIX: Handle arguments BEFORE setting up observers to avoid race condition
         handleArguments();
+        setupObservers();
     }
     
     /**
@@ -118,7 +116,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
         songsHeader = view.findViewById(R.id.text_view_songs_header);
         songsRecyclerView = view.findViewById(R.id.recycler_view_songs);
         emptyStateLayout = view.findViewById(R.id.layout_empty_state);
-        fabAddSongs = view.findViewById(R.id.fab_add_songs);
     }
     
     /**
@@ -126,10 +123,10 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
      */
     private void setupRecyclerView() {
         if (getContext() == null) return;
-        
-        adapter = new PlaylistSongAdapter(getContext());
+
+        adapter = new PlaylistSongCardAdapter(getContext());
         adapter.setOnSongActionListener(this);
-        
+
         songsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         songsRecyclerView.setAdapter(adapter);
     }
@@ -141,7 +138,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
         playAllButton.setOnClickListener(v -> playAllSongs());
         shuffleButton.setOnClickListener(v -> shufflePlaySongs());
         editPlaylistButton.setOnClickListener(v -> showEditPlaylistDialog());
-        fabAddSongs.setOnClickListener(v -> openSongSelection());
     }
     
     /**
@@ -159,6 +155,11 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
             if (isOwner != null) {
                 editPlaylistButton.setVisibility(isOwner ? View.VISIBLE : View.GONE);
             }
+        });
+
+        // Observe playlist owner info
+        viewModel.getPlaylistOwner().observe(getViewLifecycleOwner(), owner -> {
+            updatePlaylistInfoText(); // Refresh info when owner is loaded
         });
         
         // Observe loading state
@@ -186,8 +187,10 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
      */
     private void handleArguments() {
         Bundle args = getArguments();
+
         if (args != null) {
             long playlistId = args.getLong(ARG_PLAYLIST_ID, -1);
+
             if (playlistId != -1) {
                 viewModel.loadPlaylist(playlistId);
             } else {
@@ -196,6 +199,8 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
             }
         }
     }
+
+
     
     /**
      * Initialize activity result launchers
@@ -230,12 +235,13 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
         adapter.setSongs(songs);
         viewModel.updatePlaylistStats(songs);
         updatePlaylistInfoText();
-        
+
         // Show/hide empty state
         boolean isEmpty = songs == null || songs.isEmpty();
+
         emptyStateLayout.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
         songsRecyclerView.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
-        
+
         // Update action buttons state
         playAllButton.setEnabled(!isEmpty);
         shuffleButton.setEnabled(!isEmpty);
@@ -247,16 +253,26 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
     private void updatePlaylistInfoText() {
         Playlist playlist = viewModel.getCurrentPlaylist().getValue();
         if (playlist == null) return;
-        
-        String ownerName = "Unknown"; // TODO: Get from User entity
+
+        // Get owner name from ViewModel
+        User owner = viewModel.getPlaylistOwner().getValue();
+        String ownerName = "Unknown";
+        if (owner != null) {
+            ownerName = owner.getDisplayName();
+            if (ownerName == null || ownerName.trim().isEmpty()) {
+                ownerName = owner.getUsername();
+            }
+            if (ownerName == null || ownerName.trim().isEmpty()) {
+                ownerName = "Unknown";
+            }
+        }
+
         int songCount = adapter.getItemCount();
-        String duration = viewModel.getTotalDuration().getValue();
-        if (duration == null) duration = "0:00";
-        
-        String infoText = String.format("Created by %s • %d songs • %s", 
-                                      ownerName, songCount, duration);
+
+        // Format: "Created by [owner] • [X] songs" (removed duration)
+        String infoText = String.format("Created by %s • %d songs", ownerName, songCount);
         playlistInfo.setText(infoText);
-        
+
         // Update songs header
         String songsHeaderText = songCount == 1 ? "1 song" : songCount + " songs";
         songsHeader.setText(songsHeaderText);
@@ -286,13 +302,7 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
         showToast("Edit Playlist - Not implemented yet");
     }
     
-    /**
-     * Open song selection activity
-     */
-    private void openSongSelection() {
-        // TODO: Implement song selection
-        showToast("Add Songs - Not implemented yet");
-    }
+
     
     /**
      * Handle song selection result
@@ -310,9 +320,15 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
         }
     }
     
-    // PlaylistSongAdapter.OnSongActionListener implementation
+    // PlaylistSongCardAdapter.OnSongActionListener implementation
     @Override
     public void onSongClick(Song song, int position) {
+        // When user clicks on song card, play the song (same as play button)
+        onPlaySong(song, position);
+    }
+
+    @Override
+    public void onPlaySong(Song song, int position) {
         // IMPLEMENT: Phát bài hát với NavigationContext từ playlist
         Playlist currentPlaylist = viewModel.getCurrentPlaylist().getValue();
         List<Song> playlistSongs = viewModel.getSongsInPlaylist().getValue();
@@ -335,15 +351,5 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
         showToast("Playing: " + song.getTitle() + " from playlist: " + currentPlaylist.getName());
     }
 
-    @Override
-    public void onRemoveSong(Song song, int position) {
-        // TODO: Remove song from playlist
-        showToast("Remove song: " + song.getTitle());
-    }
 
-    @Override
-    public void onMoveSong(int fromPosition, int toPosition) {
-        // TODO: Handle song reordering
-        showToast("Moved song from " + fromPosition + " to " + toPosition);
-    }
 }

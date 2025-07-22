@@ -20,6 +20,7 @@ import com.g3.soundify_musicplayer.ui.library.LibraryFragment;
 import com.g3.soundify_musicplayer.ui.upload.UploadSongFragment;
 import com.g3.soundify_musicplayer.ui.profile.UserProfileFragment;
 import com.g3.soundify_musicplayer.utils.AuthManager;
+import com.g3.soundify_musicplayer.utils.DatabaseTestHelper;
 
 public class MainActivity extends BaseActivity {
 
@@ -38,7 +39,7 @@ public class MainActivity extends BaseActivity {
         
         // Initialize AuthManager
         authManager = new AuthManager(this);
-        
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);

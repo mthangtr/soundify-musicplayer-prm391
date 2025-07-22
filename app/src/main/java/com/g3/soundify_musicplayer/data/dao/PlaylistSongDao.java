@@ -24,10 +24,18 @@ public interface PlaylistSongDao {
     @Delete
     void delete(PlaylistSong playlistSong);
     
-    @Query("SELECT s.* FROM songs s INNER JOIN playlist_songs ps ON s.id = ps.song_id WHERE ps.playlist_id = :playlistId ORDER BY ps.position ASC, ps.rowid ASC")
+    @Query("SELECT s.*, u.username as uploaderName FROM songs s " +
+           "INNER JOIN playlist_songs ps ON s.id = ps.song_id " +
+           "LEFT JOIN users u ON s.uploader_id = u.id " +
+           "WHERE ps.playlist_id = :playlistId " +
+           "ORDER BY ps.position ASC, ps.rowid ASC")
     LiveData<List<Song>> getSongsInPlaylist(long playlistId);
-    
-    @Query("SELECT s.* FROM songs s INNER JOIN playlist_songs ps ON s.id = ps.song_id WHERE ps.playlist_id = :playlistId ORDER BY ps.position ASC, ps.rowid ASC")
+
+    @Query("SELECT s.*, u.username as uploaderName FROM songs s " +
+           "INNER JOIN playlist_songs ps ON s.id = ps.song_id " +
+           "LEFT JOIN users u ON s.uploader_id = u.id " +
+           "WHERE ps.playlist_id = :playlistId " +
+           "ORDER BY ps.position ASC, ps.rowid ASC")
     List<Song> getSongsInPlaylistSync(long playlistId);
     
     @Query("SELECT p.* FROM playlists p INNER JOIN playlist_songs ps ON p.id = ps.playlist_id WHERE ps.song_id = :songId")

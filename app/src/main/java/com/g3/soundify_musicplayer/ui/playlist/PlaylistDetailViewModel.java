@@ -58,10 +58,10 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
         if (currentPlaylistId == playlistId) {
             return; // Already loaded
         }
-        
+
         currentPlaylistId = playlistId;
         isLoading.setValue(true);
-        
+
         // Load playlist data
         LiveData<Playlist> playlistLiveData = playlistRepository.getPlaylistById(playlistId);
         playlistLiveData.observeForever(playlist -> {
@@ -104,6 +104,7 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
         if (currentPlaylistId != -1) {
             return playlistRepository.getSongsInPlaylist(currentPlaylistId);
         }
+
         return new MutableLiveData<>();
     }
     

@@ -6,9 +6,11 @@ import com.g3.soundify_musicplayer.data.database.AppDatabase;
 import com.g3.soundify_musicplayer.data.dao.UserDao;
 import com.g3.soundify_musicplayer.data.dao.SongDao;
 import com.g3.soundify_musicplayer.data.dao.PlaylistDao;
+import com.g3.soundify_musicplayer.data.dao.PlaylistSongDao;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
+import com.g3.soundify_musicplayer.data.entity.PlaylistSong;
 
 import java.util.concurrent.Executors;
 
@@ -26,10 +28,14 @@ public class DatabaseTestHelper {
             UserDao userDao = database.userDao();
             SongDao songDao = database.songDao();
             PlaylistDao playlistDao = database.playlistDao();
+            PlaylistSongDao playlistSongDao = database.playlistSongDao();
+
+            android.util.Log.d("DatabaseTestHelper", "🔧 Creating test users and data...");
 
             // Check if admin user exists
             User adminUser = userDao.getUserByUsername("admin");
             if (adminUser == null) {
+                android.util.Log.d("DatabaseTestHelper", "🔧 Creating admin user...");
                 // Create admin user: admin/123
                 String adminPasswordHash = AuthManager.hashPassword("123");
                 User newAdminUser = new User("admin", "Administrator", "admin@soundify.com", adminPasswordHash);
@@ -38,11 +44,13 @@ public class DatabaseTestHelper {
                 // Create demo songs and playlists for admin user
                 createDemoSongs(songDao, adminId);
                 createDemoPlaylists(playlistDao, adminId);
+                createPlaylistSongRelationships(playlistSongDao, playlistDao, songDao, adminId);
             }
 
             // Check if test user exists
             User testUser = userDao.getUserByUsername("user");
             if (testUser == null) {
+                android.util.Log.d("DatabaseTestHelper", "🔧 Creating test user...");
                 // Create test user: user/password
                 String userPasswordHash = AuthManager.hashPassword("password");
                 User newTestUser = new User("user", "Test User", "user@soundify.com", userPasswordHash);
@@ -51,7 +59,10 @@ public class DatabaseTestHelper {
                 // Create demo songs and playlists for test user
                 createDemoSongs(songDao, userId);
                 createDemoPlaylists(playlistDao, userId);
+                createPlaylistSongRelationships(playlistSongDao, playlistDao, songDao, userId);
             }
+
+            android.util.Log.d("DatabaseTestHelper", "🔧 Test data creation completed");
         });
     }
 
@@ -127,6 +138,41 @@ public class DatabaseTestHelper {
             playlist.setCreatedAt(currentTime - (i * 86400000L)); // Each playlist created 1 day apart
             playlistDao.insert(playlist);
         }
+    }
+
+    /**
+     * Create playlist-song relationships for testing
+     */
+    private static void createPlaylistSongRelationships(PlaylistSongDao playlistSongDao, PlaylistDao playlistDao, SongDao songDao, long ownerId) {
+        android.util.Log.d("DatabaseTestHelper", "🔧 Creating playlist-song relationships...");
+
+        // Get all playlists and songs for this user
+        java.util.List<Playlist> playlists = playlistDao.getPlaylistsByOwnerSync(ownerId);
+        java.util.List<Song> songs = songDao.getSongsByUploaderSync(ownerId);
+
+        android.util.Log.d("DatabaseTestHelper", "🔧 Found " + playlists.size() + " playlists and " + songs.size() + " songs");
+
+        if (playlists.isEmpty() || songs.isEmpty()) {
+            android.util.Log.w("DatabaseTestHelper", "🔧 No playlists or songs found, skipping relationships");
+            return;
+        }
+
+        // Add songs to playlists
+        for (int i = 0; i < playlists.size(); i++) {
+            Playlist playlist = playlists.get(i);
+            android.util.Log.d("DatabaseTestHelper", "🔧 Adding songs to playlist: " + playlist.getName());
+
+            // Add 3-5 random songs to each playlist
+            int songsToAdd = 3 + (i % 3); // 3, 4, or 5 songs per playlist
+            for (int j = 0; j < Math.min(songsToAdd, songs.size()); j++) {
+                Song song = songs.get((i * 2 + j) % songs.size()); // Distribute songs across playlists
+                PlaylistSong playlistSong = new PlaylistSong(playlist.getId(), song.getId(), j + 1);
+                playlistSongDao.insert(playlistSong);
+                android.util.Log.d("DatabaseTestHelper", "🔧 Added song '" + song.getTitle() + "' to playlist '" + playlist.getName() + "'");
+            }
+        }
+
+        android.util.Log.d("DatabaseTestHelper", "🔧 Playlist-song relationships created successfully");
     }
 
     /**

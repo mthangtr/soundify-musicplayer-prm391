@@ -8,7 +8,6 @@ import androidx.room.Query;
 import androidx.room.Update;
 
 import com.g3.soundify_musicplayer.data.entity.User;
-
 import java.util.List;
 
 @Dao
@@ -37,19 +36,19 @@ public interface UserDao {
     
     @Query("SELECT * FROM users WHERE username = :username AND password_hash = :passwordHash LIMIT 1")
     User authenticateUser(String username, String passwordHash);
-    
-    @Query("SELECT * FROM users ORDER BY created_at DESC")
-    LiveData<List<User>> getAllUsers();
-    
-    @Query("SELECT * FROM users WHERE username LIKE '%' || :query || '%' OR display_name LIKE '%' || :query || '%' ORDER BY display_name")
-    LiveData<List<User>> searchUsers(String query);
-    
-    @Query("SELECT COUNT(*) FROM users WHERE username = :username")
-    int checkUsernameExists(String username);
-    
-    @Query("SELECT COUNT(*) FROM users WHERE email = :email")
-    int checkEmailExists(String email);
 
     @Query("SELECT * FROM users ORDER BY created_at DESC")
     List<User> getAllUsersSync();
+
+    @Query("SELECT * FROM users ORDER BY created_at DESC")
+    LiveData<List<User>> getAllUsers();
+
+    @Query("SELECT * FROM users WHERE username LIKE '%' || :query || '%' OR display_name LIKE '%' || :query || '%' ORDER BY display_name")
+    LiveData<List<User>> searchUsers(String query);
+
+    @Query("SELECT COUNT(*) FROM users WHERE username = :username")
+    int checkUsernameExists(String username);
+
+    @Query("SELECT COUNT(*) FROM users WHERE email = :email")
+    int checkEmailExists(String email);
 }

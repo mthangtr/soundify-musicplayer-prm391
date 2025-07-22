@@ -28,6 +28,7 @@ public class Song {
     private long uploaderId;
 
     // Transient field for uploader name (not stored in DB, populated via JOIN)
+    @ColumnInfo(name = "uploaderName")
     private String uploaderName;
 
     @ColumnInfo(name = "title")
