@@ -56,16 +56,5 @@ public class SongDetailViewModelFactory implements ViewModelProvider.Factory {
         android.util.Log.w("SongDetailViewModelFactory", "⚠️ Unknown ViewModel class: " + modelClass.getName());
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }
-    
-    /**
-     * Debug method to verify repository instances
-     */
-    public void debugRepositoryInstances() {
-        android.util.Log.d("SongDetailViewModelFactory", "=== VIEWMODEL FACTORY DEBUG ===");
-        android.util.Log.d("SongDetailViewModelFactory", "Factory instance: " + this.hashCode());
-        android.util.Log.d("SongDetailViewModelFactory", "RepositoryManager: " + repositoryManager.hashCode());
-        
-        // Debug repository states
-        repositoryManager.debugRepositoryStates();
-    }
+
 }

@@ -20,7 +20,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
 
 /**
  * Mini Player Fragment - Persistent component that appears on all screens.
@@ -87,20 +87,44 @@ public class MiniPlayerFragment extends Fragment {
 
         // Play/Pause button
         btnPlayPause.setOnClickListener(v -> {
-            viewModel.togglePlayPause();
-            showToast(isPlaying ? "Paused" : "Playing");
+            // ✅ SAFE: Add error handling for play/pause
+            try {
+                android.util.Log.d("MiniPlayerFragment", "▶️ Play/Pause button clicked");
+                viewModel.togglePlayPause();
+                showToast(isPlaying ? "Paused" : "Playing");
+            } catch (Exception e) {
+                android.util.Log.e("MiniPlayerFragment", "Error during play/pause", e);
+                showToast("Playback error occurred");
+            }
         });
 
         // Next button
         btnNext.setOnClickListener(v -> {
-            viewModel.playNext();
-            showToast("Next track");
+            // ✅ SAFE: Add error handling for next track
+            try {
+                android.util.Log.d("MiniPlayerFragment", "⏭️ Next button clicked");
+                viewModel.playNext();
+                showToast("Next track");
+            } catch (Exception e) {
+                android.util.Log.e("MiniPlayerFragment", "Error during next track", e);
+                showToast("Navigation error occurred");
+            }
         });
 
         // Close button
         btnClose.setOnClickListener(v -> {
-            viewModel.hideMiniPlayer();
-            showToast("Mini player closed");
+            // ✅ SAFE: Add error handling for close
+            try {
+                android.util.Log.d("MiniPlayerFragment", "❌ Close button clicked");
+                viewModel.hideMiniPlayer();
+                showToast("Mini player closed");
+            } catch (Exception e) {
+                android.util.Log.e("MiniPlayerFragment", "Error closing mini player", e);
+                // Fallback: hide view directly
+                if (rootView != null) {
+                    rootView.setVisibility(View.GONE);
+                }
+            }
         });
     }
 
@@ -197,20 +221,16 @@ public class MiniPlayerFragment extends Fragment {
         }
 
         try {
-            // Get NavigationContext từ ViewModel if available
-            NavigationContext context = viewModel.getCurrentNavigationContext();
+            // ✅ SAFE: Ensure service state is stable before navigation
+            android.util.Log.d("MiniPlayerFragment", "🔼 Expanding to full player");
+            
+            Intent intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId());
+            android.util.Log.d("MiniPlayerFragment", "Creating intent with Zero Queue Rule");
 
-            // Tạo Intent cho FullPlayerActivity
-            Intent intent;
-            if (context != null) {
-                intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId(), context);
-                android.util.Log.d("MiniPlayerFragment", "Creating intent with NavigationContext: " + context.getType());
-            } else {
-                intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId());
-                android.util.Log.d("MiniPlayerFragment", "Creating intent without NavigationContext");
-            }
-
-            // Start FullPlayerActivity với animation (nếu có thể)
+            // ✅ CRITICAL: Resume ViewModel updates after returning from FullPlayer
+            // This ensures MiniPlayer stays synced when user comes back
+            
+            // Start FullPlayerActivity with animation (if possible)
             try {
                 ActivityOptions options = ActivityOptions.makeCustomAnimation(
                     getContext(), R.anim.slide_up_in, R.anim.fade_in);
@@ -228,6 +248,27 @@ public class MiniPlayerFragment extends Fragment {
             android.util.Log.e("MiniPlayerFragment", "Failed to expand to full player", e);
             showToast("Cannot open full player");
         }
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        android.util.Log.d("MiniPlayerFragment", "🔊 MiniPlayer resumed");
+        
+        // ✅ CRITICAL: Resume updates when coming back from FullPlayer
+        if (viewModel != null) {
+            viewModel.resumeUpdates();
+        }
+    }
+    
+    @Override
+    public void onPause() {
+        super.onPause();
+        android.util.Log.d("MiniPlayerFragment", "🔇 MiniPlayer paused");
+        
+        // ✅ IMPORTANT: Don't pause updates here unless activity is finishing
+        // MiniPlayer should continue updating even when FullPlayer is open
+        // Only pause if parent activity is actually finishing
     }
 
     private void showToast(String message) {

@@ -117,6 +117,17 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
             notifyItemChanged(newIndex);
         }
     }
+    
+    /**
+     * ✅ Update current artist efficiently
+     */
+    public void updateCurrentArtist(User artist) {
+        this.currentArtist = artist;
+        // Only update currently playing item to show correct artist
+        if (currentPlayingIndex >= 0 && currentPlayingIndex < queueItems.size()) {
+            notifyItemChanged(currentPlayingIndex);
+        }
+    }
 
     // ItemTouchHelperAdapter implementation
     @Override
@@ -175,7 +186,13 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
             }
             tvArtistName.setText(artistName);
 
-            tvDuration.setText(TimeUtils.formatDuration(song.getDurationMs()));
+            // ✅ NULL SAFE: Handle null duration
+            Integer duration = song.getDurationMs();
+            if (duration != null) {
+                tvDuration.setText(TimeUtils.formatDuration(duration));
+            } else {
+                tvDuration.setText("0:00");
+            }
 
             // Set album art placeholder
             ivAlbumArt.setImageResource(R.drawable.placeholder_album_art);

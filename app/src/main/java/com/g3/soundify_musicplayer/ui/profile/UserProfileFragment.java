@@ -22,7 +22,7 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
 import com.g3.soundify_musicplayer.ui.login_register.LoginActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistAdapter;
@@ -32,6 +32,7 @@ import com.g3.soundify_musicplayer.utils.AuthManager;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Fragment for displaying user profile
@@ -527,72 +528,37 @@ public class UserProfileFragment extends Fragment {
     }
 
     /**
-     * Helper method to show mini player with SongWithUploaderInfo
-     * CẢI THIỆN: Tạo NavigationContext để tạo queue từ tất cả songs của user
+     * ✅ CONSISTENT: Play from user's all songs for navigation support
      */
     private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
-        // Create Song object from SongWithUploaderInfo
-        Song song = new Song(songInfo.getUploaderId(), songInfo.getTitle(), songInfo.getAudioUrl());
-        song.setId(songInfo.getId());
-        song.setDescription(songInfo.getDescription());
-        song.setCoverArtUrl(songInfo.getCoverArtUrl());
-        song.setGenre(songInfo.getGenre());
-        song.setDurationMs(songInfo.getDurationMs());
-        song.setPublic(songInfo.isPublic());
-        song.setCreatedAt(songInfo.getCreatedAt());
-
-        // Create User object from uploader info
-        User uploader = new User();
-        uploader.setId(songInfo.getUploaderId());
-        uploader.setUsername(songInfo.getUploaderUsername());
-        uploader.setDisplayName(songInfo.getUploaderDisplayName());
-        uploader.setAvatarUrl(songInfo.getUploaderAvatarUrl());
-
-        // TẠO NAVIGATION CONTEXT từ tất cả songs của user hiện tại
-        createNavigationContextAndPlay(song, uploader, songInfo);
-    }
-
-    /**
-     * Tạo NavigationContext từ danh sách songs hiện tại và phát bài hát với queue
-     */
-    private void createNavigationContextAndPlay(Song song, User uploader, SongWithUploaderInfo clickedSongInfo) {
-        // Lấy danh sách songs hiện tại từ adapter
-        java.util.List<SongWithUploaderInfo> currentSongs = songsAdapter.getCurrentData();
-
-        if (currentSongs == null || currentSongs.isEmpty()) {
-            // Fallback: phát bài đơn lẻ nếu không có danh sách
-            android.util.Log.w("UserProfileFragment", "No songs list available, playing single song: " +
-                song.getTitle() + ", Audio URL: " + song.getAudioUrl());
-            songDetailViewModel.playSong(song, uploader);
-            return;
-        }
-
-        // Tạo danh sách song IDs và tìm vị trí của bài hát được click
-        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        // Get all songs from adapter for queue navigation
+        List<SongWithUploaderInfo> allUserSongs = songsAdapter.getCurrentData();
+        List<Song> songList = new ArrayList<>();
         int clickedPosition = 0;
 
-        for (int i = 0; i < currentSongs.size(); i++) {
-            SongWithUploaderInfo songInfo = currentSongs.get(i);
-            songIds.add(songInfo.getId());
+        // Convert all songs and find clicked position
+        for (int i = 0; i < allUserSongs.size(); i++) {
+            SongWithUploaderInfo info = allUserSongs.get(i);
+            Song song = new Song(info.getUploaderId(), info.getTitle(), info.getAudioUrl());
+            song.setId(info.getId());
+            song.setDescription(info.getDescription());
+            song.setCoverArtUrl(info.getCoverArtUrl());
+            song.setGenre(info.getGenre());
+            song.setDurationMs(info.getDurationMs());
+            song.setPublic(info.isPublic());
+            song.setCreatedAt(info.getCreatedAt());
+            songList.add(song);
 
-            if (songInfo.getId() == clickedSongInfo.getId()) {
+            if (info.getId() == songInfo.getId()) {
                 clickedPosition = i;
             }
         }
 
-        // Tạo NavigationContext từ artist/user
-        NavigationContext context = NavigationContext.fromArtist(
-            uploader.getId(),
-            uploader.getDisplayName() != null ? uploader.getDisplayName() : uploader.getUsername(),
-            songIds,
-            clickedPosition
-        );
-
-        // Phát bài hát với context để tạo queue
-        songDetailViewModel.playSongWithContext(song, uploader, context);
-
-        android.util.Log.d("UserProfileFragment", "Playing song with context - Artist: " +
-            uploader.getDisplayName() + ", Queue size: " + songIds.size() +
-            ", Position: " + clickedPosition);
+        // ✅ CONSISTENT: Use playFromView for full user songs navigation
+        String viewTitle = "User Songs";
+        songDetailViewModel.playFromView(songList, viewTitle, clickedPosition);
     }
+
+    // ========== 🗑️ REMOVED: Complex NavigationContext method ==========
+    // Replaced by playFromView() - consistent with Zero Queue Rule
 }

@@ -21,7 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
 import com.g3.soundify_musicplayer.ui.player.comment.CommentsFragment;
 import com.g3.soundify_musicplayer.ui.player.queue.QueueFragment;
 import com.g3.soundify_musicplayer.ui.player.playlist.PlaylistSelectionActivity;
@@ -36,15 +36,12 @@ public class FullPlayerFragment extends Fragment {
     private static final String ARG_SONG_ID = "song_id";
     private static final String ARG_NAVIGATION_CONTEXT = "navigation_context";
 
-    // Activity Result Launcher thay thế cho deprecated startActivityForResult
     private ActivityResultLauncher<Intent> playlistSelectionLauncher;
     
-    // UI Components
     private ImageButton btnMinimize;
     private TextView textSongTitle;
     private TextView textArtistName;
     private Button btnFollow;
-    // Xóa imageAlbumArt - không sử dụng
     private SeekBar seekbarProgress;
     private TextView textCurrentTime;
     private TextView textTotalTime;
@@ -77,11 +74,11 @@ public class FullPlayerFragment extends Fragment {
         return fragment;
     }
 
-    public static FullPlayerFragment newInstanceWithContext(long songId, NavigationContext context) {
+    public static FullPlayerFragment newInstanceWithContext(long songId, Object context) {
         FullPlayerFragment fragment = new FullPlayerFragment();
         Bundle args = new Bundle();
         args.putLong(ARG_SONG_ID, songId);
-        args.putSerializable(ARG_NAVIGATION_CONTEXT, context);
+
         fragment.setArguments(args);
         return fragment;
     }
@@ -122,10 +119,10 @@ public class FullPlayerFragment extends Fragment {
         setupClickListeners();
         observeViewModel();
 
-        // Load song detail và setup NavigationContext nếu có
+        // Load song detail
         if (getArguments() != null) {
             long songId = getArguments().getLong(ARG_SONG_ID);
-            NavigationContext navigationContext = (NavigationContext) getArguments().getSerializable(ARG_NAVIGATION_CONTEXT);
+    
 
             android.util.Log.d("FullPlayerFragment", "FullPlayer opened for song ID: " + songId);
 
@@ -198,16 +195,30 @@ public class FullPlayerFragment extends Fragment {
     private void setupClickListeners() {
         // Header actions
         btnMinimize.setOnClickListener(v -> {
-            // SỬA LỖI: Sử dụng FullPlayerActivity.minimizeToMiniPlayer()
-            // thay vì tạo Intent mới
-            showToast("Minimized to mini player");
+            // ✅ FIXED: Safe minimize with state preservation
+            android.util.Log.d("FullPlayerFragment", "🔻 Minimize button clicked");
+            
+            try {
+                // Pause ViewModel updates to prevent thread leaks during transition
+                if (viewModel != null) {
+                    viewModel.pauseUpdates();
+                }
+                
+                showToast("Minimized to mini player");
 
-            if (getActivity() instanceof FullPlayerActivity) {
-                ((FullPlayerActivity) getActivity()).minimizeToMiniPlayer();
-            } else {
-                // Fallback for fragment-based implementation
+                if (getActivity() instanceof FullPlayerActivity) {
+                    ((FullPlayerActivity) getActivity()).minimizeToMiniPlayer();
+                } else {
+                    // Fallback for fragment-based implementation
+                    if (getActivity() != null) {
+                        getActivity().getOnBackPressedDispatcher().onBackPressed();
+                    }
+                }
+            } catch (Exception e) {
+                android.util.Log.e("FullPlayerFragment", "Error during minimize", e);
+                // Fallback: just finish activity
                 if (getActivity() != null) {
-                    getActivity().getOnBackPressedDispatcher().onBackPressed();
+                    getActivity().finish();
                 }
             }
         });
@@ -230,7 +241,14 @@ public class FullPlayerFragment extends Fragment {
         });
 
         btnPlayPause.setOnClickListener(v -> {
-            viewModel.togglePlayPause();
+            // ✅ SAFE: Add error handling for play/pause
+            try {
+                android.util.Log.d("FullPlayerFragment", "▶️ Play/Pause button clicked");
+                viewModel.togglePlayPause();
+            } catch (Exception e) {
+                android.util.Log.e("FullPlayerFragment", "Error during play/pause", e);
+                showToast("Playback error occurred");
+            }
         });
 
         btnNext.setOnClickListener(v -> {

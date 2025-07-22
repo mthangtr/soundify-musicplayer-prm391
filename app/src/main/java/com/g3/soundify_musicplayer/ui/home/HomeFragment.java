@@ -19,10 +19,13 @@ import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
+// REMOVED: SimplePlaybackHandler - using Zero Queue Rule
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.ui.home.RecentSongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
+import android.view.LayoutInflater;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,29 +97,19 @@ public class HomeFragment extends Fragment {
                 new RecentSongWithUploaderInfoAdapter.OnRecentSongClick() {
                     @Override
                     public void onPlay(SongWithUploaderInfo songInfo) {
-                        android.util.Log.e("DEBUG_HOME", "=== PLAY BUTTON CLICKED ===");
-                        android.util.Log.e("DEBUG_HOME", "Song: " + songInfo.getTitle() + " (ID: " + songInfo.getId() + ")");
-
-                        Toast.makeText(requireContext(), "Playing: " + songInfo.getTitle(), Toast.LENGTH_SHORT).show();
-
-                        // Track recently played
-                        android.util.Log.e("DEBUG_HOME", "About to track recently played...");
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                        // FIXED: Play with NavigationContext for full queue support
-                        playRecentSongWithContext(songInfo, recentAdapter);
+                        // ✅ CONSISTENT: Use playFromView for all fragments
+                        List<Song> allSongs = convertToSongs(recentAdapter.getSongs());
+                        int position = findSongPosition(songInfo, recentAdapter.getSongs());
+                        songDetailViewModel.playFromView(allSongs, "Recently Played", position);
                     }
                 });
         rvRecentlyPlayed.setAdapter(recentAdapter);
-
-        // Observe recent songs with uploader info from ViewModel
         homeViewModel.getRecentSongs().observe(getViewLifecycleOwner(), recentSongsWithUploader -> {
-            android.util.Log.e("DEBUG_HOME", "Recent songs observer triggered");
             if (recentSongsWithUploader != null) {
-                android.util.Log.e("DEBUG_HOME", "Recent songs count: " + recentSongsWithUploader.size());
                 recentAdapter.updateSongs(recentSongsWithUploader);
             } else {
-                android.util.Log.e("DEBUG_HOME", "Recent songs is NULL");
             }
         });
 
@@ -150,46 +143,32 @@ public class HomeFragment extends Fragment {
                 new SongWithUploaderInfoAdapter.OnSongClick() {
                     @Override
                     public void onPlay(SongWithUploaderInfo songInfo) {
-                        Toast.makeText(requireContext(), "Playing: " + songInfo.getTitle(), Toast.LENGTH_SHORT).show();
-
-                        // Track recently played
-                        android.util.Log.d("HomeFragment", "Tracking recently played song: " + songInfo.getTitle() + " (ID: " + songInfo.getId() + ")");
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                        // FIXED: Play with NavigationContext for full queue support
-                        playSuggestedSongWithContext(songInfo, suggestedAdapter);
+                        // ✅ CONSISTENT: Use playFromView for all fragments
+                        List<Song> allSongs = convertToSongs(suggestedAdapter.getCurrentData());
+                        int position = findSongPosition(songInfo, suggestedAdapter.getCurrentData());
+                        songDetailViewModel.playFromView(allSongs, "Suggested For You", position);
                     }
 
                     @Override
                     public void onOpenDetail(SongWithUploaderInfo songInfo) {
-                        android.util.Log.e("DEBUG_HOME", "=== SONG ITEM CLICKED (onOpenDetail) ===");
-                        android.util.Log.e("DEBUG_HOME", "Song: " + songInfo.getTitle() + " (ID: " + songInfo.getId() + ")");
-
-                        Toast.makeText(requireContext(), "Open detail: " + songInfo.getTitle() +
-                                " by " + songInfo.getDisplayUploaderName(),
-                                Toast.LENGTH_SHORT).show();
-
-                        // Track recently played when user clicks on song
-                        android.util.Log.e("DEBUG_HOME", "About to track recently played from onOpenDetail...");
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                        // FIXED: Play with NavigationContext for full queue support
-                        playSuggestedSongWithContext(songInfo, suggestedAdapter);
+                        // ✅ CONSISTENT: Use playFromView for all fragments
+                        List<Song> allSongs = convertToSongs(suggestedAdapter.getCurrentData());
+                        int position = findSongPosition(songInfo, suggestedAdapter.getCurrentData());
+                        songDetailViewModel.playFromView(allSongs, "Suggested For You", position);
                     }
                 });
         rv.setAdapter(suggestedAdapter);
-
-        // Observe suggested songs with uploader info from ViewModel
         homeViewModel.getSuggestedSongs().observe(getViewLifecycleOwner(), suggestedSongsWithUploader -> {
-            android.util.Log.e("DEBUG_HOME", "Suggested songs observer triggered");
             if (suggestedSongsWithUploader != null) {
-                android.util.Log.e("DEBUG_HOME", "Suggested songs count: " + suggestedSongsWithUploader.size());
                 suggestedAdapter.updateData(suggestedSongsWithUploader);
 
                 // Adjust spacing based on item count
                 adjustSuggestedSongsSpacing(v, suggestedSongsWithUploader.size());
             } else {
-                android.util.Log.e("DEBUG_HOME", "Suggested songs is NULL");
             }
         });
     }
@@ -210,26 +189,10 @@ public class HomeFragment extends Fragment {
         song.setPublic(songInfo.isPublic());
         song.setCreatedAt(songInfo.getCreatedAt());
 
-        // Create User object from uploader info
-        User uploader = new User();
-        uploader.setId(songInfo.getUploaderId());
-        uploader.setUsername(songInfo.getUploaderUsername());
-        uploader.setDisplayName(songInfo.getUploaderDisplayName());
-        uploader.setAvatarUrl(songInfo.getUploaderAvatarUrl());
-
-        // TẠO NAVIGATION CONTEXT từ Home (General context)
-        // Tạo danh sách chỉ chứa bài hát hiện tại (đơn giản cho Home)
-        java.util.List<Long> songIds = new java.util.ArrayList<>();
-        songIds.add(songInfo.getId());
-
-        NavigationContext context = NavigationContext.fromGeneral(
-            "Home - Suggested Songs",
-            songIds,
-            0
-        );
-
-        // Show mini player với context để tạo queue
-        songDetailViewModel.playSongWithContext(song, uploader, context);
+        // Play song directly
+        // Find position in suggested songs and play from current view
+        List<SongWithUploaderInfo> suggestedSongs = suggestedAdapter != null ? suggestedAdapter.getCurrentData() : new ArrayList<>();
+        int position = findSongPosition(songInfo, suggestedSongs);
 
         android.util.Log.d("HomeFragment", "Playing song with context - Song: " +
             song.getTitle() + ", Context: Home");
@@ -240,127 +203,49 @@ public class HomeFragment extends Fragment {
     // ========== QUEUE CONTEXT METHODS (FOLLOWING UserProfileFragment PATTERN) ==========
 
     /**
-     * Play recent song with full NavigationContext for queue support
-     * PATTERN: Same as UserProfileFragment.createNavigationContextAndPlay()
+     * ✅ Convert list of SongWithUploaderInfo to Song objects
      */
-    private void playRecentSongWithContext(SongWithUploaderInfo songInfo, RecentSongWithUploaderInfoAdapter adapter) {
-        // Null check for adapter
-        if (adapter == null) {
-            android.util.Log.w("HomeFragment", "RecentAdapter is null, falling back to single song");
-            showMiniPlayerWithSongInfo(songInfo);
-            return;
-        }
-
-        // Get all recent songs from adapter
-        List<SongWithUploaderInfo> allRecentSongs = adapter.getSongs();
-        if (allRecentSongs == null || allRecentSongs.isEmpty()) {
-            android.util.Log.w("HomeFragment", "Recent songs list is empty, falling back to single song");
-            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
-            return;
-        }
-
-        // Find position of clicked song
-        int position = -1;
-        for (int i = 0; i < allRecentSongs.size(); i++) {
-            if (allRecentSongs.get(i).getId() == songInfo.getId()) {
-                position = i;
-                break;
+    private List<Song> convertToSongs(List<SongWithUploaderInfo> songInfoList) {
+        List<Song> songs = new ArrayList<>();
+        if (songInfoList != null) {
+            for (SongWithUploaderInfo songInfo : songInfoList) {
+                songs.add(convertToSong(songInfo));
             }
         }
-
-        if (position == -1) {
-            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
-            return;
-        }
-
-        // Create song IDs list
-        List<Long> songIds = new ArrayList<>();
-        for (SongWithUploaderInfo s : allRecentSongs) {
-            songIds.add(s.getId());
-        }
-
-        // Create NavigationContext for Recently Played
-        NavigationContext context = NavigationContext.fromGeneral(
-            "Recently Played",
-            songIds,
-            position
-        );
-
-        // Convert SongWithUploaderInfo to Song and User
-        Song song = convertToSong(songInfo);
-        User uploader = convertToUser(songInfo);
-
-        // Play with context for full queue support
-        songDetailViewModel.playSongWithContext(song, uploader, context);
-
-        android.util.Log.d("HomeFragment", "Playing recent song with context - Queue size: " +
-            songIds.size() + ", Position: " + position);
+        return songs;
     }
 
     /**
-     * Play suggested song with full NavigationContext for queue support
-     * PATTERN: Same as UserProfileFragment.createNavigationContextAndPlay()
+     * Helper method để check section nào đang active
      */
-    private void playSuggestedSongWithContext(SongWithUploaderInfo songInfo, SongWithUploaderInfoAdapter adapter) {
-        // Null check for adapter
-        if (adapter == null) {
-            android.util.Log.w("HomeFragment", "SuggestedAdapter is null, falling back to single song");
-            showMiniPlayerWithSongInfo(songInfo);
-            return;
-        }
-
-        // Get all suggested songs from adapter
-        List<SongWithUploaderInfo> allSuggestedSongs = adapter.getCurrentData();
-        if (allSuggestedSongs == null || allSuggestedSongs.isEmpty()) {
-            android.util.Log.w("HomeFragment", "Suggested songs list is empty, falling back to single song");
-            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
-            return;
-        }
-
-        // Find position of clicked song
-        int position = -1;
-        for (int i = 0; i < allSuggestedSongs.size(); i++) {
-            if (allSuggestedSongs.get(i).getId() == songInfo.getId()) {
-                position = i;
-                break;
-            }
-        }
-
-        if (position == -1) {
-            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
-            return;
-        }
-
-        // Create song IDs list
-        List<Long> songIds = new ArrayList<>();
-        for (SongWithUploaderInfo s : allSuggestedSongs) {
-            songIds.add(s.getId());
-        }
-
-        // Create NavigationContext for Suggested Songs
-        NavigationContext context = NavigationContext.fromGeneral(
-            "Suggested For You",
-            songIds,
-            position
-        );
-
-        // Convert SongWithUploaderInfo to Song and User
-        Song song = convertToSong(songInfo);
-        User uploader = convertToUser(songInfo);
-
-        // Play with context for full queue support
-        songDetailViewModel.playSongWithContext(song, uploader, context);
-
-        android.util.Log.d("HomeFragment", "Playing suggested song with context - Queue size: " +
-            songIds.size() + ", Position: " + position);
+    private boolean isRecentSectionActive() {
+        // TODO: Implement logic để check tab nào đang active
+        // Tạm thời return false (suggested section)
+        return false;
     }
 
-    // ========== CONVERSION HELPER METHODS ==========
+    /**
+     * Helper method để tìm position của song trong list
+     */
+    private int findSongPosition(SongWithUploaderInfo targetSong, List<SongWithUploaderInfo> songList) {
+        if (targetSong == null || songList == null) return 0;
+
+        for (int i = 0; i < songList.size(); i++) {
+            SongWithUploaderInfo song = songList.get(i);
+            if (song != null && song.getId() == targetSong.getId()) {
+                return i;
+            }
+        }
+        return 0; // Default to first position if not found
+    }
 
     /**
-     * Convert SongWithUploaderInfo to Song object
+     * Convert SongWithUploaderInfo to Song object (from SimplePlaybackHandler)
+     * Made public to match interface requirement
      */
-    private Song convertToSong(SongWithUploaderInfo songInfo) {
+    public Song convertToSong(SongWithUploaderInfo songInfo) {
+        if (songInfo == null) return null;
+
         Song song = new Song();
         song.setId(songInfo.getId());
         song.setTitle(songInfo.getTitle());
@@ -379,6 +264,8 @@ public class HomeFragment extends Fragment {
      * Convert SongWithUploaderInfo to User object
      */
     private User convertToUser(SongWithUploaderInfo songInfo) {
+        if (songInfo == null) return null;
+
         User user = new User();
         user.setId(songInfo.getUploaderId());
         user.setDisplayName(songInfo.getDisplayUploaderName());

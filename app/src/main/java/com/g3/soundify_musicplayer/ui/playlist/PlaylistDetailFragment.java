@@ -27,7 +27,7 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
@@ -328,21 +328,9 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
             songIds.add(s.getId());
         }
 
-        // Tạo NavigationContext từ playlist
-        NavigationContext context = NavigationContext.fromPlaylist(
-            currentPlaylist.getId(),
-            currentPlaylist.getName(),
-            songIds,
-            position
-        );
-
-        // Tạo User object cho uploader (cần lấy từ song)
-        User uploader = new User();
-        uploader.setId(song.getUploaderId());
-        // TODO: Có thể cần lấy thêm thông tin uploader từ database
-
-        // Phát bài hát với context để tạo queue
-        songDetailViewModel.playSongWithContext(song, uploader, context);
+        // ✅ CONSISTENT: Use playFromView with full playlist for navigation
+        // This ensures Next/Previous buttons work properly in mini/full player
+        songDetailViewModel.playFromView(playlistSongs, currentPlaylist.getName(), position);
 
         showToast("Playing: " + song.getTitle() + " from playlist: " + currentPlaylist.getName());
 

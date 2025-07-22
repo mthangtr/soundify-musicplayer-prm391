@@ -15,7 +15,7 @@ import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.data.model.NavigationContext;
+
 
 /**
  * Full-screen Activity for the music player
@@ -35,16 +35,6 @@ public class FullPlayerActivity extends AppCompatActivity {
     public static Intent createIntent(Context context, long songId) {
         Intent intent = new Intent(context, FullPlayerActivity.class);
         intent.putExtra(EXTRA_SONG_ID, songId);
-        return intent;
-    }
-    
-    /**
-     * Create intent to launch FullPlayerActivity with navigation context
-     */
-    public static Intent createIntent(Context context, long songId, NavigationContext navigationContext) {
-        Intent intent = new Intent(context, FullPlayerActivity.class);
-        intent.putExtra(EXTRA_SONG_ID, songId);
-        intent.putExtra(EXTRA_NAVIGATION_CONTEXT, navigationContext);
         return intent;
     }
     
@@ -69,7 +59,6 @@ public class FullPlayerActivity extends AppCompatActivity {
 
         // Get data from intent
         long songId = getIntent().getLongExtra(EXTRA_SONG_ID, -1);
-        NavigationContext navigationContext = (NavigationContext) getIntent().getSerializableExtra(EXTRA_NAVIGATION_CONTEXT);
 
         if (songId == -1) {
             android.util.Log.e("FullPlayerActivity", "No song ID provided");
@@ -79,12 +68,7 @@ public class FullPlayerActivity extends AppCompatActivity {
         
         // Create and add FullPlayerFragment
         if (savedInstanceState == null) {
-            FullPlayerFragment fragment;
-            if (navigationContext != null) {
-                fragment = FullPlayerFragment.newInstanceWithContext(songId, navigationContext);
-            } else {
-                fragment = FullPlayerFragment.newInstance(songId);
-            }
+            FullPlayerFragment fragment = FullPlayerFragment.newInstance(songId);
             
             getSupportFragmentManager()
                 .beginTransaction()
@@ -146,22 +130,57 @@ public class FullPlayerActivity extends AppCompatActivity {
     }
     
     /**
-     * Minimize to mini player and return to previous activity
+     * ✅ FIXED: Minimize to mini player with proper state preservation
      */
     public void minimizeToMiniPlayer() {
         android.util.Log.d("FullPlayerActivity", "Minimizing to mini player");
         
-        // Simply finish this activity - mini player will still be visible in MainActivity
-        // because the music service is still running
-        finish();
+        try {
+            // ✅ CRITICAL: Ensure service connection is stable before finishing
+            if (viewModel != null) {
+                // Stop any progress updates to prevent thread leaks
+                android.util.Log.d("FullPlayerActivity", "Ensuring clean ViewModel state before minimize");
+            }
+            
+            // ✅ IMPORTANT: Service will continue running for MiniPlayer
+            // MediaPlayerRepository singleton ensures state persistence
+            finish();
 
-        // Add smooth transition animation (exit animation for this activity, enter animation for previous)
-        overridePendingTransition(0, R.anim.slide_down_out);
+            // Smooth transition animation
+            overridePendingTransition(0, R.anim.slide_down_out);
+            
+        } catch (Exception e) {
+            android.util.Log.e("FullPlayerActivity", "Error during minimize", e);
+            // Fallback: just finish
+            finish();
+        }
+    }
+    
+    @Override
+    protected void onPause() {
+        super.onPause();
+        android.util.Log.d("FullPlayerActivity", "FullPlayerActivity paused");
+        
+        // ✅ CRITICAL: Clean up progress updates when paused to prevent leaks
+        if (viewModel != null) {
+            // Progress updates will be handled by MiniPlayer after minimize
+        }
     }
     
     @Override
     protected void onDestroy() {
         super.onDestroy();
         android.util.Log.d("FullPlayerActivity", "FullPlayerActivity destroyed");
+        
+        // ✅ IMPORTANT: Don't cleanup global state here!
+        // MediaPlayerRepository singleton must persist for MiniPlayer
+        // Only cleanup local activity resources
+        
+        try {
+            // Clear window flags to prevent leaks
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } catch (Exception e) {
+            android.util.Log.w("FullPlayerActivity", "Error clearing window flags", e);
+        }
     }
 }

@@ -18,13 +18,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.repository.MediaPlayerRepository;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import com.g3.soundify_musicplayer.utils.RepositoryManager;
 
 import java.util.List;
 
 /**
- * Queue Fragment - Shows current song and upcoming queue
- * UI ONLY - Uses mock data for demonstration
+ * ✅ Queue Fragment - Simple UI for displaying and managing current song list
+ * Works with Zero Queue Rule system - shows currentSongList from MediaPlayerRepository
  */
 public class QueueFragment extends Fragment {
 
@@ -35,8 +37,9 @@ public class QueueFragment extends Fragment {
     private TextView textQueueTitle;
     private RecyclerView recyclerViewQueue;
 
-    // ViewModel and Adapter
-    private SongDetailViewModel songDetailViewModel;
+    // Repository and Adapter (Direct access for simplicity)
+    private MediaPlayerRepository mediaPlayerRepository;
+    private SongDetailViewModel songDetailViewModel; // Keep for compatibility
     private QueueAdapter adapter;
     private ItemTouchHelper itemTouchHelper;
 
@@ -51,7 +54,12 @@ public class QueueFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Use shared ViewModel from Activity to access real queue data
+
+        // ✅ Direct repository access for better performance
+        RepositoryManager repositoryManager = RepositoryManager.getInstance(requireActivity().getApplication());
+        mediaPlayerRepository = repositoryManager.getMediaPlayerRepository();
+
+        // Keep ViewModel for compatibility (some methods might still use it)
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
     }
 
@@ -87,15 +95,23 @@ public class QueueFragment extends Fragment {
 
     private void setupRecyclerView() {
         adapter = new QueueAdapter(requireContext());
+
+        // ✅ OPTION 1: Direct repository calls (faster)
         adapter.setOnItemClickListener((song, position) -> {
-            // Play the selected song
-            songDetailViewModel.playSongAtIndex(position);
+            android.util.Log.d("QueueFragment", "🎵 Clicked song at position " + position + ": " + song.getTitle());
+            // Direct call to repository for better performance
+            mediaPlayerRepository.jumpToIndex(position);
         });
 
         adapter.setOnItemMoveListener((fromPosition, toPosition) -> {
-            // Move song in queue
-            songDetailViewModel.moveSongInQueue(fromPosition, toPosition);
+            android.util.Log.d("QueueFragment", "🔄 Moving song from " + fromPosition + " to " + toPosition);
+            // Direct call to repository for better performance
+            mediaPlayerRepository.moveItemInList(fromPosition, toPosition);
         });
+
+        // ✅ OPTION 2: ViewModel calls (for consistency) - commented out
+        // adapter.setOnItemClickListener((song, position) -> songDetailViewModel.playSongAtIndex(position));
+        // adapter.setOnItemMoveListener((fromPosition, toPosition) -> songDetailViewModel.moveSongInQueue(fromPosition, toPosition));
 
         recyclerViewQueue.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerViewQueue.setAdapter(adapter);
@@ -109,34 +125,37 @@ public class QueueFragment extends Fragment {
     }
 
     private void setupObservers() {
-        // Observer 1: Queue list changes (only when queue actually changes - drag/drop, add/remove)
-        songDetailViewModel.getCurrentQueueLiveData().observe(getViewLifecycleOwner(), queueList -> {
-            if (queueList != null && !queueList.isEmpty()) {
-                // Get current index and artist info
-                Integer currentIndex = songDetailViewModel.getCurrentQueueIndex().getValue();
-                User currentArtist = songDetailViewModel.getCurrentArtistDirect();
-
-                // Update entire adapter data
-                adapter.updateData(queueList, currentIndex != null ? currentIndex : -1, currentArtist);
-
-                android.util.Log.d("QueueFragment", "Queue list updated - " + queueList.size() + " songs");
-            }
-        });
-
-        // Observer 2: Current playing index changes (only updates playing indicator)
-        songDetailViewModel.getCurrentQueueIndex().observe(getViewLifecycleOwner(), currentIndex -> {
-            if (currentIndex != null) {
-                // Only update the playing indicator, don't reload entire list
-                adapter.updateCurrentPlayingIndex(currentIndex);
-
-                android.util.Log.d("QueueFragment", "Current index updated - " + currentIndex);
-            }
-        });
-
-        // Observer 3: Queue info for title updates
-        songDetailViewModel.getQueueInfo().observe(getViewLifecycleOwner(), queueInfo -> {
+        // ✅ FIXED: Get ALL data from queueInfo directly - no race conditions
+        mediaPlayerRepository.getQueueInfo().observe(getViewLifecycleOwner(), queueInfo -> {
             if (queueInfo != null) {
-                updateQueueTitle(queueInfo.getTotalSongs(), queueInfo.getQueueTitle());
+                // ✅ Get current songs from repository
+                List<Song> songs = mediaPlayerRepository.getCurrentQueue();
+                
+                // ✅ Get currentIndex from queueInfo directly (no transformation race)
+                int currentIndex = queueInfo.getCurrentIndex();
+                
+                // ✅ Get title from queueInfo directly
+                String title = queueInfo.getQueueTitle();
+                
+                // ✅ Get current artist from playback state
+                User currentArtist = null;
+                if (mediaPlayerRepository.getCurrentPlaybackState().getValue() != null) {
+                    currentArtist = mediaPlayerRepository.getCurrentPlaybackState().getValue().getCurrentArtist();
+                }
+
+                // ✅ Update adapter with consistent data
+                adapter.updateData(songs, currentIndex, currentArtist);
+                updateQueueTitle(queueInfo.getTotalSongs(), title != null ? title : "Queue");
+
+                android.util.Log.d("QueueFragment", "✅ Queue updated: " + queueInfo.getTotalSongs() + " songs, index: " + currentIndex);
+            }
+        });
+        
+        // ✅ ADDITIONAL: Observe playback state for artist updates
+        mediaPlayerRepository.getCurrentPlaybackState().observe(getViewLifecycleOwner(), playbackState -> {
+            if (playbackState != null && playbackState.getCurrentArtist() != null) {
+                // Update artist info in adapter
+                adapter.updateCurrentArtist(playbackState.getCurrentArtist());
             }
         });
     }
