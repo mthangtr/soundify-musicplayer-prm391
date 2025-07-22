@@ -195,7 +195,6 @@
     <string name="toast_song_moved">Song position updated</string>
     <string name="toast_playlist_updated">Playlist updated</string>
     <string name="error_loading_playlist">Error loading playlist</string>
-    <string name="error_removing_song">Error removing song</string>
     <string name="error_updating_position">Error updating song position</string>
 
     <!-- Remove Song Confirmation -->
@@ -398,4 +397,22 @@
     <string name="loading_liked_songs">Loading liked songs…</string>
     <string name="play_all">Play All</string>
     <string name="shuffle">Shuffle</string>
+
+    <!-- Playlist Management -->
+    <string name="cd_more_options">More options</string>
+    <string name="remove_from_playlist">Remove from Playlist</string>
+    <string name="confirm_remove_song">Remove Song</string>
+    <string name="confirm_remove_song_message">Are you sure you want to remove \"%s\" from this playlist?</string>
+    <string name="remove">Remove</string>
+    <string name="cancel">Cancel</string>
+    <string name="song_removed_from_playlist">Song removed from playlist</string>
+    <string name="error_removing_song">Error removing song from playlist</string>
+
+    <!-- Edit Playlist -->
+    <string name="edit_playlist_title">Edit Playlist</string>
+    <string name="playlist_name_hint">Playlist name</string>
+    <string name="playlist_name_empty">Playlist name cannot be empty</string>
+    <string name="playlist_name_too_long">Playlist name is too long</string>
+    <string name="playlist_updated_successfully">Playlist updated successfully</string>
+    <string name="error_updating_playlist">Error updating playlist</string>
 </resources>

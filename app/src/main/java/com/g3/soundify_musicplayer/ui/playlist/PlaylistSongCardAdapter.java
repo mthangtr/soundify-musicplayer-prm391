@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -27,10 +28,12 @@ public class PlaylistSongCardAdapter extends RecyclerView.Adapter<PlaylistSongCa
     private List<Song> songs = new ArrayList<>();
     private final Context context;
     private OnSongActionListener listener;
-    
+    private boolean showRemoveOption = false; // Only show for playlist owners
+
     public interface OnSongActionListener {
         void onSongClick(Song song, int position);
         void onPlaySong(Song song, int position);
+        void onRemoveFromPlaylist(Song song, int position); // New method for remove action
     }
     
     public PlaylistSongCardAdapter(Context context) {
@@ -40,14 +43,24 @@ public class PlaylistSongCardAdapter extends RecyclerView.Adapter<PlaylistSongCa
     public void setOnSongActionListener(OnSongActionListener listener) {
         this.listener = listener;
     }
-    
+
     public void setSongs(List<Song> songs) {
         this.songs = songs != null ? new ArrayList<>(songs) : new ArrayList<>();
         notifyDataSetChanged();
     }
-    
+
     public List<Song> getSongs() {
         return new ArrayList<>(songs);
+    }
+
+    /**
+     * Set whether to show remove option (only for playlist owners)
+     */
+    public void setShowRemoveOption(boolean showRemoveOption) {
+        if (this.showRemoveOption != showRemoveOption) {
+            this.showRemoveOption = showRemoveOption;
+            notifyDataSetChanged(); // Refresh to show/hide overflow buttons
+        }
     }
     
     @NonNull
@@ -69,20 +82,22 @@ public class PlaylistSongCardAdapter extends RecyclerView.Adapter<PlaylistSongCa
     }
     
     class SongCardViewHolder extends RecyclerView.ViewHolder {
-        
+
         private final ImageView imgCover;
         private final TextView tvTitle;
         private final TextView tvUploader;
         private final ImageButton btnPlay;
-        
+        private final ImageButton btnOverflow;
+
         public SongCardViewHolder(@NonNull View itemView) {
             super(itemView);
-            
+
             imgCover = itemView.findViewById(R.id.imgCover);
             tvTitle = itemView.findViewById(R.id.tvTitle);
             tvUploader = itemView.findViewById(R.id.tvUploader);
             btnPlay = itemView.findViewById(R.id.btnPlay);
-            
+            btnOverflow = itemView.findViewById(R.id.btnOverflow);
+
             // Set up click listeners
             itemView.setOnClickListener(v -> {
                 int position = getAdapterPosition();
@@ -90,13 +105,41 @@ public class PlaylistSongCardAdapter extends RecyclerView.Adapter<PlaylistSongCa
                     listener.onSongClick(songs.get(position), position);
                 }
             });
-            
+
             btnPlay.setOnClickListener(v -> {
                 int position = getAdapterPosition();
                 if (position != RecyclerView.NO_POSITION && listener != null) {
                     listener.onPlaySong(songs.get(position), position);
                 }
             });
+
+            // Set up overflow menu
+            btnOverflow.setOnClickListener(v -> {
+                int position = getAdapterPosition();
+                if (position != RecyclerView.NO_POSITION && listener != null) {
+                    showOverflowMenu(v, songs.get(position), position);
+                }
+            });
+        }
+
+        /**
+         * Show overflow menu with remove option
+         */
+        private void showOverflowMenu(View anchor, Song song, int position) {
+            PopupMenu popup = new PopupMenu(context, anchor);
+            popup.getMenuInflater().inflate(R.menu.playlist_song_menu, popup.getMenu());
+
+            popup.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_remove_from_playlist) {
+                    if (listener != null) {
+                        listener.onRemoveFromPlaylist(song, position);
+                    }
+                    return true;
+                }
+                return false;
+            });
+
+            popup.show();
         }
         
         public void bind(Song song, int position) {
@@ -122,6 +165,9 @@ public class PlaylistSongCardAdapter extends RecyclerView.Adapter<PlaylistSongCa
             } else {
                 imgCover.setImageResource(R.drawable.splashi_icon);
             }
+
+            // Show/hide overflow button based on owner status
+            btnOverflow.setVisibility(showRemoveOption ? View.VISIBLE : View.GONE);
         }
 
         /**

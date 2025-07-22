@@ -61,5 +61,19 @@
             android:background="@android:color/transparent"
             android:src="@android:drawable/ic_media_play"
             app:tint="@android:color/white"/>
+
+        <!-- Overflow menu button -->
+        <ImageButton
+            android:id="@+id/btnOverflow"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_toStartOf="@id/btnPlay"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_more_vert"
+            android:contentDescription="@string/cd_more_options"
+            android:visibility="gone"
+            app:tint="@android:color/darker_gray"/>
     </RelativeLayout>
 </androidx.cardview.widget.CardView>

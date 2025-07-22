@@ -17,6 +17,8 @@ import com.g3.soundify_musicplayer.utils.TimeUtils;
 
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
@@ -28,6 +30,7 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
     private final PlaylistRepository playlistRepository;
     private final UserRepository userRepository;
     private final AuthManager authManager;
+    private final ExecutorService executor;
     
     // LiveData for UI state
     private final MutableLiveData<Playlist> currentPlaylist = new MutableLiveData<>();
@@ -49,6 +52,7 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
         this.playlistRepository = new PlaylistRepository(application);
         this.userRepository = new UserRepository(application);
         this.authManager = new AuthManager(application);
+        this.executor = Executors.newFixedThreadPool(2);
     }
     
     /**
@@ -207,14 +211,14 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
         User owner = playlistOwner.getValue();
         Integer count = songCount.getValue();
         String duration = totalDuration.getValue();
-        
+
         StringBuilder info = new StringBuilder();
-        
+
         // Add owner info
         if (owner != null) {
             info.append("Created by ").append(owner.getDisplayName());
         }
-        
+
         // Add song count
         if (count != null && count > 0) {
             if (info.length() > 0) info.append(" • ");
@@ -224,16 +228,110 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
                 info.append(count).append(" songs");
             }
         }
-        
+
         // Add duration
         if (duration != null && !duration.equals("0:00")) {
             if (info.length() > 0) info.append(" • ");
             info.append(duration);
         }
-        
+
         return info.toString();
     }
-    
+
+    /**
+     * Remove song from playlist
+     */
+    public void removeSongFromPlaylist(long songId) {
+        if (currentPlaylistId == -1) {
+            android.util.Log.e("PlaylistDetailViewModel", "Cannot remove song - no playlist loaded");
+            return;
+        }
+
+        android.util.Log.d("PlaylistDetailViewModel", "Removing song " + songId + " from playlist " + currentPlaylistId);
+
+        // Execute removal in background
+        executor.execute(() -> {
+            try {
+                playlistRepository.removeSongFromPlaylist(currentPlaylistId, songId).get();
+                android.util.Log.d("PlaylistDetailViewModel", "Successfully removed song from playlist");
+
+                // Refresh playlist data on main thread
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    loadPlaylist(currentPlaylistId); // Reload to refresh UI
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("PlaylistDetailViewModel", "Error removing song from playlist", e);
+
+                // Post error message on main thread
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    errorMessage.setValue("Error removing song from playlist: " + e.getMessage());
+                });
+            }
+        });
+    }
+
+    /**
+     * Update playlist name
+     */
+    public void updatePlaylistName(String newName) {
+        if (currentPlaylistId == -1) {
+            android.util.Log.e("PlaylistDetailViewModel", "Cannot update playlist - no playlist loaded");
+            errorMessage.setValue("No playlist loaded");
+            return;
+        }
+
+        if (newName == null || newName.trim().isEmpty()) {
+            android.util.Log.e("PlaylistDetailViewModel", "Cannot update playlist - name is empty");
+            errorMessage.setValue("Playlist name cannot be empty");
+            return;
+        }
+
+        if (newName.trim().length() > 50) {
+            android.util.Log.e("PlaylistDetailViewModel", "Cannot update playlist - name too long");
+            errorMessage.setValue("Playlist name is too long");
+            return;
+        }
+
+        android.util.Log.d("PlaylistDetailViewModel", "Updating playlist " + currentPlaylistId + " with new name: " + newName.trim());
+
+        // Execute update in background
+        executor.execute(() -> {
+            try {
+                // Get current playlist from LiveData
+                Playlist currentPlaylist = this.currentPlaylist.getValue();
+
+                if (currentPlaylist == null) {
+                    android.util.Log.e("PlaylistDetailViewModel", "Cannot find playlist to update");
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        errorMessage.setValue("Playlist not found");
+                    });
+                    return;
+                }
+
+                // Update playlist name
+                currentPlaylist.setName(newName.trim());
+
+                // Save to database
+                playlistRepository.update(currentPlaylist).get();
+                android.util.Log.d("PlaylistDetailViewModel", "Successfully updated playlist name");
+
+                // Refresh playlist data on main thread
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    loadPlaylist(currentPlaylistId); // Reload to refresh UI
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("PlaylistDetailViewModel", "Error updating playlist name", e);
+
+                // Post error message on main thread
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    errorMessage.setValue("Error updating playlist: " + e.getMessage());
+                });
+            }
+        });
+    }
+
     /**
      * Get formatted songs count string
      */
@@ -303,6 +401,9 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
     protected void onCleared() {
         super.onCleared();
         // Clean up resources
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+        }
         playlistRepository.shutdown();
         userRepository.shutdown();
     }
