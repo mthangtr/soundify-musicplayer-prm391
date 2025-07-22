@@ -1,4 +1,4 @@
-package com.g3.soundify_musicplayer.data.Activity;
+package com.g3.soundify_musicplayer.ui.login_register;
 
 import android.content.Intent;
 import android.os.Bundle;

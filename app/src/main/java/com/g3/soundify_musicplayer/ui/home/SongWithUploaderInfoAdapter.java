@@ -1,8 +1,9 @@
-package com.g3.soundify_musicplayer.data.Adapter;
+package com.g3.soundify_musicplayer.ui.home;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,42 +18,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Adapter for displaying recent songs with uploader information
- * Used in HomeFragment for recently played songs section
+ * Adapter for displaying songs with uploader information
+ * Used in HomeFragment for suggested songs section
  */
-public class RecentSongWithUploaderInfoAdapter extends RecyclerView.Adapter<RecentSongWithUploaderInfoAdapter.RecentSongVH> {
+public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUploaderInfoAdapter.SongVH> {
 
     private final List<SongWithUploaderInfo> data;
-    private final OnRecentSongClick listener;
+    private final OnSongClick listener;
 
-    public interface OnRecentSongClick {
+    public interface OnSongClick {
         void onPlay(SongWithUploaderInfo song);
+        void onOpenDetail(SongWithUploaderInfo song);
     }
 
-    public RecentSongWithUploaderInfoAdapter(List<SongWithUploaderInfo> data, OnRecentSongClick listener) {
+    public SongWithUploaderInfoAdapter(List<SongWithUploaderInfo> data, OnSongClick listener) {
         this.data = new ArrayList<>(data != null ? data : new ArrayList<>());
         this.listener = listener;
     }
 
     @NonNull
     @Override
-    public RecentSongVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public SongVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_recent_song, parent, false);
-        return new RecentSongVH(view);
+                .inflate(R.layout.item_song_card, parent, false);
+        return new SongVH(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecentSongVH holder, int position) {
+    public void onBindViewHolder(@NonNull SongVH holder, int position) {
         SongWithUploaderInfo song = data.get(position);
 
         // Log for debugging - check if data is null
-        android.util.Log.d("RecentSongAdapter", "Binding recent position " + position +
+        android.util.Log.d("SongAdapter", "Binding position " + position +
                 ", song: " + (song != null ? song.getTitle() : "NULL") +
                 " by " + (song != null ? song.getDisplayUploaderName() : "NULL"));
 
         if (song == null) {
-            android.util.Log.e("RecentSongAdapter", "Song at position " + position + " is null!");
+            android.util.Log.e("SongAdapter", "Song at position " + position + " is null!");
             return;
         }
 
@@ -78,8 +80,14 @@ public class RecentSongWithUploaderInfoAdapter extends RecyclerView.Adapter<Rece
             holder.imgCover.setImageResource(R.drawable.splashi_icon);
         }
 
-        // Set click listener
+        // Set click listeners
         holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onOpenDetail(song);
+            }
+        });
+        
+        holder.btnPlay.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onPlay(song);
             }
@@ -88,36 +96,38 @@ public class RecentSongWithUploaderInfoAdapter extends RecyclerView.Adapter<Rece
 
     @Override
     public int getItemCount() {
-        return Math.min(data.size(), 6); // Display maximum 6 recent songs
+        return data.size();
     }
 
     /**
-     * Update songs list and notify adapter
+     * Update the data and notify adapter
      */
-    public void updateSongs(List<SongWithUploaderInfo> newSongs) {
+    public void updateData(List<SongWithUploaderInfo> newData) {
         data.clear();
-        if (newSongs != null) {
-            data.addAll(newSongs);
+        if (newData != null) {
+            data.addAll(newData);
         }
         notifyDataSetChanged();
     }
 
     /**
-     * Get current songs list (for creating NavigationContext)
+     * Get current data list (for creating NavigationContext)
      */
-    public List<SongWithUploaderInfo> getSongs() {
-        return new ArrayList<>(data);
+    public List<SongWithUploaderInfo> getCurrentData() {
+        return new java.util.ArrayList<>(data);
     }
 
-    static class RecentSongVH extends RecyclerView.ViewHolder {
+    static class SongVH extends RecyclerView.ViewHolder {
         ImageView imgCover;
         TextView tvTitle, tvUploader;
+        ImageButton btnPlay;
 
-        RecentSongVH(View view) {
+        SongVH(View view) {
             super(view);
-            imgCover = view.findViewById(R.id.imgRecentCover);
-            tvTitle = view.findViewById(R.id.tvRecentTitle);
-            tvUploader = view.findViewById(R.id.tvRecentUploader);
+            imgCover = view.findViewById(R.id.imgCover);
+            tvTitle = view.findViewById(R.id.tvTitle);
+            tvUploader = view.findViewById(R.id.tvUploader);
+            btnPlay = view.findViewById(R.id.btnPlay);
         }
     }
 }

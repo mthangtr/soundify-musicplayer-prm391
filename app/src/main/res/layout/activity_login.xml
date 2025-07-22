@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:padding="24dp"
     android:background="@drawable/music_backgroud"
-    tools:context=".data.Activity.LoginActivity">
+    tools:context=".ui.login_register.LoginActivity">
 
     <!-- Icon đầu trang -->
     <ImageView

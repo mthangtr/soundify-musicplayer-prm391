@@ -18,7 +18,7 @@ import androidx.media3.common.Player;
 import androidx.media3.exoplayer.ExoPlayer;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.data.Activity.MainActivity;
+import com.g3.soundify_musicplayer.ui.main.MainActivity;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 

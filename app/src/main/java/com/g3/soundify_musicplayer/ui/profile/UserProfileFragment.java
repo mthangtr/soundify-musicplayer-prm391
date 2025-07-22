@@ -23,15 +23,14 @@ import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
-import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
+import com.g3.soundify_musicplayer.ui.login_register.LoginActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
-import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
-import com.g3.soundify_musicplayer.data.Adapter.SongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistAdapter;
+import com.g3.soundify_musicplayer.ui.home.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Fragment for displaying user profile
@@ -445,7 +444,7 @@ public class UserProfileFragment extends Fragment {
         if (getActivity() == null) return;
 
         // Create intent to LoginActivity
-        Intent intent = new Intent(getActivity(), com.g3.soundify_musicplayer.data.Activity.LoginActivity.class);
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
 

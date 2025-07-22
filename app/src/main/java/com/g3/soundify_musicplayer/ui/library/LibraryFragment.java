@@ -18,10 +18,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.data.Adapter.PlaylistWithSongCountAdapter;
-import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistWithSongCountAdapter;
+import com.g3.soundify_musicplayer.ui.home.SongAdapter;
+import com.g3.soundify_musicplayer.ui.home.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
@@ -29,7 +31,6 @@ import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ public class LibraryFragment extends Fragment {
     private Button buttonCreatePlaylist;
 
     // Adapters and ViewModel
-    private SongAdapter mySongsAdapter;
+    private SongWithUploaderInfoAdapter mySongsAdapter;
     private PlaylistWithSongCountAdapter myPlaylistsAdapter;
     private SongAdapter likedSongsAdapter;
     private LibraryViewModel libraryViewModel;
@@ -124,21 +125,21 @@ public class LibraryFragment extends Fragment {
     }
 
     private void setupRecyclerViews() {
-        // Setup My Songs RecyclerView
+        // Setup My Songs RecyclerView with Uploader Info
         mySongsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        mySongsAdapter = new SongAdapter(new ArrayList<>(), new SongAdapter.OnSongClick() {
+        mySongsAdapter = new SongWithUploaderInfoAdapter(new ArrayList<>(), new SongWithUploaderInfoAdapter.OnSongClick() {
             @Override
-            public void onPlay(Song song) {
-                showToast("Playing: " + song.getTitle());
-                showMiniPlayer(song);
+            public void onPlay(SongWithUploaderInfo songInfo) {
+                showToast("Playing: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
+                showMiniPlayerWithSongInfo(songInfo);
             }
 
             @Override
-            public void onOpenDetail(Song song) {
-                showToast("Open detail: " + song.getTitle());
+            public void onOpenDetail(SongWithUploaderInfo songInfo) {
+                showToast("Open detail: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
 
                 // QUAN TRỌNG: Gọi method để phát nhạc với queue
-                showMiniPlayer(song);
+                showMiniPlayerWithSongInfo(songInfo);
             }
         });
         mySongsRecyclerView.setAdapter(mySongsAdapter);
@@ -185,13 +186,13 @@ public class LibraryFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        // Observe My Songs
-        libraryViewModel.getMySongs().observe(getViewLifecycleOwner(), songs -> {
-            if (songs != null) {
-                mySongsAdapter.updateData(songs);
+        // Observe My Songs with Uploader Info
+        libraryViewModel.getMySongsWithUploaderInfo().observe(getViewLifecycleOwner(), songsWithInfo -> {
+            if (songsWithInfo != null) {
+                mySongsAdapter.updateData(songsWithInfo);
                 // Update empty state if this is the current tab
                 if (currentTab == TAB_MY_SONGS) {
-                    updateEmptyState(songs.isEmpty(), "No songs uploaded", "Upload your first song to see it here");
+                    updateEmptyState(songsWithInfo.isEmpty(), "No songs uploaded", "Upload your first song to see it here");
                 }
             }
         });
@@ -319,6 +320,15 @@ public class LibraryFragment extends Fragment {
         createLibraryNavigationContextAndPlay(song, mockArtist);
     }
 
+    private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
+        // Convert SongWithUploaderInfo to Song and User
+        Song song = convertToSong(songInfo);
+        User uploader = convertToUser(songInfo);
+
+        // TẠO NAVIGATION CONTEXT dựa trên tab hiện tại
+        createLibraryNavigationContextAndPlay(song, uploader);
+    }
+
     /**
      * Tạo NavigationContext từ Library tab hiện tại và phát bài hát với queue
      */
@@ -329,7 +339,14 @@ public class LibraryFragment extends Fragment {
         // Lấy danh sách songs dựa trên tab hiện tại
         switch (currentTab) {
             case 0: // My Songs
-                currentSongs = mySongsAdapter.getCurrentData();
+                // Convert SongWithUploaderInfo to Song for navigation context
+                List<SongWithUploaderInfo> songsWithInfo = mySongsAdapter.getCurrentData();
+                currentSongs = new ArrayList<>();
+                if (songsWithInfo != null) {
+                    for (SongWithUploaderInfo songInfo : songsWithInfo) {
+                        currentSongs.add(convertToSong(songInfo));
+                    }
+                }
                 contextTitle = "My Songs";
                 break;
             case 2: // Liked Songs
@@ -471,5 +488,30 @@ public class LibraryFragment extends Fragment {
             .replace(R.id.fragment_container, fragment)
             .addToBackStack("playlist_detail")
             .commit();
+    }
+
+    /**
+     * Convert SongWithUploaderInfo to Song
+     */
+    private Song convertToSong(SongWithUploaderInfo songInfo) {
+        Song song = new Song(songInfo.getUploaderId(), songInfo.getTitle(), songInfo.getAudioUrl());
+        song.setId(songInfo.getId());
+        song.setDescription(songInfo.getDescription());
+        song.setCoverArtUrl(songInfo.getCoverArtUrl());
+        song.setGenre(songInfo.getGenre());
+        song.setDurationMs(songInfo.getDurationMs());
+        song.setPublic(songInfo.isPublic());
+        song.setCreatedAt(songInfo.getCreatedAt());
+        return song;
+    }
+
+    /**
+     * Convert SongWithUploaderInfo to User
+     */
+    private User convertToUser(SongWithUploaderInfo songInfo) {
+        User user = new User(songInfo.getUploaderUsername(), songInfo.getUploaderDisplayName(), "dummy@email.com", "password");
+        user.setId(songInfo.getUploaderId());
+        user.setAvatarUrl(songInfo.getUploaderAvatarUrl());
+        return user;
     }
 }

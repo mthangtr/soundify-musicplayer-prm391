@@ -35,7 +35,7 @@
         android:theme="@style/Theme.Soundifymusicplayer">
         <!-- Main launcher activity - SplashActivity for session check -->
         <activity
-            android:name=".data.Activity.SplashActivity"
+            android:name=".ui.splash.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,15 +45,15 @@
 
         <!-- Auth Activities -->
         <activity
-            android:name=".data.Activity.LoginActivity"
+            android:name=".ui.login_register.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".data.Activity.RegisterActivity"
+            android:name=".ui.login_register.RegisterActivity"
             android:exported="false" />
 
         <!-- Main Activity with Bottom Navigation and Mini Player -->
         <activity
-            android:name=".data.Activity.MainActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="false" />
 
         <!-- Profile Activities -->
@@ -64,7 +64,7 @@
         <!-- Player Activities -->
         <activity
             android:name=".ui.player.FullPlayerActivity"
-            android:parentActivityName=".data.Activity.MainActivity"
+            android:parentActivityName=".ui.main.MainActivity"
             android:exported="false"
             android:theme="@style/Theme.Soundifymusicplayer.FullScreen" />
 

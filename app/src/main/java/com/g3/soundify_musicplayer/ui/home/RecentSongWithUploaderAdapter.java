@@ -1,9 +1,8 @@
-package com.g3.soundify_musicplayer.data.Adapter;
+package com.g3.soundify_musicplayer.ui.home;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -20,34 +19,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Adapter for displaying songs with uploader information
- * Used in HomeFragment for suggested songs section
+ * Adapter for displaying recent songs with uploader information
+ * Used in HomeFragment for recently played songs section
  */
-public class SongWithUploaderAdapter extends RecyclerView.Adapter<SongWithUploaderAdapter.SongVH> {
+public class RecentSongWithUploaderAdapter extends RecyclerView.Adapter<RecentSongWithUploaderAdapter.RecentSongVH> {
 
     private final List<SongWithUploader> data;
-    private final OnSongClick listener;
+    private final OnRecentSongClick listener;
 
-    public interface OnSongClick {
+    public interface OnRecentSongClick {
         void onPlay(Song song, User uploader);
-        void onOpenDetail(Song song, User uploader);
     }
 
-    public SongWithUploaderAdapter(List<SongWithUploader> data, OnSongClick listener) {
+    public RecentSongWithUploaderAdapter(List<SongWithUploader> data, OnRecentSongClick listener) {
         this.data = new ArrayList<>(data != null ? data : new ArrayList<>());
         this.listener = listener;
     }
 
     @NonNull
     @Override
-    public SongVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecentSongVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_song_card, parent, false);
-        return new SongVH(view);
+                .inflate(R.layout.item_recent_song, parent, false);
+        return new RecentSongVH(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SongVH holder, int position) {
+    public void onBindViewHolder(@NonNull RecentSongVH holder, int position) {
         SongWithUploader songWithUploader = data.get(position);
         Song song = songWithUploader.getSong();
         User uploader = songWithUploader.getUploader();
@@ -80,14 +78,8 @@ public class SongWithUploaderAdapter extends RecyclerView.Adapter<SongWithUpload
             holder.imgCover.setImageResource(R.drawable.splashi_icon);
         }
 
-        // Set click listeners
+        // Set click listener
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onOpenDetail(song, uploader);
-            }
-        });
-        
-        holder.btnPlay.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onPlay(song, uploader);
             }
@@ -96,31 +88,29 @@ public class SongWithUploaderAdapter extends RecyclerView.Adapter<SongWithUpload
 
     @Override
     public int getItemCount() {
-        return data.size();
+        return Math.min(data.size(), 6); // Display maximum 6 recent songs
     }
 
     /**
-     * Update the data and notify adapter
+     * Update songs list and notify adapter
      */
-    public void updateData(List<SongWithUploader> newData) {
+    public void updateSongs(List<SongWithUploader> newSongs) {
         data.clear();
-        if (newData != null) {
-            data.addAll(newData);
+        if (newSongs != null) {
+            data.addAll(newSongs);
         }
         notifyDataSetChanged();
     }
 
-    static class SongVH extends RecyclerView.ViewHolder {
+    static class RecentSongVH extends RecyclerView.ViewHolder {
         ImageView imgCover;
         TextView tvTitle, tvUploader;
-        ImageButton btnPlay;
 
-        SongVH(View view) {
+        RecentSongVH(View view) {
             super(view);
-            imgCover = view.findViewById(R.id.imgCover);
-            tvTitle = view.findViewById(R.id.tvTitle);
-            tvUploader = view.findViewById(R.id.tvUploader);
-            btnPlay = view.findViewById(R.id.btnPlay);
+            imgCover = view.findViewById(R.id.imgRecentCover);
+            tvTitle = view.findViewById(R.id.tvRecentTitle);
+            tvUploader = view.findViewById(R.id.tvRecentUploader);
         }
     }
 }

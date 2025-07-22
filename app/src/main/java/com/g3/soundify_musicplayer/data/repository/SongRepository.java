@@ -125,7 +125,9 @@ public class SongRepository {
                 RecentlyPlayed recentlyPlayed = new RecentlyPlayed(userId, songId, currentTime);
 
                 // Insert/update the record
-                recentlyPlayedDao.insert(recentlyPlayed);
+                long result = recentlyPlayedDao.insert(recentlyPlayed);
+                android.util.Log.d("SongRepository", "Tracked recently played: userId=" + userId +
+                    ", songId=" + songId + ", result=" + result + ", time=" + currentTime);
 
                 // Clean up old records to prevent database bloat
                 recentlyPlayedDao.cleanupOldRecords(userId);

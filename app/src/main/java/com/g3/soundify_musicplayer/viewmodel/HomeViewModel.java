@@ -32,6 +32,7 @@ public class HomeViewModel extends AndroidViewModel {
     private LiveData<List<SongWithUploaderInfo>> recentSongs;
     private LiveData<List<SongWithUploaderInfo>> suggestedSongs;
     private LiveData<List<Playlist>> recentPlaylists;
+    private LiveData<List<Playlist>> userPlaylists;
     
     public HomeViewModel(@NonNull Application application) {
         super(application);
@@ -47,6 +48,9 @@ public class HomeViewModel extends AndroidViewModel {
 
         // Initialize recent playlists for current user
         initializeRecentPlaylists();
+
+        // Initialize user playlists (all playlists owned by user)
+        initializeUserPlaylists();
     }
     
     private void initializeRecentSongs() {
@@ -64,6 +68,15 @@ public class HomeViewModel extends AndroidViewModel {
             recentPlaylists = playlistRepository.getRecentlyAccessedPlaylists(currentUserId);
         } else {
             recentPlaylists = new MutableLiveData<>();
+        }
+    }
+
+    private void initializeUserPlaylists() {
+        long currentUserId = authManager.getCurrentUserId();
+        if (currentUserId != -1) {
+            userPlaylists = playlistRepository.getPlaylistsByOwner(currentUserId);
+        } else {
+            userPlaylists = new MutableLiveData<>();
         }
     }
     
@@ -87,6 +100,13 @@ public class HomeViewModel extends AndroidViewModel {
     public LiveData<List<Playlist>> getRecentPlaylists() {
         return recentPlaylists;
     }
+
+    /**
+     * Get all user playlists LiveData (all playlists owned by current user)
+     */
+    public LiveData<List<Playlist>> getUserPlaylists() {
+        return userPlaylists;
+    }
     
     /**
      * Track that user played a song
@@ -97,6 +117,9 @@ public class HomeViewModel extends AndroidViewModel {
         if (currentUserId != -1) {
             songRepository.trackRecentlyPlayed(currentUserId, songId);
             android.util.Log.d("HomeViewModel", "Tracked recently played: userId=" + currentUserId + ", songId=" + songId);
+
+            // Refresh recent songs to show the newly tracked song
+            refreshRecentSongs();
         } else {
             android.util.Log.w("HomeViewModel", "Cannot track recently played - user not logged in");
         }
@@ -135,6 +158,13 @@ public class HomeViewModel extends AndroidViewModel {
      */
     public void refreshRecentPlaylists() {
         initializeRecentPlaylists();
+    }
+
+    /**
+     * Refresh user playlists (if user changes or creates new playlist)
+     */
+    public void refreshUserPlaylists() {
+        initializeUserPlaylists();
     }
     
     /**

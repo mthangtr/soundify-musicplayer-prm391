@@ -10,6 +10,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.repository.SongRepository;
 import com.g3.soundify_musicplayer.data.repository.PlaylistRepository;
 import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
@@ -26,6 +27,7 @@ public class LibraryViewModel extends AndroidViewModel {
 
     // LiveData for each tab
     private LiveData<List<Song>> mySongs;
+    private MutableLiveData<List<SongWithUploaderInfo>> mySongsWithUploaderInfo = new MutableLiveData<>();
     private LiveData<List<Playlist>> myPlaylists;
     private MutableLiveData<List<PlaylistWithSongCount>> myPlaylistsWithSongCount = new MutableLiveData<>();
     private LiveData<List<Song>> likedSongs;
@@ -59,6 +61,10 @@ public class LibraryViewModel extends AndroidViewModel {
         return mySongs;
     }
 
+    public LiveData<List<SongWithUploaderInfo>> getMySongsWithUploaderInfo() {
+        return mySongsWithUploaderInfo;
+    }
+
     public LiveData<List<Playlist>> getMyPlaylists() {
         return myPlaylists;
     }
@@ -80,6 +86,9 @@ public class LibraryViewModel extends AndroidViewModel {
             // Load my songs (songs I uploaded)
             mySongs = songRepository.getSongsByUploader(currentUserId);
 
+            // Load my songs with uploader info
+            loadMySongsWithUploaderInfo(currentUserId);
+
             // Load my playlists (playlists I created)
             myPlaylists = playlistRepository.getPlaylistsByOwner(currentUserId);
 
@@ -91,6 +100,7 @@ public class LibraryViewModel extends AndroidViewModel {
         } else {
             // User not logged in, show empty lists
             mySongs = new MutableLiveData<>(new ArrayList<>());
+            mySongsWithUploaderInfo.setValue(new ArrayList<>());
             myPlaylists = new MutableLiveData<>(new ArrayList<>());
             likedSongs = new MutableLiveData<>(new ArrayList<>());
         }
@@ -106,6 +116,7 @@ public class LibraryViewModel extends AndroidViewModel {
         switch (tabIndex) {
             case 0: // My Songs
                 mySongs = songRepository.getSongsByUploader(currentUserId);
+                loadMySongsWithUploaderInfo(currentUserId);
                 break;
             case 1: // My Playlists
                 myPlaylists = playlistRepository.getPlaylistsByOwner(currentUserId);
@@ -231,5 +242,28 @@ public class LibraryViewModel extends AndroidViewModel {
         if (musicPlayerRepository != null) {
             musicPlayerRepository.shutdown();
         }
+    }
+
+    /**
+     * Load my songs with uploader information
+     */
+    private void loadMySongsWithUploaderInfo(long currentUserId) {
+        // Use executor to run in background thread
+        java.util.concurrent.Executor executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        executor.execute(() -> {
+            try {
+                // Get songs with uploader info from repository
+                java.util.concurrent.Future<java.util.List<SongWithUploaderInfo>> future =
+                    songRepository.getSongsByUploaderWithInfoSync(currentUserId);
+                java.util.List<SongWithUploaderInfo> songsWithInfo = future.get();
+
+                // Post to main thread
+                mySongsWithUploaderInfo.postValue(songsWithInfo);
+            } catch (Exception e) {
+                e.printStackTrace();
+                // Post empty list on error
+                mySongsWithUploaderInfo.postValue(new java.util.ArrayList<>());
+            }
+        });
     }
 }

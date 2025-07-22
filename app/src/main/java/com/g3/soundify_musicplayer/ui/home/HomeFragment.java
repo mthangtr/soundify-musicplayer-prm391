@@ -1,6 +1,4 @@
-package com.g3.soundify_musicplayer.data.Fragment;
-
-import static androidx.core.content.ContentProviderCompat.requireContext;
+package com.g3.soundify_musicplayer.ui.home;
 
 import android.os.Bundle;
 import android.view.View;
@@ -14,22 +12,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.data.Adapter.RecentSongAdapter;
-import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
-import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
-import com.g3.soundify_musicplayer.data.Adapter.RecentSongWithUploaderInfoAdapter;
-import com.g3.soundify_musicplayer.data.Adapter.SongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
-import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class HomeFragment extends Fragment {
@@ -45,10 +37,14 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle b) {
+        android.util.Log.e("DEBUG_HOME", "=== HomeFragment onViewCreated START ===");
+
         // Initialize ViewModels
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         // Sử dụng SongDetailViewModel THỐNG NHẤT
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+
+        android.util.Log.e("DEBUG_HOME", "ViewModels initialized");
 
         android.util.Log.d("HomeFragment", "SongDetailViewModel initialized: " + songDetailViewModel.hashCode());
 
@@ -64,14 +60,8 @@ public class HomeFragment extends Fragment {
         RecyclerView rvMyPlaylists = v.findViewById(R.id.rvMyPlaylists);
         rvMyPlaylists.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // ✨ Hardcoded playlist data
-        List<Playlist> demoPlaylists = Arrays.asList(
-                createDemoPlaylist(1, "My Favorites", "My personal favorite songs collection"),
-                createDemoPlaylist(2, "Chill Vibes", "Perfect for relaxing and studying")
-        );
-
-        // My Playlists Adapter
-        PlaylistAdapter playlistAdapter = new PlaylistAdapter(demoPlaylists, new PlaylistAdapter.OnPlaylistClickListener() {
+        // My Playlists Adapter - Start with empty list, will be populated by ViewModel
+        PlaylistAdapter playlistAdapter = new PlaylistAdapter(new ArrayList<>(), new PlaylistAdapter.OnPlaylistClickListener() {
             @Override
             public void onPlaylistClick(Playlist playlist) {
                 Toast.makeText(requireContext(), "Open playlist: " + playlist.getName(), Toast.LENGTH_SHORT).show();
@@ -100,9 +90,13 @@ public class HomeFragment extends Fragment {
                 new RecentSongWithUploaderInfoAdapter.OnRecentSongClick() {
                     @Override
                     public void onPlay(SongWithUploaderInfo songInfo) {
+                        android.util.Log.e("DEBUG_HOME", "=== PLAY BUTTON CLICKED ===");
+                        android.util.Log.e("DEBUG_HOME", "Song: " + songInfo.getTitle() + " (ID: " + songInfo.getId() + ")");
+
                         Toast.makeText(requireContext(), "Playing: " + songInfo.getTitle(), Toast.LENGTH_SHORT).show();
 
                         // Track recently played
+                        android.util.Log.e("DEBUG_HOME", "About to track recently played...");
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
                         // FIXED: Play with NavigationContext for full queue support
@@ -113,18 +107,20 @@ public class HomeFragment extends Fragment {
 
         // Observe recent songs with uploader info from ViewModel
         homeViewModel.getRecentSongs().observe(getViewLifecycleOwner(), recentSongsWithUploader -> {
+            android.util.Log.e("DEBUG_HOME", "Recent songs observer triggered");
             if (recentSongsWithUploader != null) {
+                android.util.Log.e("DEBUG_HOME", "Recent songs count: " + recentSongsWithUploader.size());
                 recentAdapter.updateSongs(recentSongsWithUploader);
-                android.util.Log.d("HomeFragment", "Recent songs updated: " +
-                        recentSongsWithUploader.size() + " songs with uploader info");
+            } else {
+                android.util.Log.e("DEBUG_HOME", "Recent songs is NULL");
             }
         });
 
-        // Observe recent playlists from ViewModel
-        homeViewModel.getRecentPlaylists().observe(getViewLifecycleOwner(), recentPlaylists -> {
-            if (recentPlaylists != null) {
-                playlistAdapter.updateData(recentPlaylists);
-                android.util.Log.d("HomeFragment", "Recent playlists updated: " + recentPlaylists.size() + " playlists");
+        // Observe user's playlists from ViewModel
+        homeViewModel.getUserPlaylists().observe(getViewLifecycleOwner(), userPlaylists -> {
+            if (userPlaylists != null) {
+                playlistAdapter.updateData(userPlaylists);
+                android.util.Log.d("HomeFragment", "User playlists updated: " + userPlaylists.size() + " playlists");
             }
         });
 
@@ -137,6 +133,7 @@ public class HomeFragment extends Fragment {
                         Toast.makeText(requireContext(), "Playing: " + songInfo.getTitle(), Toast.LENGTH_SHORT).show();
 
                         // Track recently played
+                        android.util.Log.d("HomeFragment", "Tracking recently played song: " + songInfo.getTitle() + " (ID: " + songInfo.getId() + ")");
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
                         // FIXED: Play with NavigationContext for full queue support
@@ -145,9 +142,16 @@ public class HomeFragment extends Fragment {
 
                     @Override
                     public void onOpenDetail(SongWithUploaderInfo songInfo) {
+                        android.util.Log.e("DEBUG_HOME", "=== SONG ITEM CLICKED (onOpenDetail) ===");
+                        android.util.Log.e("DEBUG_HOME", "Song: " + songInfo.getTitle() + " (ID: " + songInfo.getId() + ")");
+
                         Toast.makeText(requireContext(), "Open detail: " + songInfo.getTitle() +
                                 " by " + songInfo.getDisplayUploaderName(),
                                 Toast.LENGTH_SHORT).show();
+
+                        // Track recently played when user clicks on song
+                        android.util.Log.e("DEBUG_HOME", "About to track recently played from onOpenDetail...");
+                        homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
                         // FIXED: Play with NavigationContext for full queue support
                         playSuggestedSongWithContext(songInfo, suggestedAdapter);
@@ -157,23 +161,17 @@ public class HomeFragment extends Fragment {
 
         // Observe suggested songs with uploader info from ViewModel
         homeViewModel.getSuggestedSongs().observe(getViewLifecycleOwner(), suggestedSongsWithUploader -> {
+            android.util.Log.e("DEBUG_HOME", "Suggested songs observer triggered");
             if (suggestedSongsWithUploader != null) {
+                android.util.Log.e("DEBUG_HOME", "Suggested songs count: " + suggestedSongsWithUploader.size());
                 suggestedAdapter.updateData(suggestedSongsWithUploader);
-                android.util.Log.d("HomeFragment", "Suggested songs updated: " +
-                        suggestedSongsWithUploader.size() + " songs with uploader info");
+            } else {
+                android.util.Log.e("DEBUG_HOME", "Suggested songs is NULL");
             }
         });
     }
     
-    // Helper method to create demo playlists
-    private Playlist createDemoPlaylist(long id, String name, String description) {
-        Playlist playlist = new Playlist(1L, name); // ownerId = 1
-        playlist.setId(id);
-        playlist.setDescription(description);
-        playlist.setPublic(true);
-        playlist.setCreatedAt(System.currentTimeMillis() - (id * 86400000L)); // Different creation times
-        return playlist;
-    }
+    // Demo playlist method removed - now using real user playlists from database
 
     // Helper method to show mini player with song
     private void showMiniPlayer(Song song) {

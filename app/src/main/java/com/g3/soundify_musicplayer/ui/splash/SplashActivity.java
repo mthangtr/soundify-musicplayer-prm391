@@ -1,6 +1,5 @@
-package com.g3.soundify_musicplayer.data.Activity;
+package com.g3.soundify_musicplayer.ui.splash;
 
-import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -9,6 +8,7 @@ import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.g3.soundify_musicplayer.R;
+import com.g3.soundify_musicplayer.ui.login_register.LoginActivity;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
 public class SplashActivity extends AppCompatActivity {

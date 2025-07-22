@@ -1,8 +1,9 @@
-package com.g3.soundify_musicplayer.data.Activity;
+package com.g3.soundify_musicplayer.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+
+import com.g3.soundify_musicplayer.ui.login_register.LoginActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import android.widget.Toast;
 
@@ -12,14 +13,13 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.g3.soundify_musicplayer.R;
-import com.g3.soundify_musicplayer.data.Fragment.HomeFragment;
+import com.g3.soundify_musicplayer.ui.home.HomeFragment;
 import com.g3.soundify_musicplayer.ui.base.BaseActivity;
 import com.g3.soundify_musicplayer.ui.search.SearchFragment;
 import com.g3.soundify_musicplayer.ui.library.LibraryFragment;
 import com.g3.soundify_musicplayer.ui.upload.UploadSongFragment;
 import com.g3.soundify_musicplayer.ui.profile.UserProfileFragment;
 import com.g3.soundify_musicplayer.utils.AuthManager;
-import androidx.appcompat.widget.PopupMenu;
 
 public class MainActivity extends BaseActivity {
 
