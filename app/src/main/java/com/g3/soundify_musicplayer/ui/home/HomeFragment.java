@@ -109,25 +109,20 @@ public class HomeFragment extends Fragment {
 
         // Observe user's playlists from ViewModel
         homeViewModel.getUserPlaylists().observe(getViewLifecycleOwner(), userPlaylists -> {
-            android.util.Log.e("DEBUG_HOME", "User playlists observer triggered");
             if (userPlaylists != null && !userPlaylists.isEmpty()) {
-                android.util.Log.e("DEBUG_HOME", "User playlists count: " + userPlaylists.size());
                 playlistAdapter.updateData(userPlaylists);
                 // Show playlist section
                 v.findViewById(R.id.tvMyPlaylists).setVisibility(View.VISIBLE);
                 v.findViewById(R.id.rvMyPlaylists).setVisibility(View.VISIBLE);
 
                 // Reset constraint: Suggested Songs constraint to My Playlists (default behavior)
-                android.util.Log.e("DEBUG_HOME", "Showing My Playlists - using default constraint");
             } else {
-                android.util.Log.e("DEBUG_HOME", "User playlists is empty or NULL - hiding section");
                 // Hide playlist section but keep the constraint structure
                 v.findViewById(R.id.tvMyPlaylists).setVisibility(View.GONE);
                 v.findViewById(R.id.rvMyPlaylists).setVisibility(View.GONE);
 
                 // Keep original constraint: Suggested Songs still constraint to My Playlists section
                 // This maintains proper layout flow even when My Playlists is hidden
-                android.util.Log.e("DEBUG_HOME", "My Playlists hidden but constraint structure maintained");
             }
         });
 

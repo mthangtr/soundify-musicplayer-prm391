@@ -28,9 +28,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Create test users for development - DISABLED to keep only real user data
-        // DatabaseTestHelper.createTestUsersIfNeeded(this);
-
         initViews();
         initViewModel();
         setupObservers();
