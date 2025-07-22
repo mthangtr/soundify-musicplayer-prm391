@@ -264,10 +264,15 @@ public class FullPlayerFragment extends Fragment {
         // Bottom action bar - Like button với visual feedback
         btnLike.setOnClickListener(v -> {
             if (currentSong != null) {
+                android.util.Log.d("FullPlayerFragment", "🔄 Like button clicked for song: " + currentSong.getTitle() + " (ID: " + currentSong.getId() + ")");
+                
                 // SỬA LỖI: Sử dụng method signature đúng (không cần parameter)
                 viewModel.toggleLike();
                 // Visual feedback sẽ được update qua observer
+                
+                android.util.Log.d("FullPlayerFragment", "✅ toggleLike() called");
             } else {
+                android.util.Log.w("FullPlayerFragment", "❌ No song selected for like");
                 showToast("No song selected");
             }
         });
