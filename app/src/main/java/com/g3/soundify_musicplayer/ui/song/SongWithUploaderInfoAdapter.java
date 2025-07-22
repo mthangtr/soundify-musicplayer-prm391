@@ -1,4 +1,4 @@
-package com.g3.soundify_musicplayer.ui.home;
+package com.g3.soundify_musicplayer.ui.song;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,6 +58,17 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
             return;
         }
 
+        // Adjust margin for first item to reduce gap with title
+        ViewGroup.MarginLayoutParams layoutParams = (ViewGroup.MarginLayoutParams) holder.itemView.getLayoutParams();
+        if (position == 0) {
+            // First item: add small top margin to bring closer to title
+            layoutParams.topMargin = (int) (2 * holder.itemView.getContext().getResources().getDisplayMetrics().density); // 2dp
+        } else {
+            // Other items: normal margin
+            layoutParams.topMargin = 0;
+        }
+        holder.itemView.setLayoutParams(layoutParams);
+
         // Set song title - IMPORTANT: This is the key fix
         String title = song.getTitle();
         if (title != null && !title.trim().isEmpty()) {
@@ -106,6 +117,14 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
         data.clear();
         if (newData != null) {
             data.addAll(newData);
+            android.util.Log.d("SongWithUploaderInfoAdapter", "Updated data: " + newData.size() + " items");
+            for (int i = 0; i < newData.size(); i++) {
+                SongWithUploaderInfo song = newData.get(i);
+                android.util.Log.d("SongWithUploaderInfoAdapter", "Item " + i + ": " +
+                    (song != null ? song.getTitle() : "NULL"));
+            }
+        } else {
+            android.util.Log.d("SongWithUploaderInfoAdapter", "Updated data: NULL");
         }
         notifyDataSetChanged();
     }

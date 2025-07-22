@@ -2,6 +2,7 @@ package com.g3.soundify_musicplayer.ui.home;
 
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,12 +14,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistAdapter;
+import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
 import java.util.ArrayList;
@@ -69,7 +72,8 @@ public class HomeFragment extends Fragment {
                 // Track playlist access
                 homeViewModel.trackPlaylistAccess(playlist.getId());
 
-                // TODO: Navigate to playlist detail
+                // Navigate to playlist detail
+                navigateToPlaylistDetail(playlist);
             }
 
             @Override
@@ -118,9 +122,25 @@ public class HomeFragment extends Fragment {
 
         // Observe user's playlists from ViewModel
         homeViewModel.getUserPlaylists().observe(getViewLifecycleOwner(), userPlaylists -> {
-            if (userPlaylists != null) {
+            android.util.Log.e("DEBUG_HOME", "User playlists observer triggered");
+            if (userPlaylists != null && !userPlaylists.isEmpty()) {
+                android.util.Log.e("DEBUG_HOME", "User playlists count: " + userPlaylists.size());
                 playlistAdapter.updateData(userPlaylists);
-                android.util.Log.d("HomeFragment", "User playlists updated: " + userPlaylists.size() + " playlists");
+                // Show playlist section
+                v.findViewById(R.id.tvMyPlaylists).setVisibility(View.VISIBLE);
+                v.findViewById(R.id.rvMyPlaylists).setVisibility(View.VISIBLE);
+
+                // Reset constraint: Suggested Songs constraint to My Playlists (default behavior)
+                android.util.Log.e("DEBUG_HOME", "Showing My Playlists - using default constraint");
+            } else {
+                android.util.Log.e("DEBUG_HOME", "User playlists is empty or NULL - hiding section");
+                // Hide playlist section but keep the constraint structure
+                v.findViewById(R.id.tvMyPlaylists).setVisibility(View.GONE);
+                v.findViewById(R.id.rvMyPlaylists).setVisibility(View.GONE);
+
+                // Keep original constraint: Suggested Songs still constraint to My Playlists section
+                // This maintains proper layout flow even when My Playlists is hidden
+                android.util.Log.e("DEBUG_HOME", "My Playlists hidden but constraint structure maintained");
             }
         });
 
@@ -165,6 +185,9 @@ public class HomeFragment extends Fragment {
             if (suggestedSongsWithUploader != null) {
                 android.util.Log.e("DEBUG_HOME", "Suggested songs count: " + suggestedSongsWithUploader.size());
                 suggestedAdapter.updateData(suggestedSongsWithUploader);
+
+                // Adjust spacing based on item count
+                adjustSuggestedSongsSpacing(v, suggestedSongsWithUploader.size());
             } else {
                 android.util.Log.e("DEBUG_HOME", "Suggested songs is NULL");
             }
@@ -175,11 +198,14 @@ public class HomeFragment extends Fragment {
 
     // Helper method to show mini player with song
     private void showMiniPlayer(Song song) {
-        // Create a mock artist for the song
-        User mockArtist = createMockArtist(song.getUploaderId());
+        // Create basic user info from song (deprecated approach)
+        User basicUser = new User("user_" + song.getUploaderId(), "User " + song.getUploaderId(), "user@example.com", "");
+        basicUser.setId(song.getUploaderId());
 
         // Show mini player using SongDetailViewModel THỐNG NHẤT
-        songDetailViewModel.playSong(song, mockArtist);
+        songDetailViewModel.playSong(song, basicUser);
+
+        android.util.Log.w("HomeFragment", "showMiniPlayer with basic user info - prefer SongWithUploaderInfo approach");
     }
 
     // Helper method to show mini player with song and real uploader
@@ -225,16 +251,7 @@ public class HomeFragment extends Fragment {
             song.getTitle() + ", Context: Home");
     }
 
-    // Helper method to create mock artist
-    private User createMockArtist(long artistId) {
-        User artist = new User();
-        artist.setId(artistId);
-        artist.setUsername("demo_artist");
-        artist.setDisplayName("Demo Artist");
-        artist.setAvatarUrl("mock://avatar/demo_artist.jpg");
-        artist.setCreatedAt(System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)); // 30 days ago
-        return artist;
-    }
+    // Mock artist method removed - using real user data from SongWithUploaderInfo
 
     // ========== QUEUE CONTEXT METHODS (FOLLOWING UserProfileFragment PATTERN) ==========
 
@@ -384,5 +401,56 @@ public class HomeFragment extends Fragment {
         user.setUsername(songInfo.getUploaderUsername());
         user.setAvatarUrl(songInfo.getUploaderAvatarUrl());
         return user;
+    }
+
+    /**
+     * Adjust Suggested Songs spacing based on item count
+     * For ≤3 items: reduce spacing to make it look better
+     * For ≥4 items: use normal spacing
+     */
+    private void adjustSuggestedSongsSpacing(View rootView, int itemCount) {
+        try {
+            androidx.recyclerview.widget.RecyclerView rvSongs = rootView.findViewById(R.id.rvSongs);
+            if (rvSongs != null) {
+                ViewGroup.MarginLayoutParams layoutParams =
+                    (ViewGroup.MarginLayoutParams) rvSongs.getLayoutParams();
+
+                if (itemCount <= 3) {
+                    // Few items: reduce top margin to bring closer to title
+                    layoutParams.topMargin = 0; // No margin
+                    android.util.Log.d("HomeFragment", "Adjusted spacing for " + itemCount + " items: 0dp margin");
+                } else {
+                    // Many items: use normal margin
+                    layoutParams.topMargin = (int) (8 * getResources().getDisplayMetrics().density); // 8dp
+                    android.util.Log.d("HomeFragment", "Normal spacing for " + itemCount + " items: 8dp margin");
+                }
+
+                rvSongs.setLayoutParams(layoutParams);
+            }
+        } catch (Exception e) {
+            android.util.Log.e("HomeFragment", "Error adjusting suggested songs spacing", e);
+        }
+    }
+
+    /**
+     * Navigate to playlist detail
+     */
+    private void navigateToPlaylistDetail(Playlist playlist) {
+        try {
+            // Create PlaylistDetailFragment with playlist data
+            PlaylistDetailFragment playlistDetailFragment = PlaylistDetailFragment.newInstance(playlist.getId());
+
+            // Navigate to playlist detail
+            getParentFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, playlistDetailFragment)
+                .addToBackStack("playlist_detail")
+                .commit();
+
+            android.util.Log.d("HomeFragment", "Navigating to playlist: " + playlist.getName());
+        } catch (Exception e) {
+            android.util.Log.e("HomeFragment", "Error navigating to playlist detail", e);
+            Toast.makeText(requireContext(), "Error opening playlist", Toast.LENGTH_SHORT).show();
+        }
     }
 }

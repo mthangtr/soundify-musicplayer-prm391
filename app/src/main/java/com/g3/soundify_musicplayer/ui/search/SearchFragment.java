@@ -20,10 +20,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
+import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.player.FullPlayerFragment;
 import com.g3.soundify_musicplayer.ui.player.FullPlayerActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import com.g3.soundify_musicplayer.ui.profile.UserProfileFragment;
+import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputEditText;
@@ -52,6 +55,7 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     private SearchViewModel viewModel;
     private SearchAdapter adapter;
     private SongDetailViewModel songDetailViewModel;
+    private HomeViewModel homeViewModel;
 
     // Current state
     private String currentQuery = "";
@@ -101,6 +105,7 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     private void setupViewModel() {
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+        homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
 
         // Set current user ID in adapter
         adapter.setCurrentUserId(viewModel.getCurrentUserId());
@@ -246,6 +251,9 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     @Override
     public void onSongClick(SearchResult result) {
         if (result.getSong() != null && result.getUser() != null) {
+            // Track recently played
+            homeViewModel.trackRecentlyPlayed(result.getSong().getId());
+
             // TẠO NAVIGATION CONTEXT từ search results
             createSearchNavigationContextAndPlay(result.getSong(), result.getUser(), result);
             // Show mini player with the selected song
@@ -257,8 +265,8 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     @Override
     public void onArtistClick(SearchResult result) {
         if (result.getUser() != null) {
-            // TODO: Navigate to user profile
-            showToast("View profile: " + result.getPrimaryText());
+            // Navigate to user profile
+            navigateToUserProfile(result.getUser());
         }
     }
 
@@ -370,6 +378,28 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     private void showToast(String message) {
         if (getContext() != null) {
             Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Navigate to user profile
+     */
+    private void navigateToUserProfile(User user) {
+        try {
+            // Create UserProfileFragment with user data
+            UserProfileFragment userProfileFragment = UserProfileFragment.newInstance(user.getId());
+
+            // Navigate to user profile
+            getParentFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, userProfileFragment)
+                .addToBackStack("user_profile")
+                .commit();
+
+            showToast("Opening profile: " + user.getDisplayName());
+        } catch (Exception e) {
+            android.util.Log.e("SearchFragment", "Error navigating to user profile", e);
+            showToast("Error opening profile");
         }
     }
 }

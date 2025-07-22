@@ -26,9 +26,10 @@ import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.login_register.LoginActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistAdapter;
-import com.g3.soundify_musicplayer.ui.home.SongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.utils.AuthManager;
+import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
 import java.util.ArrayList;
 
@@ -44,6 +45,7 @@ public class UserProfileFragment extends Fragment {
     // ViewModels and Managers
     private UserProfileViewModel viewModel;
     private SongDetailViewModel songDetailViewModel;
+    private HomeViewModel homeViewModel;
     private AuthManager authManager;
 
     // UI Components
@@ -105,6 +107,7 @@ public class UserProfileFragment extends Fragment {
         // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(UserProfileViewModel.class);
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+        homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
 
         // Get arguments
         if (getArguments() != null) {
@@ -190,6 +193,9 @@ public class UserProfileFragment extends Fragment {
         songsAdapter = new SongWithUploaderInfoAdapter(new ArrayList<>(), new SongWithUploaderInfoAdapter.OnSongClick() {
             @Override
             public void onPlay(SongWithUploaderInfo songInfo) {
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(songInfo.getId());
+
                 showToast("Playing: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
 
                 // QUAN TRỌNG: Gọi method để phát nhạc với queue
@@ -198,6 +204,9 @@ public class UserProfileFragment extends Fragment {
 
             @Override
             public void onOpenDetail(SongWithUploaderInfo songInfo) {
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(songInfo.getId());
+
                 showToast("Opening: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
 
                 // QUAN TRỌNG: Gọi method để phát nhạc với queue
@@ -227,6 +236,20 @@ public class UserProfileFragment extends Fragment {
      * Setup tab system
      */
     private void setupTabs() {
+        // Check if viewing own profile or someone else's
+        long currentUserId = authManager.getCurrentUserId();
+        boolean isOwnProfile = (userId == currentUserId);
+
+        if (isOwnProfile) {
+            // Own profile: Show both tabs
+            tabPlaylists.setVisibility(View.VISIBLE);
+            tabPlaylistsIndicator.setVisibility(View.INVISIBLE); // Will be visible when selected
+        } else {
+            // Other's profile: Hide playlist tab
+            tabPlaylists.setVisibility(View.GONE);
+            tabPlaylistsIndicator.setVisibility(View.GONE);
+        }
+
         switchTab(0); // Default to songs tab
     }
 
@@ -236,7 +259,15 @@ public class UserProfileFragment extends Fragment {
     private void setupClickListeners() {
         // Tab clicks
         tabSongs.setOnClickListener(v -> switchTab(0));
-        tabPlaylists.setOnClickListener(v -> switchTab(1));
+
+        // Only allow playlist tab click for own profile
+        long currentUserId = authManager.getCurrentUserId();
+        boolean isOwnProfile = (userId == currentUserId);
+        if (isOwnProfile) {
+            tabPlaylists.setOnClickListener(v -> switchTab(1));
+        } else {
+            tabPlaylists.setOnClickListener(null); // Disable click for other's profile
+        }
 
         // Stats clicks
         followersContainer.setOnClickListener(v -> openFollowersList());
@@ -530,8 +561,9 @@ public class UserProfileFragment extends Fragment {
 
         if (currentSongs == null || currentSongs.isEmpty()) {
             // Fallback: phát bài đơn lẻ nếu không có danh sách
+            android.util.Log.w("UserProfileFragment", "No songs list available, playing single song: " +
+                song.getTitle() + ", Audio URL: " + song.getAudioUrl());
             songDetailViewModel.playSong(song, uploader);
-            android.util.Log.w("UserProfileFragment", "No songs list available, playing single song");
             return;
         }
 

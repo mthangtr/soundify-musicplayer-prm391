@@ -41,7 +41,7 @@ import com.g3.soundify_musicplayer.data.entity.PlaylistAccess;
         RecentlyPlayed.class,
         PlaylistAccess.class
     },
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 public abstract class AppDatabase extends RoomDatabase {

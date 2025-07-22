@@ -19,8 +19,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistWithSongCountAdapter;
-import com.g3.soundify_musicplayer.ui.home.SongAdapter;
-import com.g3.soundify_musicplayer.ui.home.SongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.ui.song.SongAdapter;
+import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
@@ -28,6 +28,7 @@ import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
+import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
@@ -55,6 +56,7 @@ public class LibraryFragment extends Fragment {
     private SongAdapter likedSongsAdapter;
     private LibraryViewModel libraryViewModel;
     private SongDetailViewModel songDetailViewModel;
+    private HomeViewModel homeViewModel;
 
     // Current tab state
     private int currentTab = 0; // 0: My Songs, 1: My Playlists, 2: Liked Songs
@@ -78,6 +80,7 @@ public class LibraryFragment extends Fragment {
         // Initialize ViewModel
         libraryViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+        homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
 
         initViews(view);
         setupTabs();
@@ -130,12 +133,18 @@ public class LibraryFragment extends Fragment {
         mySongsAdapter = new SongWithUploaderInfoAdapter(new ArrayList<>(), new SongWithUploaderInfoAdapter.OnSongClick() {
             @Override
             public void onPlay(SongWithUploaderInfo songInfo) {
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(songInfo.getId());
+
                 showToast("Playing: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
                 showMiniPlayerWithSongInfo(songInfo);
             }
 
             @Override
             public void onOpenDetail(SongWithUploaderInfo songInfo) {
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(songInfo.getId());
+
                 showToast("Open detail: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
 
                 // QUAN TRỌNG: Gọi method để phát nhạc với queue
@@ -170,12 +179,18 @@ public class LibraryFragment extends Fragment {
         likedSongsAdapter = new SongAdapter(new ArrayList<>(), new SongAdapter.OnSongClick() {
             @Override
             public void onPlay(Song song) {
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(song.getId());
+
                 showToast("Playing liked song: " + song.getTitle());
                 showMiniPlayer(song);
             }
 
             @Override
             public void onOpenDetail(Song song) {
+                // Track recently played
+                homeViewModel.trackRecentlyPlayed(song.getId());
+
                 showToast("Open detail: " + song.getTitle());
 
                 // QUAN TRỌNG: Gọi method để phát nhạc với queue
@@ -313,11 +328,16 @@ public class LibraryFragment extends Fragment {
     }
 
     private void showMiniPlayer(Song song) {
-        // Create a mock artist for the song
-        User mockArtist = createMockArtist(song.getUploaderId());
+        // Use SongWithUploaderInfo approach instead of mock artist
+        // This method is deprecated - use showMiniPlayerWithSongInfo instead
+        android.util.Log.w("LibraryFragment", "showMiniPlayer with mock artist is deprecated");
+
+        // Create basic user info from song
+        User basicUser = new User("user_" + song.getUploaderId(), "User " + song.getUploaderId(), "user@example.com", "");
+        basicUser.setId(song.getUploaderId());
 
         // TẠO NAVIGATION CONTEXT dựa trên tab hiện tại
-        createLibraryNavigationContextAndPlay(song, mockArtist);
+        createLibraryNavigationContextAndPlay(song, basicUser);
     }
 
     private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
@@ -391,6 +411,9 @@ public class LibraryFragment extends Fragment {
         );
 
         // Phát bài hát với context để tạo queue
+        android.util.Log.d("LibraryFragment", "About to play song: " + song.getTitle() +
+            " by " + artist.getDisplayName() + ", Audio URL: " + song.getAudioUrl());
+
         songDetailViewModel.playSongWithContext(song, artist, context);
 
         android.util.Log.d("LibraryFragment", "Playing song with context - Tab: " +
@@ -398,15 +421,7 @@ public class LibraryFragment extends Fragment {
             ", Position: " + clickedPosition);
     }
 
-    private User createMockArtist(long artistId) {
-        User artist = new User();
-        artist.setId(artistId);
-        artist.setUsername("demo_artist");
-        artist.setDisplayName("Demo Artist");
-        artist.setAvatarUrl("mock://avatar/demo_artist.jpg");
-        artist.setCreatedAt(System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)); // 30 days ago
-        return artist;
-    }
+    // Mock artist method removed - using real user data from database
 
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();

@@ -162,9 +162,10 @@ public class SongRepository {
     // ========== METHODS WITH UPLOADER INFORMATION ==========
 
     /**
-     * Get 10 random suggested songs with uploader information
+     * Get random suggested songs with uploader information (max 10, but adapt to available songs)
      */
     public LiveData<List<SongWithUploaderInfo>> getSuggestedSongsWithUploaderInfo() {
+        // Get up to 10 random songs, but will return whatever is available
         return songDao.getRandomSongsWithUploaderInfo(10);
     }
 
