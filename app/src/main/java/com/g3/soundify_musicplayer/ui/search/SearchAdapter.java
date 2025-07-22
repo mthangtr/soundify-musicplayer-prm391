@@ -52,6 +52,13 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         notifyDataSetChanged();
     }
 
+    /**
+     * Get current search results (for creating NavigationContext)
+     */
+    public List<SearchResult> getCurrentSearchResults() {
+        return new ArrayList<>(searchResults);
+    }
+
     public void setOnSearchResultClickListener(OnSearchResultClickListener listener) {
         this.clickListener = listener;
     }

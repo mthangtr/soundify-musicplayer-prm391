@@ -7,6 +7,7 @@ import android.os.Build;
 import android.util.Log;
 
 import com.g3.soundify_musicplayer.data.database.AppDatabase;
+import com.g3.soundify_musicplayer.utils.RepositoryManager;
 
 /**
  * Custom Application class for Soundify Music Player
@@ -19,6 +20,9 @@ public class SoundifyApplication extends Application {
     // Notification channels
     public static final String MEDIA_PLAYBACK_CHANNEL_ID = "MediaPlaybackChannel";
     public static final String GENERAL_NOTIFICATIONS_CHANNEL_ID = "GeneralNotifications";
+
+    // Singleton Repository Manager
+    private RepositoryManager repositoryManager;
     
     @Override
     public void onCreate() {
@@ -31,7 +35,11 @@ public class SoundifyApplication extends Application {
         
         // Initialize database (this will create the database if it doesn't exist)
         initializeDatabase();
-        
+
+        // Initialize Repository Manager singleton
+        repositoryManager = RepositoryManager.getInstance(this);
+        Log.d(TAG, "Repository Manager initialized");
+
         Log.d(TAG, "Soundify Application initialized successfully");
     }
     
@@ -82,6 +90,11 @@ public class SoundifyApplication extends Application {
     public void onTerminate() {
         super.onTerminate();
         Log.d(TAG, "Soundify Application terminating...");
+
+        // Cleanup repositories
+        if (repositoryManager != null) {
+            repositoryManager.cleanup();
+        }
     }
     
     @Override
@@ -94,5 +107,16 @@ public class SoundifyApplication extends Application {
     public void onTrimMemory(int level) {
         super.onTrimMemory(level);
         Log.w(TAG, "Memory trim requested, level: " + level);
+    }
+
+    /**
+     * Get Repository Manager instance
+     * Useful for debugging or manual access
+     */
+    public RepositoryManager getRepositoryManager() {
+        if (repositoryManager == null) {
+            repositoryManager = RepositoryManager.getInstance(this);
+        }
+        return repositoryManager;
     }
 }

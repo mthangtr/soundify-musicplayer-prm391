@@ -110,6 +110,13 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
         notifyDataSetChanged();
     }
 
+    /**
+     * Get current data list (for creating NavigationContext)
+     */
+    public List<SongWithUploaderInfo> getCurrentData() {
+        return new java.util.ArrayList<>(data);
+    }
+
     static class SongVH extends RecyclerView.ViewHolder {
         ImageView imgCover;
         TextView tvTitle, tvUploader;

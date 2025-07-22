@@ -24,8 +24,8 @@ import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploader;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
-import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
 import java.util.ArrayList;
@@ -36,6 +36,10 @@ public class HomeFragment extends Fragment {
 
     private HomeViewModel homeViewModel;
     private SongDetailViewModel songDetailViewModel;
+
+    // Adapter fields for queue context access
+    private RecentSongWithUploaderInfoAdapter recentAdapter;
+    private SongWithUploaderInfoAdapter suggestedAdapter;
 
     public HomeFragment() { super(R.layout.fragment_home); }
 
@@ -91,7 +95,7 @@ public class HomeFragment extends Fragment {
         rvMyPlaylists.setAdapter(playlistAdapter);
 
         // Recently Played Adapter with Uploader Info
-        RecentSongWithUploaderInfoAdapter recentAdapter = new RecentSongWithUploaderInfoAdapter(
+        recentAdapter = new RecentSongWithUploaderInfoAdapter(
                 new ArrayList<>(),
                 new RecentSongWithUploaderInfoAdapter.OnRecentSongClick() {
                     @Override
@@ -101,8 +105,8 @@ public class HomeFragment extends Fragment {
                         // Track recently played
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                        // Show mini player with the selected song
-                        showMiniPlayerWithSongInfo(songInfo);
+                        // FIXED: Play with NavigationContext for full queue support
+                        playRecentSongWithContext(songInfo, recentAdapter);
                     }
                 });
         rvRecentlyPlayed.setAdapter(recentAdapter);
@@ -125,7 +129,7 @@ public class HomeFragment extends Fragment {
         });
 
         // All Songs (Suggested) Adapter with Uploader Info
-        SongWithUploaderInfoAdapter adt = new SongWithUploaderInfoAdapter(
+        suggestedAdapter = new SongWithUploaderInfoAdapter(
                 new ArrayList<>(),
                 new SongWithUploaderInfoAdapter.OnSongClick() {
                     @Override
@@ -135,8 +139,8 @@ public class HomeFragment extends Fragment {
                         // Track recently played
                         homeViewModel.trackRecentlyPlayed(songInfo.getId());
 
-                        // Show mini player with the selected song
-                        showMiniPlayerWithSongInfo(songInfo);
+                        // FIXED: Play with NavigationContext for full queue support
+                        playSuggestedSongWithContext(songInfo, suggestedAdapter);
                     }
 
                     @Override
@@ -144,14 +148,17 @@ public class HomeFragment extends Fragment {
                         Toast.makeText(requireContext(), "Open detail: " + songInfo.getTitle() +
                                 " by " + songInfo.getDisplayUploaderName(),
                                 Toast.LENGTH_SHORT).show();
+
+                        // FIXED: Play with NavigationContext for full queue support
+                        playSuggestedSongWithContext(songInfo, suggestedAdapter);
                     }
                 });
-        rv.setAdapter(adt);
+        rv.setAdapter(suggestedAdapter);
 
         // Observe suggested songs with uploader info from ViewModel
         homeViewModel.getSuggestedSongs().observe(getViewLifecycleOwner(), suggestedSongsWithUploader -> {
             if (suggestedSongsWithUploader != null) {
-                adt.updateData(suggestedSongsWithUploader);
+                suggestedAdapter.updateData(suggestedSongsWithUploader);
                 android.util.Log.d("HomeFragment", "Suggested songs updated: " +
                         suggestedSongsWithUploader.size() + " songs with uploader info");
             }
@@ -202,8 +209,22 @@ public class HomeFragment extends Fragment {
         uploader.setDisplayName(songInfo.getUploaderDisplayName());
         uploader.setAvatarUrl(songInfo.getUploaderAvatarUrl());
 
-        // Show mini player bằng SongDetailViewModel THỐNG NHẤT
-        songDetailViewModel.playSong(song, uploader);
+        // TẠO NAVIGATION CONTEXT từ Home (General context)
+        // Tạo danh sách chỉ chứa bài hát hiện tại (đơn giản cho Home)
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        songIds.add(songInfo.getId());
+
+        NavigationContext context = NavigationContext.fromGeneral(
+            "Home - Suggested Songs",
+            songIds,
+            0
+        );
+
+        // Show mini player với context để tạo queue
+        songDetailViewModel.playSongWithContext(song, uploader, context);
+
+        android.util.Log.d("HomeFragment", "Playing song with context - Song: " +
+            song.getTitle() + ", Context: Home");
     }
 
     // Helper method to create mock artist
@@ -215,5 +236,155 @@ public class HomeFragment extends Fragment {
         artist.setAvatarUrl("mock://avatar/demo_artist.jpg");
         artist.setCreatedAt(System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)); // 30 days ago
         return artist;
+    }
+
+    // ========== QUEUE CONTEXT METHODS (FOLLOWING UserProfileFragment PATTERN) ==========
+
+    /**
+     * Play recent song with full NavigationContext for queue support
+     * PATTERN: Same as UserProfileFragment.createNavigationContextAndPlay()
+     */
+    private void playRecentSongWithContext(SongWithUploaderInfo songInfo, RecentSongWithUploaderInfoAdapter adapter) {
+        // Null check for adapter
+        if (adapter == null) {
+            android.util.Log.w("HomeFragment", "RecentAdapter is null, falling back to single song");
+            showMiniPlayerWithSongInfo(songInfo);
+            return;
+        }
+
+        // Get all recent songs from adapter
+        List<SongWithUploaderInfo> allRecentSongs = adapter.getSongs();
+        if (allRecentSongs == null || allRecentSongs.isEmpty()) {
+            android.util.Log.w("HomeFragment", "Recent songs list is empty, falling back to single song");
+            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
+            return;
+        }
+
+        // Find position of clicked song
+        int position = -1;
+        for (int i = 0; i < allRecentSongs.size(); i++) {
+            if (allRecentSongs.get(i).getId() == songInfo.getId()) {
+                position = i;
+                break;
+            }
+        }
+
+        if (position == -1) {
+            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
+            return;
+        }
+
+        // Create song IDs list
+        List<Long> songIds = new ArrayList<>();
+        for (SongWithUploaderInfo s : allRecentSongs) {
+            songIds.add(s.getId());
+        }
+
+        // Create NavigationContext for Recently Played
+        NavigationContext context = NavigationContext.fromGeneral(
+            "Recently Played",
+            songIds,
+            position
+        );
+
+        // Convert SongWithUploaderInfo to Song and User
+        Song song = convertToSong(songInfo);
+        User uploader = convertToUser(songInfo);
+
+        // Play with context for full queue support
+        songDetailViewModel.playSongWithContext(song, uploader, context);
+
+        android.util.Log.d("HomeFragment", "Playing recent song with context - Queue size: " +
+            songIds.size() + ", Position: " + position);
+    }
+
+    /**
+     * Play suggested song with full NavigationContext for queue support
+     * PATTERN: Same as UserProfileFragment.createNavigationContextAndPlay()
+     */
+    private void playSuggestedSongWithContext(SongWithUploaderInfo songInfo, SongWithUploaderInfoAdapter adapter) {
+        // Null check for adapter
+        if (adapter == null) {
+            android.util.Log.w("HomeFragment", "SuggestedAdapter is null, falling back to single song");
+            showMiniPlayerWithSongInfo(songInfo);
+            return;
+        }
+
+        // Get all suggested songs from adapter
+        List<SongWithUploaderInfo> allSuggestedSongs = adapter.getCurrentData();
+        if (allSuggestedSongs == null || allSuggestedSongs.isEmpty()) {
+            android.util.Log.w("HomeFragment", "Suggested songs list is empty, falling back to single song");
+            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
+            return;
+        }
+
+        // Find position of clicked song
+        int position = -1;
+        for (int i = 0; i < allSuggestedSongs.size(); i++) {
+            if (allSuggestedSongs.get(i).getId() == songInfo.getId()) {
+                position = i;
+                break;
+            }
+        }
+
+        if (position == -1) {
+            showMiniPlayerWithSongInfo(songInfo); // Fallback to single song
+            return;
+        }
+
+        // Create song IDs list
+        List<Long> songIds = new ArrayList<>();
+        for (SongWithUploaderInfo s : allSuggestedSongs) {
+            songIds.add(s.getId());
+        }
+
+        // Create NavigationContext for Suggested Songs
+        NavigationContext context = NavigationContext.fromGeneral(
+            "Suggested For You",
+            songIds,
+            position
+        );
+
+        // Convert SongWithUploaderInfo to Song and User
+        Song song = convertToSong(songInfo);
+        User uploader = convertToUser(songInfo);
+
+        // Play with context for full queue support
+        songDetailViewModel.playSongWithContext(song, uploader, context);
+
+        android.util.Log.d("HomeFragment", "Playing suggested song with context - Queue size: " +
+            songIds.size() + ", Position: " + position);
+    }
+
+    // ========== CONVERSION HELPER METHODS ==========
+
+    /**
+     * Convert SongWithUploaderInfo to Song object
+     */
+    private Song convertToSong(SongWithUploaderInfo songInfo) {
+        Song song = new Song();
+        song.setId(songInfo.getId());
+        song.setTitle(songInfo.getTitle());
+        song.setUploaderId(songInfo.getUploaderId());
+        song.setAudioUrl(songInfo.getAudioUrl());
+        song.setCoverArtUrl(songInfo.getCoverArtUrl());
+        song.setDescription(songInfo.getDescription());
+        song.setGenre(songInfo.getGenre());
+        song.setDurationMs(songInfo.getDurationMs());
+        song.setPublic(songInfo.isPublic());
+        song.setCreatedAt(songInfo.getCreatedAt());
+        return song;
+    }
+
+    /**
+     * Convert SongWithUploaderInfo to User object
+     */
+    private User convertToUser(SongWithUploaderInfo songInfo) {
+        User user = new User();
+        user.setId(songInfo.getUploaderId());
+        user.setDisplayName(songInfo.getDisplayUploaderName());
+        user.setUsername(songInfo.getUploaderUsername());
+        user.setAvatarUrl(songInfo.getUploaderAvatarUrl());
+        return user;
     }
 }

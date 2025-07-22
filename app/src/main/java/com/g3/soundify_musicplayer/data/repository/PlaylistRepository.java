@@ -21,10 +21,10 @@ import java.util.concurrent.Future;
 
 public class PlaylistRepository {
     
-    private PlaylistDao playlistDao;
-    private PlaylistSongDao playlistSongDao;
-    private PlaylistAccessDao playlistAccessDao;
-    private ExecutorService executor;
+    private final PlaylistDao playlistDao;
+    private final PlaylistSongDao playlistSongDao;
+    private final PlaylistAccessDao playlistAccessDao;
+    private final ExecutorService executor;
     
     public PlaylistRepository(Application application) {
         AppDatabase database = AppDatabase.getInstance(application);
@@ -314,6 +314,15 @@ public class PlaylistRepository {
             this.songCount = songCount;
         }
     }
+    // ========== DIRECT DATABASE ACCESS (TO AVOID DEADLOCK) ==========
+
+    /**
+     * Get songs in playlist directly from database (no ExecutorService)
+     */
+    public List<Song> getSongsInPlaylistDirectly(long playlistId) {
+        return playlistSongDao.getSongsInPlaylistSync(playlistId);
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();

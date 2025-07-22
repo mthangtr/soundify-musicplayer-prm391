@@ -149,6 +149,19 @@ public class MiniPlayerFragment extends Fragment {
                 }
             }
         });
+
+        // Observe queue info to enable/disable navigation buttons
+        viewModel.getQueueInfo().observe(getViewLifecycleOwner(), queueInfo -> {
+            if (queueInfo != null) {
+                // Enable/disable Next button based on queue state
+                // Note: We always allow Next (it will restart current song if at end)
+                // But we can show visual feedback about queue state
+                btnNext.setEnabled(true); // Always enabled - will restart if needed
+
+                android.util.Log.d("MiniPlayerFragment", "Queue updated: " +
+                    queueInfo.getCurrentIndex() + "/" + queueInfo.getTotalSongs());
+            }
+        });
     }
 
     private void updateSongInfo(Song song) {
@@ -178,26 +191,42 @@ public class MiniPlayerFragment extends Fragment {
     // Xóa updateProgressFromPosition - không sử dụng
 
     private void expandToFullPlayer() {
-        if (getActivity() != null && currentSong != null) {
+        if (getActivity() == null || currentSong == null) {
+            android.util.Log.w("MiniPlayerFragment", "Cannot expand to full player - activity or song is null");
+            return;
+        }
+
+        try {
             // Get NavigationContext từ ViewModel if available
             NavigationContext context = viewModel.getCurrentNavigationContext();
 
-            // SỬA LỖI: Sử dụng FullPlayerActivity thay vì fragment transaction
-            // để có full-screen experience
+            // Tạo Intent cho FullPlayerActivity
             Intent intent;
             if (context != null) {
                 intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId(), context);
+                android.util.Log.d("MiniPlayerFragment", "Creating intent with NavigationContext: " + context.getType());
             } else {
                 intent = FullPlayerActivity.createIntent(getActivity(), currentSong.getId());
+                android.util.Log.d("MiniPlayerFragment", "Creating intent without NavigationContext");
             }
 
-            // Start FullPlayerActivity với smooth animation
-            ActivityOptions options = ActivityOptions.makeCustomAnimation(
-                getContext(), R.anim.slide_up_in, R.anim.fade_in);
-            startActivity(intent, options.toBundle());
+            // Start FullPlayerActivity với animation (nếu có thể)
+            try {
+                ActivityOptions options = ActivityOptions.makeCustomAnimation(
+                    getContext(), R.anim.slide_up_in, R.anim.fade_in);
+                startActivity(intent, options.toBundle());
+            } catch (Exception animationError) {
+                // Fallback: start activity without animation
+                android.util.Log.w("MiniPlayerFragment", "Animation failed, starting without animation", animationError);
+                startActivity(intent);
+            }
 
-            android.util.Log.d("MiniPlayerFragment", "Expanding to FullPlayerActivity for song: " +
+            android.util.Log.d("MiniPlayerFragment", "Successfully started FullPlayerActivity for song: " +
                 currentSong.getTitle());
+
+        } catch (Exception e) {
+            android.util.Log.e("MiniPlayerFragment", "Failed to expand to full player", e);
+            showToast("Cannot open full player");
         }
     }
 

@@ -20,11 +20,11 @@ import java.util.concurrent.Future;
  * để cung cấp một interface thống nhất cho Song Detail functionality
  */
 public class SongDetailRepository {
-    
-    private SongRepository songRepository;
-    private MusicPlayerRepository musicPlayerRepository;
-    private PlaylistRepository playlistRepository;
-    private ExecutorService executor;
+
+    protected SongRepository songRepository;
+    protected MusicPlayerRepository musicPlayerRepository;
+    protected PlaylistRepository playlistRepository;
+    protected ExecutorService executor;
     
     public SongDetailRepository(Application application) {
         songRepository = new SongRepository(application);

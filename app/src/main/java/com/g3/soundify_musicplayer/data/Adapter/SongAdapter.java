@@ -74,6 +74,13 @@ public class SongAdapter extends RecyclerView.Adapter<SongAdapter.SongVH> {
         notifyDataSetChanged();
     }
 
+    /**
+     * Get current data list (for creating NavigationContext)
+     */
+    public List<Song> getCurrentData() {
+        return new ArrayList<>(data);
+    }
+
     static class SongVH extends RecyclerView.ViewHolder {
         ImageView imgCover; TextView tvTitle, tvUploader; ImageButton btnPlay;
         SongVH(View v) {

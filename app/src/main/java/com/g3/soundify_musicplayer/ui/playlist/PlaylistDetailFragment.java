@@ -27,6 +27,8 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.imageview.ShapeableImageView;
 
@@ -36,8 +38,9 @@ import java.util.List;
  * Fragment for displaying playlist details and managing songs
  */
 public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdapter.OnSongActionListener {
-    
+
     private PlaylistDetailViewModel viewModel;
+    private SongDetailViewModel songDetailViewModel;
     private PlaylistSongAdapter adapter;
     
     // UI Components
@@ -72,10 +75,11 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // Initialize ViewModel
+
+        // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(PlaylistDetailViewModel.class);
-        
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+
         // Initialize activity result launchers
         initializeActivityResultLaunchers();
     }
@@ -309,8 +313,42 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongAdap
     // PlaylistSongAdapter.OnSongActionListener implementation
     @Override
     public void onSongClick(Song song, int position) {
-        // TODO: Play selected song
-        showToast("Playing: " + song.getTitle());
+        // IMPLEMENT: Phát bài hát với NavigationContext từ playlist
+        Playlist currentPlaylist = viewModel.getCurrentPlaylist().getValue();
+        List<Song> playlistSongs = viewModel.getSongsInPlaylist().getValue();
+
+        if (currentPlaylist == null || playlistSongs == null || playlistSongs.isEmpty()) {
+            showToast("Không thể phát bài hát - danh sách trống");
+            return;
+        }
+
+        // Tạo danh sách song IDs từ playlist
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        for (Song s : playlistSongs) {
+            songIds.add(s.getId());
+        }
+
+        // Tạo NavigationContext từ playlist
+        NavigationContext context = NavigationContext.fromPlaylist(
+            currentPlaylist.getId(),
+            currentPlaylist.getName(),
+            songIds,
+            position
+        );
+
+        // Tạo User object cho uploader (cần lấy từ song)
+        User uploader = new User();
+        uploader.setId(song.getUploaderId());
+        // TODO: Có thể cần lấy thêm thông tin uploader từ database
+
+        // Phát bài hát với context để tạo queue
+        songDetailViewModel.playSongWithContext(song, uploader, context);
+
+        showToast("Playing: " + song.getTitle() + " from playlist: " + currentPlaylist.getName());
+
+        android.util.Log.d("PlaylistDetailFragment", "Playing song with context - Playlist: " +
+            currentPlaylist.getName() + ", Queue size: " + songIds.size() +
+            ", Position: " + position);
     }
 
     @Override

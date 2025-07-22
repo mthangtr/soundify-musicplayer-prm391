@@ -22,7 +22,9 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.data.Adapter.PlaylistAdapter;
 import com.g3.soundify_musicplayer.data.Adapter.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
@@ -35,15 +37,16 @@ import java.util.List;
  * Fragment for displaying user profile
  */
 public class UserProfileFragment extends Fragment {
-    
+
     // Constants
     public static final String ARG_USER_ID = "user_id";
     public static final String ARG_USERNAME = "username";
-    
+
     // ViewModels and Managers
     private UserProfileViewModel viewModel;
+    private SongDetailViewModel songDetailViewModel;
     private AuthManager authManager;
-    
+
     // UI Components
     private ImageView profileImage;
     private TextView displayName;
@@ -58,7 +61,7 @@ public class UserProfileFragment extends Fragment {
     private Button followButton;
     private Button editProfileButton;
     private Button logoutButton;
-    
+
     // Tab system
     private LinearLayout tabSongs;
     private LinearLayout tabPlaylists;
@@ -66,16 +69,16 @@ public class UserProfileFragment extends Fragment {
     private View tabPlaylistsIndicator;
     private RecyclerView songsRecyclerView;
     private RecyclerView playlistsRecyclerView;
-    
+
     // Adapters
     private SongWithUploaderInfoAdapter songsAdapter;
     private PlaylistAdapter playlistsAdapter;
-    
+
     // Data
     private User currentUser;
     private long userId = -1;
     private int currentTab = 0; // 0 = Songs, 1 = Playlists
-    
+
     public static UserProfileFragment newInstance(long userId) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
@@ -83,7 +86,7 @@ public class UserProfileFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-    
+
     public static UserProfileFragment newInstance(long userId, String username) {
         UserProfileFragment fragment = new UserProfileFragment();
         Bundle args = new Bundle();
@@ -92,45 +95,46 @@ public class UserProfileFragment extends Fragment {
         fragment.setArguments(args);
         return fragment;
     }
-    
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
+
         // Initialize AuthManager
         authManager = new AuthManager(requireContext());
-        
-        // Initialize ViewModel
+
+        // Initialize ViewModels
         viewModel = new ViewModelProvider(this).get(UserProfileViewModel.class);
-        
+        songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
+
         // Get arguments
         if (getArguments() != null) {
             userId = getArguments().getLong(ARG_USER_ID, -1);
         }
     }
-    
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_user_profile, container, false);
     }
-    
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        
+
         initViews(view);
         setupRecyclerViews();
         setupTabs();
         setupClickListeners();
         setupObservers();
-        
+
         // Load user profile
         if (userId != -1) {
             viewModel.loadUserProfile(userId);
         }
     }
-    
+
     @Override
     public void onResume() {
         super.onResume();
@@ -140,7 +144,7 @@ public class UserProfileFragment extends Fragment {
             viewModel.refreshUserData();
         }
     }
-    
+
     /**
      * Initialize all UI components
      */
@@ -150,7 +154,7 @@ public class UserProfileFragment extends Fragment {
         displayName = view.findViewById(R.id.display_name);
         username = view.findViewById(R.id.username);
         bio = view.findViewById(R.id.bio);
-        
+
         // Social Stats
         followersCount = view.findViewById(R.id.followers_count);
         followingCount = view.findViewById(R.id.following_count);
@@ -162,23 +166,23 @@ public class UserProfileFragment extends Fragment {
         // Content counts (in tabs)
         songsCount = view.findViewById(R.id.songs_count);
         playlistsCount = view.findViewById(R.id.playlists_count);
-        
+
         // Buttons
         followButton = view.findViewById(R.id.follow_button);
         editProfileButton = view.findViewById(R.id.edit_profile_button);
         logoutButton = view.findViewById(R.id.logout_button);
-        
+
         // Tabs
         tabSongs = view.findViewById(R.id.tab_songs);
         tabPlaylists = view.findViewById(R.id.tab_playlists);
         tabSongsIndicator = view.findViewById(R.id.tab_songs_indicator);
         tabPlaylistsIndicator = view.findViewById(R.id.tab_playlists_indicator);
-        
+
         // RecyclerViews
         songsRecyclerView = view.findViewById(R.id.songs_recycler_view);
         playlistsRecyclerView = view.findViewById(R.id.playlists_recycler_view);
     }
-    
+
     /**
      * Setup RecyclerViews with adapters
      */
@@ -188,16 +192,22 @@ public class UserProfileFragment extends Fragment {
             @Override
             public void onPlay(SongWithUploaderInfo songInfo) {
                 showToast("Playing: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
+
+                // QUAN TRỌNG: Gọi method để phát nhạc với queue
+                showMiniPlayerWithSongInfo(songInfo);
             }
 
             @Override
             public void onOpenDetail(SongWithUploaderInfo songInfo) {
                 showToast("Opening: " + songInfo.getTitle() + " by " + songInfo.getDisplayUploaderName());
+
+                // QUAN TRỌNG: Gọi method để phát nhạc với queue
+                showMiniPlayerWithSongInfo(songInfo);
             }
         });
         songsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         songsRecyclerView.setAdapter(songsAdapter);
-        
+
         // Playlists RecyclerView
         playlistsAdapter = new PlaylistAdapter(new ArrayList<>(), new PlaylistAdapter.OnPlaylistClickListener() {
             @Override
@@ -213,14 +223,14 @@ public class UserProfileFragment extends Fragment {
         playlistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         playlistsRecyclerView.setAdapter(playlistsAdapter);
     }
-    
+
     /**
      * Setup tab system
      */
     private void setupTabs() {
         switchTab(0); // Default to songs tab
     }
-    
+
     /**
      * Setup click listeners
      */
@@ -228,7 +238,7 @@ public class UserProfileFragment extends Fragment {
         // Tab clicks
         tabSongs.setOnClickListener(v -> switchTab(0));
         tabPlaylists.setOnClickListener(v -> switchTab(1));
-        
+
         // Stats clicks
         followersContainer.setOnClickListener(v -> openFollowersList());
         followingContainer.setOnClickListener(v -> openFollowingList());
@@ -238,17 +248,17 @@ public class UserProfileFragment extends Fragment {
         editProfileButton.setOnClickListener(v -> editProfile());
         logoutButton.setOnClickListener(v -> showLogoutConfirmation());
     }
-    
+
     /**
      * Setup ViewModel observers
      */
     private void setupObservers() {
         // Observe user data
         viewModel.getCurrentUser().observe(getViewLifecycleOwner(), this::updateUserInfo);
-        
+
         // Observe own profile status
         viewModel.getIsOwnProfile().observe(getViewLifecycleOwner(), this::updateButtonVisibility);
-        
+
         // Observe follow status
         viewModel.getIsFollowing().observe(getViewLifecycleOwner(), this::updateFollowButton);
 
@@ -277,7 +287,7 @@ public class UserProfileFragment extends Fragment {
                 viewModel.clearSuccessMessage();
             }
         });
-        
+
         // Observe user songs with uploader info
         viewModel.getPublicSongsWithUploaderInfo().observe(getViewLifecycleOwner(), songsWithInfo -> {
             if (songsWithInfo != null) {
@@ -293,7 +303,7 @@ public class UserProfileFragment extends Fragment {
                 playlistsCount.setText(String.valueOf(playlists.size()));
             }
         });
-        
+
         // Observe stats
         viewModel.getFollowersCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
@@ -314,13 +324,13 @@ public class UserProfileFragment extends Fragment {
         });
 
     }
-    
+
     /**
      * Switch between tabs
      */
     private void switchTab(int tabIndex) {
         currentTab = tabIndex;
-        
+
         if (tabIndex == 0) {
             // Songs tab
             tabSongsIndicator.setVisibility(View.VISIBLE);
@@ -335,22 +345,22 @@ public class UserProfileFragment extends Fragment {
             playlistsRecyclerView.setVisibility(View.VISIBLE);
         }
     }
-    
+
     /**
      * Update user info in UI
      */
     private void updateUserInfo(User user) {
         if (user == null) return;
-        
+
         currentUser = user;
         displayName.setText(user.getDisplayName() != null ? user.getDisplayName() : user.getUsername());
         username.setText("@" + user.getUsername());
         bio.setText(user.getBio() != null ? user.getBio() : "No bio available");
-        
+
         // Load profile image if available
         // TODO: Implement image loading with Glide/Picasso
     }
-    
+
     /**
      * Update button visibility based on own profile status
      */
@@ -367,7 +377,7 @@ public class UserProfileFragment extends Fragment {
             logoutButton.setVisibility(View.GONE);
         }
     }
-    
+
     /**
      * Update follow button state
      */
@@ -376,7 +386,7 @@ public class UserProfileFragment extends Fragment {
             followButton.setText(isFollowing ? "Unfollow" : "Follow");
         }
     }
-    
+
     /**
      * Toggle follow status
      */
@@ -385,21 +395,21 @@ public class UserProfileFragment extends Fragment {
             viewModel.toggleFollowStatus();
         }
     }
-    
+
     /**
      * Edit profile - Navigate to EditProfileFragment
      */
     private void editProfile() {
         // Navigate to EditProfileFragment
         EditProfileFragment editFragment = EditProfileFragment.newInstance();
-        
+
         getParentFragmentManager()
             .beginTransaction()
             .replace(R.id.fragment_container, editFragment)
             .addToBackStack(null)
             .commit();
     }
-    
+
     /**
      * Show logout confirmation dialog
      */
@@ -484,5 +494,74 @@ public class UserProfileFragment extends Fragment {
      */
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Helper method to show mini player with SongWithUploaderInfo
+     * CẢI THIỆN: Tạo NavigationContext để tạo queue từ tất cả songs của user
+     */
+    private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
+        // Create Song object from SongWithUploaderInfo
+        Song song = new Song(songInfo.getUploaderId(), songInfo.getTitle(), songInfo.getAudioUrl());
+        song.setId(songInfo.getId());
+        song.setDescription(songInfo.getDescription());
+        song.setCoverArtUrl(songInfo.getCoverArtUrl());
+        song.setGenre(songInfo.getGenre());
+        song.setDurationMs(songInfo.getDurationMs());
+        song.setPublic(songInfo.isPublic());
+        song.setCreatedAt(songInfo.getCreatedAt());
+
+        // Create User object from uploader info
+        User uploader = new User();
+        uploader.setId(songInfo.getUploaderId());
+        uploader.setUsername(songInfo.getUploaderUsername());
+        uploader.setDisplayName(songInfo.getUploaderDisplayName());
+        uploader.setAvatarUrl(songInfo.getUploaderAvatarUrl());
+
+        // TẠO NAVIGATION CONTEXT từ tất cả songs của user hiện tại
+        createNavigationContextAndPlay(song, uploader, songInfo);
+    }
+
+    /**
+     * Tạo NavigationContext từ danh sách songs hiện tại và phát bài hát với queue
+     */
+    private void createNavigationContextAndPlay(Song song, User uploader, SongWithUploaderInfo clickedSongInfo) {
+        // Lấy danh sách songs hiện tại từ adapter
+        java.util.List<SongWithUploaderInfo> currentSongs = songsAdapter.getCurrentData();
+
+        if (currentSongs == null || currentSongs.isEmpty()) {
+            // Fallback: phát bài đơn lẻ nếu không có danh sách
+            songDetailViewModel.playSong(song, uploader);
+            android.util.Log.w("UserProfileFragment", "No songs list available, playing single song");
+            return;
+        }
+
+        // Tạo danh sách song IDs và tìm vị trí của bài hát được click
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        int clickedPosition = 0;
+
+        for (int i = 0; i < currentSongs.size(); i++) {
+            SongWithUploaderInfo songInfo = currentSongs.get(i);
+            songIds.add(songInfo.getId());
+
+            if (songInfo.getId() == clickedSongInfo.getId()) {
+                clickedPosition = i;
+            }
+        }
+
+        // Tạo NavigationContext từ artist/user
+        NavigationContext context = NavigationContext.fromArtist(
+            uploader.getId(),
+            uploader.getDisplayName() != null ? uploader.getDisplayName() : uploader.getUsername(),
+            songIds,
+            clickedPosition
+        );
+
+        // Phát bài hát với context để tạo queue
+        songDetailViewModel.playSongWithContext(song, uploader, context);
+
+        android.util.Log.d("UserProfileFragment", "Playing song with context - Artist: " +
+            uploader.getDisplayName() + ", Queue size: " + songIds.size() +
+            ", Position: " + clickedPosition);
     }
 }

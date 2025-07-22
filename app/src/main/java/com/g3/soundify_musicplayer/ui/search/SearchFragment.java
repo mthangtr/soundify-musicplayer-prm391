@@ -20,6 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
+import com.g3.soundify_musicplayer.ui.player.FullPlayerFragment;
 import com.g3.soundify_musicplayer.ui.player.FullPlayerActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.google.android.material.chip.Chip;
@@ -244,6 +246,8 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
     @Override
     public void onSongClick(SearchResult result) {
         if (result.getSong() != null && result.getUser() != null) {
+            // TẠO NAVIGATION CONTEXT từ search results
+            createSearchNavigationContextAndPlay(result.getSong(), result.getUser(), result);
             // Show mini player with the selected song
             songDetailViewModel.playSong(result.getSong(), result.getUser());
             showToast("Playing: " + result.getPrimaryText());
@@ -271,14 +275,15 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
         switch (result.getType()) {
             case SONG:
                 // Play song using SongDetailViewModel and navigate to full player
+                // Play song with context and navigate to full player
                 if (result.getSong() != null && result.getUser() != null) {
                     // Show mini player using SongDetailViewModel
                     songDetailViewModel.playSong(result.getSong(), result.getUser());
 
-                    // Navigate to full player
-                    Intent intent = new Intent(getContext(), FullPlayerActivity.class);
-                    intent.putExtra("song_id", result.getSong().getId());
-                    intent.putExtra("uploader_id", result.getUser().getId());
+                    createSearchNavigationContextAndPlay(result.getSong(), result.getUser(), result);
+
+                    // Navigate to full player using proper createIntent method
+                    Intent intent = FullPlayerActivity.createIntent(getContext(), result.getSong().getId());
                     startActivity(intent);
                 }
                 break;
@@ -287,6 +292,62 @@ public class SearchFragment extends Fragment implements SearchAdapter.OnSearchRe
                 showToast("Play playlist: " + result.getPrimaryText());
                 break;
         }
+    }
+
+    /**
+     * Tạo NavigationContext từ search results và phát bài hát với queue
+     */
+    private void createSearchNavigationContextAndPlay(com.g3.soundify_musicplayer.data.entity.Song song,
+                                                     com.g3.soundify_musicplayer.data.entity.User user,
+                                                     SearchResult clickedResult) {
+        // Lấy tất cả search results hiện tại từ adapter
+        java.util.List<SearchResult> currentResults = adapter.getCurrentSearchResults();
+
+        if (currentResults == null || currentResults.isEmpty()) {
+            // Fallback: phát bài đơn lẻ nếu không có search results
+            songDetailViewModel.playSong(song, user);
+            android.util.Log.w("SearchFragment", "No search results available, playing single song");
+            return;
+        }
+
+        // Lọc chỉ lấy các kết quả là SONG và tạo danh sách song IDs
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        int clickedPosition = 0;
+        int songIndex = 0;
+
+        for (int i = 0; i < currentResults.size(); i++) {
+            SearchResult result = currentResults.get(i);
+            if (result.getType() == SearchResult.Type.SONG && result.getSong() != null) {
+                songIds.add(result.getSong().getId());
+
+                // Tìm vị trí của bài hát được click trong danh sách songs
+                if (result.getSong().getId() == clickedResult.getSong().getId()) {
+                    clickedPosition = songIndex;
+                }
+                songIndex++;
+            }
+        }
+
+        if (songIds.isEmpty()) {
+            // Fallback nếu không có song nào trong search results
+            songDetailViewModel.playSong(song, user);
+            android.util.Log.w("SearchFragment", "No songs in search results, playing single song");
+            return;
+        }
+
+        // Tạo NavigationContext từ search
+        NavigationContext context = NavigationContext.fromSearch(
+            currentQuery,
+            songIds,
+            clickedPosition
+        );
+
+        // Phát bài hát với context để tạo queue
+        songDetailViewModel.playSongWithContext(song, user, context);
+
+        android.util.Log.d("SearchFragment", "Playing song with search context - Query: '" +
+            currentQuery + "', Queue size: " + songIds.size() +
+            ", Position: " + clickedPosition);
     }
 
     @Override

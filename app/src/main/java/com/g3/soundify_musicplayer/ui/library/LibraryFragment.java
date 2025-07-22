@@ -23,6 +23,7 @@ import com.g3.soundify_musicplayer.data.Adapter.SongAdapter;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.model.NavigationContext;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.google.android.material.tabs.TabLayout;
@@ -135,6 +136,9 @@ public class LibraryFragment extends Fragment {
             @Override
             public void onOpenDetail(Song song) {
                 showToast("Open detail: " + song.getTitle());
+
+                // QUAN TRỌNG: Gọi method để phát nhạc với queue
+                showMiniPlayer(song);
             }
         });
         mySongsRecyclerView.setAdapter(mySongsAdapter);
@@ -172,6 +176,9 @@ public class LibraryFragment extends Fragment {
             @Override
             public void onOpenDetail(Song song) {
                 showToast("Open detail: " + song.getTitle());
+
+                // QUAN TRỌNG: Gọi method để phát nhạc với queue
+                showMiniPlayer(song);
             }
         });
         likedSongsRecyclerView.setAdapter(likedSongsAdapter);
@@ -308,8 +315,70 @@ public class LibraryFragment extends Fragment {
         // Create a mock artist for the song
         User mockArtist = createMockArtist(song.getUploaderId());
 
-        // Show mini player using SongDetailViewModel
-        songDetailViewModel.playSong(song, mockArtist);
+        // TẠO NAVIGATION CONTEXT dựa trên tab hiện tại
+        createLibraryNavigationContextAndPlay(song, mockArtist);
+    }
+
+    /**
+     * Tạo NavigationContext từ Library tab hiện tại và phát bài hát với queue
+     */
+    private void createLibraryNavigationContextAndPlay(Song song, User artist) {
+        java.util.List<Song> currentSongs = null;
+        String contextTitle = "";
+
+        // Lấy danh sách songs dựa trên tab hiện tại
+        switch (currentTab) {
+            case 0: // My Songs
+                currentSongs = mySongsAdapter.getCurrentData();
+                contextTitle = "My Songs";
+                break;
+            case 2: // Liked Songs
+                currentSongs = likedSongsAdapter.getCurrentData();
+                contextTitle = "Liked Songs";
+                break;
+            default:
+                // Fallback cho tab Playlists hoặc unknown
+                java.util.List<Long> singleSongIds = new java.util.ArrayList<>();
+                singleSongIds.add(song.getId());
+                NavigationContext fallbackContext = NavigationContext.fromGeneral(
+                    "Library", singleSongIds, 0);
+                songDetailViewModel.playSongWithContext(song, artist, fallbackContext);
+                return;
+        }
+
+        if (currentSongs == null || currentSongs.isEmpty()) {
+            // Fallback: phát bài đơn lẻ nếu không có danh sách
+            songDetailViewModel.playSong(song, artist);
+            android.util.Log.w("LibraryFragment", "No songs list available, playing single song");
+            return;
+        }
+
+        // Tạo danh sách song IDs và tìm vị trí của bài hát được click
+        java.util.List<Long> songIds = new java.util.ArrayList<>();
+        int clickedPosition = 0;
+
+        for (int i = 0; i < currentSongs.size(); i++) {
+            Song s = currentSongs.get(i);
+            songIds.add(s.getId());
+
+            if (s.getId() == song.getId()) {
+                clickedPosition = i;
+            }
+        }
+
+        // Tạo NavigationContext từ Library
+        NavigationContext context = NavigationContext.fromGeneral(
+            "Library - " + contextTitle,
+            songIds,
+            clickedPosition
+        );
+
+        // Phát bài hát với context để tạo queue
+        songDetailViewModel.playSongWithContext(song, artist, context);
+
+        android.util.Log.d("LibraryFragment", "Playing song with context - Tab: " +
+            contextTitle + ", Queue size: " + songIds.size() +
+            ", Position: " + clickedPosition);
     }
 
     private User createMockArtist(long artistId) {

@@ -1,6 +1,7 @@
 package com.g3.soundify_musicplayer.data.model;
 
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.entity.User;
 
 /**
  * Data classes để quản lý trạng thái media player
@@ -34,6 +35,7 @@ public class MediaPlayerState {
      */
     public static class CurrentPlaybackState {
         private Song currentSong;
+        private User currentArtist; // ADDED: Centralized artist state
         private PlaybackState playbackState;
         private long currentPosition;       // Vị trí hiện tại (milliseconds)
         private long duration;              // Tổng thời lượng (milliseconds)
@@ -108,6 +110,9 @@ public class MediaPlayerState {
         // Getters and Setters
         public Song getCurrentSong() { return currentSong; }
         public void setCurrentSong(Song currentSong) { this.currentSong = currentSong; }
+
+        public User getCurrentArtist() { return currentArtist; }
+        public void setCurrentArtist(User currentArtist) { this.currentArtist = currentArtist; }
         
         public PlaybackState getPlaybackState() { return playbackState; }
         public void setPlaybackState(PlaybackState playbackState) { this.playbackState = playbackState; }

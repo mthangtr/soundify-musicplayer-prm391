@@ -11,6 +11,7 @@ import androidx.fragment.app.FragmentTransaction;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.ui.player.MiniPlayerFragment;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModelFactory;
 import androidx.lifecycle.ViewModelProvider;
 
 /**
@@ -54,9 +55,11 @@ public abstract class BaseActivity extends AppCompatActivity {
             transaction.replace(R.id.mini_player_container, miniPlayerFragment);
             transaction.commit();
 
-            // Initialize ViewModel THỐNG NHẤT và observe visibility
-            songDetailViewModel = new ViewModelProvider(this).get(SongDetailViewModel.class);
-            android.util.Log.d("BaseActivity", "SongDetailViewModel initialized: " + songDetailViewModel.hashCode());
+            // Initialize ViewModel THỐNG NHẤT với Singleton Repository pattern
+            SongDetailViewModelFactory factory = new SongDetailViewModelFactory(getApplication());
+            songDetailViewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
+            android.util.Log.d("BaseActivity", "SongDetailViewModel initialized with singleton repositories: " +
+                songDetailViewModel.hashCode());
 
             songDetailViewModel.getIsVisible().observe(this, isVisible -> {
                 android.util.Log.d("BaseActivity", "MiniPlayer visibility changed to: " + isVisible +

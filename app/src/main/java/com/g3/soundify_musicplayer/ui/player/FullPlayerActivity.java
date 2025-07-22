@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
@@ -21,9 +22,12 @@ import com.g3.soundify_musicplayer.data.model.NavigationContext;
  * Provides immersive full-screen experience without navigation bars
  */
 public class FullPlayerActivity extends AppCompatActivity {
-    
+
     private static final String EXTRA_SONG_ID = "song_id";
     private static final String EXTRA_NAVIGATION_CONTEXT = "navigation_context";
+
+    // ViewModel with Singleton Repository pattern
+    private SongDetailViewModel viewModel;
     
     /**
      * Create intent to launch FullPlayerActivity
@@ -55,6 +59,13 @@ public class FullPlayerActivity extends AppCompatActivity {
         setupBackPressHandling();
 
         setContentView(R.layout.activity_full_player);
+
+        // Initialize ViewModel with Singleton Repository pattern
+        // QUAN TRỌNG: Phải tạo ViewModel trước khi Fragment được tạo
+        SongDetailViewModelFactory factory = new SongDetailViewModelFactory(getApplication());
+        viewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
+        android.util.Log.d("FullPlayerActivity", "SongDetailViewModel initialized with singleton repositories: " +
+            viewModel.hashCode());
 
         // Get data from intent
         long songId = getIntent().getLongExtra(EXTRA_SONG_ID, -1);

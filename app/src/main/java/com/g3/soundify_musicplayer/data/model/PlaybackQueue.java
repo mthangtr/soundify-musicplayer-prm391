@@ -14,12 +14,12 @@ public class PlaybackQueue {
     
     private List<Song> originalQueue;           // Queue gốc (không shuffle)
     private List<Song> currentQueue;            // Queue hiện tại (có thể đã shuffle)
-    private List<Integer> shuffleIndices;       // Mapping indices cho shuffle mode
+    private final List<Integer> shuffleIndices;       // Mapping indices cho shuffle mode
     private int currentIndex;                   // Vị trí hiện tại trong queue
     private boolean isShuffleEnabled;
     private MediaPlayerState.RepeatMode repeatMode;
     private NavigationContext navigationContext;
-    private Random random;
+    private final Random random;
     
     public PlaybackQueue() {
         this.originalQueue = new ArrayList<>();
@@ -135,21 +135,17 @@ public class PlaybackQueue {
      */
     public Song getNextSong() {
         if (isEmpty()) return null;
-        
+
         switch (repeatMode) {
             case ONE:
-                // Repeat current song
                 return getCurrentSong();
-                
+
             case ALL:
-                // Move to next, wrap around if at end
-                int nextIndex = (currentIndex + 1) % currentQueue.size();
-                currentIndex = nextIndex;
+                currentIndex = (currentIndex + 1) % currentQueue.size();
                 return currentQueue.get(currentIndex);
-                
+
             case OFF:
             default:
-                // Move to next, stop if at end
                 if (hasNext()) {
                     currentIndex++;
                     return currentQueue.get(currentIndex);
@@ -163,24 +159,20 @@ public class PlaybackQueue {
      */
     public Song getPreviousSong() {
         if (isEmpty()) return null;
-        
+
         switch (repeatMode) {
             case ONE:
-                // Repeat current song
                 return getCurrentSong();
-                
+
             case ALL:
-                // Move to previous, wrap around if at beginning
-                int prevIndex = currentIndex - 1;
-                if (prevIndex < 0) {
-                    prevIndex = currentQueue.size() - 1;
+                currentIndex = currentIndex - 1;
+                if (currentIndex < 0) {
+                    currentIndex = currentQueue.size() - 1;
                 }
-                currentIndex = prevIndex;
                 return currentQueue.get(currentIndex);
-                
+
             case OFF:
             default:
-                // Move to previous, stop if at beginning
                 if (hasPrevious()) {
                     currentIndex--;
                     return currentQueue.get(currentIndex);

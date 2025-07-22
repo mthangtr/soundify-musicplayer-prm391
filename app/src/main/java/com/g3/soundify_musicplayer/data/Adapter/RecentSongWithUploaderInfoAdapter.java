@@ -102,6 +102,13 @@ public class RecentSongWithUploaderInfoAdapter extends RecyclerView.Adapter<Rece
         notifyDataSetChanged();
     }
 
+    /**
+     * Get current songs list (for creating NavigationContext)
+     */
+    public List<SongWithUploaderInfo> getSongs() {
+        return new ArrayList<>(data);
+    }
+
     static class RecentSongVH extends RecyclerView.ViewHolder {
         ImageView imgCover;
         TextView tvTitle, tvUploader;

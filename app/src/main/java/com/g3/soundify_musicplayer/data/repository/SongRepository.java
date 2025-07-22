@@ -254,6 +254,22 @@ public class SongRepository {
         });
     }
 
+    // ========== DIRECT DATABASE ACCESS (TO AVOID DEADLOCK) ==========
+
+    /**
+     * Get song by ID directly from database (no ExecutorService)
+     */
+    public Song getSongByIdDirectly(long songId) {
+        return songDao.getSongByIdSync(songId);
+    }
+
+    /**
+     * Get public songs by uploader directly from database (no ExecutorService)
+     */
+    public List<Song> getPublicSongsByUploaderDirectly(long uploaderId) {
+        return songDao.getPublicSongsByUploaderSync(uploaderId);
+    }
+
     public void shutdown() {
         if (executor != null) {
             executor.shutdown();

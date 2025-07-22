@@ -122,11 +122,19 @@ public class FullPlayerFragment extends Fragment {
         setupClickListeners();
         observeViewModel();
 
-        // Load song detail để có like status và thiết lập service connection
+        // Load song detail và setup NavigationContext nếu có
         if (getArguments() != null) {
             long songId = getArguments().getLong(ARG_SONG_ID);
-            android.util.Log.d("FullPlayerFragment", "Loading song detail for ID: " + songId);
-            viewModel.loadSongDetail(songId, 1L); // Default userId = 1
+            NavigationContext navigationContext = (NavigationContext) getArguments().getSerializable(ARG_NAVIGATION_CONTEXT);
+
+            android.util.Log.d("FullPlayerFragment", "FullPlayer opened for song ID: " + songId);
+
+            // FIXED: FullPlayer is now a COMPLETELY PASSIVE VIEW
+            // It ONLY observes existing state from singleton MediaPlayerRepository
+            // NO database calls, NO network calls, NO playback commands
+
+            android.util.Log.d("FullPlayerFragment", "FullPlayer will display current playback state from singleton repository");
+            android.util.Log.d("FullPlayerFragment", "All data will come from MediaPlayerRepository centralized state");
         }
 
         // XÓA syncCurrentSongData() - THỪA vì data đã được sync qua Observer pattern
@@ -216,18 +224,19 @@ public class FullPlayerFragment extends Fragment {
         
         // Playback controls
         btnPrevious.setOnClickListener(v -> {
-            // Sử dụng viewModel (cùng instance với MiniPlayer)
-            viewModel.seekToPercentage(0);
-            showToast("Song restarted");
+            android.util.Log.d("FullPlayerFragment", "Previous button clicked - calling viewModel.playPrevious()");
+            viewModel.playPrevious();
+            showToast("Previous track");
         });
 
         btnPlayPause.setOnClickListener(v -> {
-            // Sử dụng viewModel (cùng instance với MiniPlayer)
             viewModel.togglePlayPause();
         });
 
         btnNext.setOnClickListener(v -> {
-            showToast("Next track not available (single song mode)");
+            android.util.Log.d("FullPlayerFragment", "Next button clicked - calling viewModel.playNext()");
+            viewModel.playNext();
+            showToast("Next track");
         });
         
         // Progress bar - Seek functionality
@@ -286,7 +295,9 @@ public class FullPlayerFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        // COPY CHÍNH XÁC PATTERN TỪ MINIPLAYER
+        // IMPORTANT: FullPlayerFragment is now a PASSIVE VIEW
+        // It only observes and displays current state from singleton MediaPlayerRepository
+        // It does NOT trigger new playback commands to avoid restarting music
 
         // Song data
         viewModel.getCurrentSong().observe(getViewLifecycleOwner(), song -> {
@@ -346,6 +357,20 @@ public class FullPlayerFragment extends Fragment {
         viewModel.getDuration().observe(getViewLifecycleOwner(), durationMs -> {
             if (durationMs != null && durationMs > 0) {
                 textTotalTime.setText(formatTime(durationMs));
+            }
+        });
+
+        // Observe queue info to enable/disable navigation buttons
+        viewModel.getQueueInfo().observe(getViewLifecycleOwner(), queueInfo -> {
+            if (queueInfo != null) {
+                // Enable/disable buttons based on queue state
+                // Note: We always allow navigation (will restart/handle boundaries appropriately)
+                btnPrevious.setEnabled(true); // Always enabled - handles 3-second logic
+                btnNext.setEnabled(true);     // Always enabled - will restart if at end
+
+                android.util.Log.d("FullPlayerFragment", "Queue updated: " +
+                    queueInfo.getCurrentIndex() + "/" + queueInfo.getTotalSongs() +
+                    " - " + queueInfo.getQueueTitle());
             }
         });
     }
