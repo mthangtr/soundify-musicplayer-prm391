@@ -7,6 +7,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -18,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.bumptech.glide.Glide;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
@@ -25,6 +27,7 @@ import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.ui.player.comment.CommentsFragment;
 import com.g3.soundify_musicplayer.ui.player.queue.QueueFragment;
 import com.g3.soundify_musicplayer.ui.player.playlist.PlaylistSelectionActivity;
+import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.utils.TimeUtils;
 
 /**
@@ -42,6 +45,7 @@ public class FullPlayerFragment extends Fragment {
     private TextView textSongTitle;
     private TextView textArtistName;
     private Button btnFollow;
+    private ImageView imageAlbumArt;
     private SeekBar seekbarProgress;
     private TextView textCurrentTime;
     private TextView textTotalTime;
@@ -158,9 +162,10 @@ public class FullPlayerFragment extends Fragment {
         textSongTitle = view.findViewById(R.id.text_song_title);
         textArtistName = view.findViewById(R.id.text_artist_name);
         btnFollow = view.findViewById(R.id.btn_follow);
-        
-        // Album art - xóa vì không sử dụng
-        
+
+        // Album art
+        imageAlbumArt = view.findViewById(R.id.image_album_art);
+
         // Playback controls
         seekbarProgress = view.findViewById(R.id.seekbar_progress);
         seekbarProgress.setMax(100);
@@ -388,8 +393,16 @@ public class FullPlayerFragment extends Fragment {
             seekbarProgress.setMax(100);
         }
 
-        // TODO: Load album art using image loading library (Glide/Coil)
-        // For now, keep the placeholder
+        // Load cover art using Glide
+        if (song.getCoverArtUrl() != null && !song.getCoverArtUrl().isEmpty()) {
+            Glide.with(imageAlbumArt.getContext())
+                    .load(song.getCoverArtUrl())
+                    .placeholder(R.drawable.splashi_icon)
+                    .error(R.drawable.splashi_icon)
+                    .into(imageAlbumArt);
+        } else {
+            imageAlbumArt.setImageResource(R.drawable.splashi_icon);
+        }
     }
 
     private void updateArtistInfo(User artist) {

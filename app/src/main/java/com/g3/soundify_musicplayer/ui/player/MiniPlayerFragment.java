@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.bumptech.glide.Glide;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
@@ -31,7 +32,7 @@ public class MiniPlayerFragment extends Fragment {
 
     // UI Components
     private View rootView;
-    // Xóa imageAlbumArt - không sử dụng
+    private ImageView imageAlbumArt;
     private TextView textSongTitle;
     private TextView textArtistName;
     private ImageButton btnPlayPause;
@@ -66,7 +67,7 @@ public class MiniPlayerFragment extends Fragment {
     }
 
     private void initViews(View view) {
-        // Xóa imageAlbumArt initialization - không sử dụng
+        imageAlbumArt = view.findViewById(R.id.image_album_art);
         textSongTitle = view.findViewById(R.id.text_song_title);
         textArtistName = view.findViewById(R.id.text_artist_name);
         btnPlayPause = view.findViewById(R.id.btn_play_pause);
@@ -142,9 +143,13 @@ public class MiniPlayerFragment extends Fragment {
 
         // Observe current artist
         viewModel.getCurrentArtist().observe(getViewLifecycleOwner(), artist -> {
+            android.util.Log.d("MiniPlayerFragment", "Artist changed to: " +
+                (artist != null ? artist.getDisplayName() + " (" + artist.getUsername() + ")" : "NULL"));
             if (artist != null) {
                 currentArtist = artist;
                 updateArtistInfo(artist);
+            } else {
+                android.util.Log.w("MiniPlayerFragment", "Artist is NULL - not updating UI");
             }
         });
 
@@ -181,14 +186,30 @@ public class MiniPlayerFragment extends Fragment {
 
     private void updateSongInfo(Song song) {
         textSongTitle.setText(song.getTitle());
-        // TODO: Load album art using image loading library (Glide/Coil)
-        // For now, keep the placeholder
+
+        // Load cover art using Glide
+        if (song.getCoverArtUrl() != null && !song.getCoverArtUrl().isEmpty()) {
+            Glide.with(imageAlbumArt.getContext())
+                    .load(song.getCoverArtUrl())
+                    .placeholder(R.drawable.splashi_icon)
+                    .error(R.drawable.splashi_icon)
+                    .into(imageAlbumArt);
+        } else {
+            imageAlbumArt.setImageResource(R.drawable.splashi_icon);
+        }
     }
 
     private void updateArtistInfo(User artist) {
         String displayName = artist.getDisplayName();
         String username = artist.getUsername();
-        textArtistName.setText(displayName != null && !displayName.isEmpty() ? displayName : username);
+        String finalName = displayName != null && !displayName.isEmpty() ? displayName : username;
+
+        android.util.Log.d("MiniPlayerFragment", "updateArtistInfo called - displayName: " + displayName +
+            ", username: " + username + ", finalName: " + finalName);
+
+        textArtistName.setText(finalName);
+
+        android.util.Log.d("MiniPlayerFragment", "Artist name set to TextView: " + finalName);
     }
 
     private void updatePlayPauseButton(boolean isPlaying) {

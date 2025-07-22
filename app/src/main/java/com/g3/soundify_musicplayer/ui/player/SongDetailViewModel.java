@@ -40,11 +40,6 @@ public class SongDetailViewModel extends AndroidViewModel {
     private final MediaPlayerRepository mediaPlayerRepository;
     private final AuthManager authManager;
     private final ExecutorService executor;
-
-    // REMOVED: MediaPlaybackService integration - chỉ MediaPlayerRepository được phép bind service
-    // Tất cả tương tác với service sẽ đi qua MediaPlayerRepository
-    
-    // LiveData cho UI
     private final MutableLiveData<Song> currentSong = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLiked = new MutableLiveData<>();
     private final MutableLiveData<Integer> likeCount = new MutableLiveData<>();
@@ -111,21 +106,29 @@ public class SongDetailViewModel extends AndroidViewModel {
      * Load song detail data
      */
     public void loadSongDetail(long songId, long userId) {
+        android.util.Log.d("SongDetailViewModel", "🔍 loadSongDetail() called - songId: " + songId + ", userId: " + userId);
         isLoading.postValue(true); // FIXED: Use postValue() to avoid IllegalStateException
         
         executor.execute(() -> {
             try {
+                android.util.Log.d("SongDetailViewModel", "🔍 Executing loadSongDetail in background thread");
                 // Get comprehensive song detail data
                 SongDetailRepository.SongDetailData data = repository.getSongDetailData(songId, userId).get();
+                android.util.Log.d("SongDetailViewModel", "🔍 getSongDetailData returned: " + (data != null ? "SUCCESS" : "NULL"));
                 
                 if (data != null) {
+                    android.util.Log.d("SongDetailViewModel", "🔍 Processing song data - Song: " + data.song.getTitle() + ", UploaderId: " + data.song.getUploaderId());
                     // Update UI data
                     currentSong.postValue(data.song);
                     isLiked.postValue(data.isLiked);
                     likeCount.postValue(data.likeCount);
                     commentCount.postValue(data.commentCount);
                     playlistsContainingSong.postValue(data.playlistIds);
-                    
+
+                    // FIXED: Load and set artist information
+                    android.util.Log.d("SongDetailViewModel", "🔍 About to call loadArtistInfo with uploaderId: " + data.song.getUploaderId());
+                    loadArtistInfo(data.song.getUploaderId());
+
                     // Load related content
                     loadRelatedSongs(data.song.getGenre(), songId);
                     loadMoreSongsByArtist(data.song.getUploaderId(), songId);
@@ -287,6 +290,25 @@ public class SongDetailViewModel extends AndroidViewModel {
             }
         });
     }
+
+    private void loadArtistInfo(long uploaderId) {
+        android.util.Log.d("SongDetailViewModel", "🎤 loadArtistInfo() called with uploaderId: " + uploaderId);
+        executor.execute(() -> {
+            try {
+                android.util.Log.d("SongDetailViewModel", "🎤 Fetching user from repository...");
+                User artist = repository.getUserById(uploaderId).get();
+                if (artist != null) {
+                    android.util.Log.d("SongDetailViewModel", "🎤 Artist loaded successfully: " + artist.getDisplayName() + " (" + artist.getUsername() + ")");
+                    setCurrentArtist(artist);
+                    android.util.Log.d("SongDetailViewModel", "🎤 setCurrentArtist() called - artist should now be available to observers");
+                } else {
+                    android.util.Log.w("SongDetailViewModel", "🎤 Artist not found for uploaderId: " + uploaderId);
+                }
+            } catch (Exception e) {
+                android.util.Log.e("SongDetailViewModel", "🎤 Error loading artist info for uploaderId: " + uploaderId, e);
+            }
+        });
+    }
     
     private void loadUserPlaylists(long userId) {
         executor.execute(() -> {
@@ -405,14 +427,22 @@ public class SongDetailViewModel extends AndroidViewModel {
      * All fragments use this method for 100% consistent behavior
      */
     public void playFromView(List<Song> songs, String viewTitle, int startIndex) {
+        android.util.Log.d("SongDetailViewModel", "🎵 playFromView() called - viewTitle: " + viewTitle + ", startIndex: " + startIndex + ", songs count: " + (songs != null ? songs.size() : 0));
+
         if (songs != null && !songs.isEmpty() && startIndex >= 0 && startIndex < songs.size()) {
             // Use the ONE AND ONLY queue method for consistency
             mediaPlayerRepository.replaceListAndPlay(songs, viewTitle, startIndex);
 
             // Update UI state
             Song selectedSong = songs.get(startIndex);
+            android.util.Log.d("SongDetailViewModel", "🎵 Selected song: " + selectedSong.getTitle() + " (ID: " + selectedSong.getId() + ", UploaderId: " + selectedSong.getUploaderId() + ")");
             currentSong.postValue(selectedSong);
+
+            // FIXED: Load song detail data including artist information
+            android.util.Log.d("SongDetailViewModel", "🎵 Calling loadSongDetail for song ID: " + selectedSong.getId());
+            loadSongDetail(selectedSong.getId(), 1L);
         } else {
+            android.util.Log.w("SongDetailViewModel", "🎵 Invalid song selection - songs: " + (songs != null ? songs.size() : "null") + ", startIndex: " + startIndex);
             errorMessage.postValue("Invalid song selection");
         }
     }
@@ -421,9 +451,11 @@ public class SongDetailViewModel extends AndroidViewModel {
      * ✅ BACKWARD COMPATIBILITY - All old methods delegate to playFromView
      */
     public void playSong(Song song, User artist) {
+        android.util.Log.d("SongDetailViewModel", "🎵 playSong() called - Song: " + (song != null ? song.getTitle() : "null") + ", Artist: " + (artist != null ? artist.getDisplayName() : "null"));
         if (song != null) {
             playFromView(List.of(song), "Single Song", 0);
         } else {
+            android.util.Log.w("SongDetailViewModel", "🎵 playSong() called with null song");
             errorMessage.postValue("Thông tin bài hát không hợp lệ");
         }
     }

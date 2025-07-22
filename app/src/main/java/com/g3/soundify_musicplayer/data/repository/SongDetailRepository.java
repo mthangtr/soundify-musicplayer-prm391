@@ -24,12 +24,14 @@ public class SongDetailRepository {
     protected SongRepository songRepository;
     protected MusicPlayerRepository musicPlayerRepository;
     protected PlaylistRepository playlistRepository;
+    protected UserRepository userRepository;
     protected ExecutorService executor;
     
     public SongDetailRepository(Application application) {
         songRepository = new SongRepository(application);
         musicPlayerRepository = new MusicPlayerRepository(application);
         playlistRepository = new PlaylistRepository(application);
+        userRepository = new UserRepository(application);
         executor = Executors.newFixedThreadPool(4);
     }
     
@@ -68,6 +70,15 @@ public class SongDetailRepository {
      */
     public Future<Song> getSongByIdSync(long songId) {
         return songRepository.getSongByIdSync(songId);
+    }
+
+    // ========== USER OPERATIONS ==========
+
+    /**
+     * Get user by ID synchronously
+     */
+    public Future<User> getUserById(long userId) {
+        return userRepository.getUserByIdSync(userId);
     }
     
     // ========== SONG LIKE OPERATIONS ==========
