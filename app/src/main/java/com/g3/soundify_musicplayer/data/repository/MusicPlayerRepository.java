@@ -162,7 +162,10 @@ public class MusicPlayerRepository {
     }
     
     public LiveData<List<Song>> getLikedSongsByUser(long userId) {
-        return songLikeDao.getLikedSongsByUser(userId);
+        android.util.Log.d("MusicPlayerRepository", "🔍 getLikedSongsByUser called for userId: " + userId);
+        LiveData<List<Song>> result = songLikeDao.getLikedSongsByUser(userId);
+        android.util.Log.d("MusicPlayerRepository", "🔍 LiveData result: " + (result != null ? "SUCCESS" : "NULL"));
+        return result;
     }
     
     public LiveData<List<User>> getUsersWhoLikedSong(long songId) {
@@ -176,15 +179,28 @@ public class MusicPlayerRepository {
      * Returns the new like status
      */
     public Future<Boolean> toggleSongLike(long songId, long userId) {
+        android.util.Log.d("MusicPlayerRepository", "🔄 toggleSongLike called - songId: " + songId + ", userId: " + userId);
+        
         return executor.submit(() -> {
-            boolean isCurrentlyLiked = songLikeDao.isSongLikedByUser(songId, userId) > 0;
-            if (isCurrentlyLiked) {
-                songLikeDao.unlikeSong(songId, userId);
-                return false;
-            } else {
-                SongLike songLike = new SongLike(songId, userId);
-                songLikeDao.insert(songLike);
-                return true;
+            try {
+                boolean isCurrentlyLiked = songLikeDao.isSongLikedByUser(songId, userId) > 0;
+                android.util.Log.d("MusicPlayerRepository", "🔍 Current like status: " + isCurrentlyLiked);
+                
+                if (isCurrentlyLiked) {
+                    android.util.Log.d("MusicPlayerRepository", "🔄 Unliking song...");
+                    songLikeDao.unlikeSong(songId, userId);
+                    android.util.Log.d("MusicPlayerRepository", "✅ Song unliked successfully");
+                    return false;
+                } else {
+                    android.util.Log.d("MusicPlayerRepository", "🔄 Liking song...");
+                    SongLike songLike = new SongLike(songId, userId);
+                    songLikeDao.insert(songLike);
+                    android.util.Log.d("MusicPlayerRepository", "✅ Song liked successfully");
+                    return true;
+                }
+            } catch (Exception e) {
+                android.util.Log.e("MusicPlayerRepository", "❌ Error in toggleSongLike", e);
+                throw e;
             }
         });
     }

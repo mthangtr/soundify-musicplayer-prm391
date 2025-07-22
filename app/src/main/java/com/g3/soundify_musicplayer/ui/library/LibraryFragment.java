@@ -281,8 +281,8 @@ public class LibraryFragment extends Fragment {
                 checkEmptyStateForCurrentTab();
                 break;
             case TAB_LIKED_SONGS:
-                likedSongsRecyclerView.setVisibility(View.VISIBLE);
-                checkEmptyStateForCurrentTab();
+                // Navigate to LikedSongPlaylistFragment instead of showing local RecyclerView
+                navigateToLikedSongsPlaylist();
                 break;
         }
     }
@@ -503,6 +503,34 @@ public class LibraryFragment extends Fragment {
             .replace(R.id.fragment_container, fragment)
             .addToBackStack("playlist_detail")
             .commit();
+    }
+
+    /**
+     * Navigate to liked songs playlist fragment
+     */
+    private void navigateToLikedSongsPlaylist() {
+        android.util.Log.d("LibraryFragment", "🔄 Navigating to LikedSongPlaylistFragment");
+        
+        if (getActivity() == null) {
+            android.util.Log.e("LibraryFragment", "❌ Activity is null, cannot navigate");
+            return;
+        }
+
+        LikedSongPlaylistFragment fragment = LikedSongPlaylistFragment.newInstance();
+
+        getActivity().getSupportFragmentManager()
+            .beginTransaction()
+            .setCustomAnimations(
+                R.anim.slide_in_right,  // enter
+                R.anim.slide_out_left,  // exit
+                R.anim.slide_in_left,   // popEnter
+                R.anim.slide_out_right  // popExit
+            )
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack("liked_songs_playlist")
+            .commit();
+            
+        android.util.Log.d("LibraryFragment", "✅ Navigation to LikedSongPlaylistFragment completed");
     }
 
     /**

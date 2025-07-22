@@ -145,16 +145,25 @@ public class SongDetailViewModel extends AndroidViewModel {
      * Toggle song like status
      */
     public void toggleLike(long songId, long userId) {
+        android.util.Log.d("SongDetailViewModel", "🔄 toggleLike(songId: " + songId + ", userId: " + userId + ") starting...");
+        
         executor.execute(() -> {
             try {
+                android.util.Log.d("SongDetailViewModel", "🔄 Calling repository.toggleSongLike...");
                 Boolean newLikeStatus = repository.toggleSongLike(songId, userId).get();
+                android.util.Log.d("SongDetailViewModel", "✅ toggleSongLike result: " + newLikeStatus);
+                
                 isLiked.postValue(newLikeStatus);
                 
                 // Update like count
+                android.util.Log.d("SongDetailViewModel", "🔄 Getting updated like info...");
                 MusicPlayerRepository.SongLikeInfo likeInfo = repository.getSongLikeInfo(songId, userId).get();
+                android.util.Log.d("SongDetailViewModel", "✅ Like info - isLiked: " + likeInfo.isLiked + ", count: " + likeInfo.likeCount);
+                
                 likeCount.postValue(likeInfo.likeCount);
                 
             } catch (Exception e) {
+                android.util.Log.e("SongDetailViewModel", "❌ Error in toggleLike", e);
                 errorMessage.postValue("Lỗi khi thực hiện like: " + e.getMessage());
             }
         });
@@ -295,8 +304,11 @@ public class SongDetailViewModel extends AndroidViewModel {
     
     private long getCurrentUserId() {
         if (authManager != null) {
-            return authManager.getCurrentUserId();
+            long userId = authManager.getCurrentUserId();
+            android.util.Log.d("SongDetailViewModel", "🔍 getCurrentUserId(): " + userId);
+            return userId;
         }
+        android.util.Log.w("SongDetailViewModel", "⚠️ AuthManager is null, using fallback userId: 1");
         return 1L; // Fallback user ID
     }
     
@@ -799,10 +811,15 @@ public class SongDetailViewModel extends AndroidViewModel {
      */
     public void toggleLike() {
         Song song = currentSong.getValue();
+        android.util.Log.d("SongDetailViewModel", "🔄 toggleLike() called - Song: " + (song != null ? song.getTitle() + " (ID: " + song.getId() + ")" : "NULL"));
+        
         if (song != null) {
-            // Call the existing toggleLike with parameters
-            toggleLike(song.getId(), 1L); // Use default userId = 1
+            // FIXED: Get real current user ID instead of hardcoded 1
+            long currentUserId = getCurrentUserId(); // This should get the actual logged-in user
+            android.util.Log.d("SongDetailViewModel", "🔄 Calling toggleLike with songId: " + song.getId() + ", userId: " + currentUserId);
+            toggleLike(song.getId(), currentUserId);
         } else {
+            android.util.Log.e("SongDetailViewModel", "❌ No song selected to like");
             errorMessage.postValue("No song selected to like");
         }
     }

@@ -390,4 +390,12 @@
     <string name="empty_state_title">Nothing here yet</string>
     <string name="empty_state_subtitle">Start building your library</string>
     <string name="cd_empty_state">Empty state illustration</string>
+
+    <!-- Liked Songs Playlist -->
+    <string name="liked_songs_title">Liked Songs</string>
+    <string name="no_liked_songs">No Liked Songs</string>
+    <string name="no_liked_songs_subtitle">Songs you like will appear here</string>
+    <string name="loading_liked_songs">Loading liked songs…</string>
+    <string name="play_all">Play All</string>
+    <string name="shuffle">Shuffle</string>
 </resources>
