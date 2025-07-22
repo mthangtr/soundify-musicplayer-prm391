@@ -22,7 +22,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
-import com.g3.soundify_musicplayer.ui.player.FullPlayerFragment;
 import com.g3.soundify_musicplayer.ui.player.FullPlayerActivity;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.profile.UserProfileFragment;

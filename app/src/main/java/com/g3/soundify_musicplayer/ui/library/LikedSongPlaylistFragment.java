@@ -20,7 +20,7 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.model.NavigationContext;
-import com.g3.soundify_musicplayer.ui.home.SongAdapter;
+import com.g3.soundify_musicplayer.ui.song.SongAdapter;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 
 import java.util.ArrayList;

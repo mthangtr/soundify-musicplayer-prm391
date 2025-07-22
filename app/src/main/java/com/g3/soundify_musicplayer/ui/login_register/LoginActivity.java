@@ -15,7 +15,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.ui.main.MainActivity;
 import com.g3.soundify_musicplayer.viewmodel.AuthViewModel;
-import com.g3.soundify_musicplayer.utils.DatabaseTestHelper;
 
 public class LoginActivity extends AppCompatActivity {
 

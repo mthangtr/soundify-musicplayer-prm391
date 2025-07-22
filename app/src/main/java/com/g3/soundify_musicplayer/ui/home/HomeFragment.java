@@ -196,23 +196,7 @@ public class HomeFragment extends Fragment {
     
     // Demo playlist method removed - now using real user playlists from database
 
-    // Helper method to show mini player with song
-    private void showMiniPlayer(Song song) {
-        // Create basic user info from song (deprecated approach)
-        User basicUser = new User("user_" + song.getUploaderId(), "User " + song.getUploaderId(), "user@example.com", "");
-        basicUser.setId(song.getUploaderId());
 
-        // Show mini player using SongDetailViewModel THỐNG NHẤT
-        songDetailViewModel.playSong(song, basicUser);
-
-        android.util.Log.w("HomeFragment", "showMiniPlayer with basic user info - prefer SongWithUploaderInfo approach");
-    }
-
-    // Helper method to show mini player with song and real uploader
-    private void showMiniPlayerWithUploader(Song song, User uploader) {
-        // Show mini player using SongDetailViewModel THỐNG NHẤT
-        songDetailViewModel.playSong(song, uploader);
-    }
 
     // Helper method to show mini player with SongWithUploaderInfo
     private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
