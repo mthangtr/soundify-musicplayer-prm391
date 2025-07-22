@@ -43,16 +43,10 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View v, @Nullable Bundle b) {
-        android.util.Log.e("DEBUG_HOME", "=== HomeFragment onViewCreated START ===");
-
         // Initialize ViewModels
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         // Sử dụng SongDetailViewModel THỐNG NHẤT
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
-
-        android.util.Log.e("DEBUG_HOME", "ViewModels initialized");
-
-        android.util.Log.d("HomeFragment", "SongDetailViewModel initialized: " + songDetailViewModel.hashCode());
 
         // Recently Played RecyclerView
         RecyclerView rvRecentlyPlayed = v.findViewById(R.id.rvRecentlyPlayed);
@@ -194,8 +188,7 @@ public class HomeFragment extends Fragment {
         List<SongWithUploaderInfo> suggestedSongs = suggestedAdapter != null ? suggestedAdapter.getCurrentData() : new ArrayList<>();
         int position = findSongPosition(songInfo, suggestedSongs);
 
-        android.util.Log.d("HomeFragment", "Playing song with context - Song: " +
-            song.getTitle() + ", Context: Home");
+
     }
 
     // Mock artist method removed - using real user data from SongWithUploaderInfo
@@ -318,7 +311,7 @@ public class HomeFragment extends Fragment {
                 .addToBackStack("playlist_detail")
                 .commit();
 
-            android.util.Log.d("HomeFragment", "Navigating to playlist: " + playlist.getName());
+
         } catch (Exception e) {
             android.util.Log.e("HomeFragment", "Error navigating to playlist detail", e);
             Toast.makeText(requireContext(), "Error opening playlist", Toast.LENGTH_SHORT).show();

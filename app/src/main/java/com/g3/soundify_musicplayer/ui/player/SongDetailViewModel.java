@@ -151,17 +151,13 @@ public class SongDetailViewModel extends AndroidViewModel {
         
         executor.execute(() -> {
             try {
-                android.util.Log.d("SongDetailViewModel", "🔄 Calling repository.toggleSongLike...");
                 Boolean newLikeStatus = repository.toggleSongLike(songId, userId).get();
-                android.util.Log.d("SongDetailViewModel", "✅ toggleSongLike result: " + newLikeStatus);
-                
+
                 isLiked.postValue(newLikeStatus);
-                
+
                 // Update like count
-                android.util.Log.d("SongDetailViewModel", "🔄 Getting updated like info...");
                 MusicPlayerRepository.SongLikeInfo likeInfo = repository.getSongLikeInfo(songId, userId).get();
-                android.util.Log.d("SongDetailViewModel", "✅ Like info - isLiked: " + likeInfo.isLiked + ", count: " + likeInfo.likeCount);
-                
+
                 likeCount.postValue(likeInfo.likeCount);
                 
             } catch (Exception e) {
@@ -307,10 +303,9 @@ public class SongDetailViewModel extends AndroidViewModel {
     private long getCurrentUserId() {
         if (authManager != null) {
             long userId = authManager.getCurrentUserId();
-            android.util.Log.d("SongDetailViewModel", "🔍 getCurrentUserId(): " + userId);
             return userId;
         }
-        android.util.Log.w("SongDetailViewModel", "⚠️ AuthManager is null, using fallback userId: 1");
+        android.util.Log.w("SongDetailViewModel", "AuthManager is null, using fallback userId: 1");
         return 1L; // Fallback user ID
     }
     
@@ -416,13 +411,10 @@ public class SongDetailViewModel extends AndroidViewModel {
         if (songs != null && !songs.isEmpty() && startIndex >= 0 && startIndex < songs.size()) {
             // Use the ONE AND ONLY queue method for consistency
             mediaPlayerRepository.replaceListAndPlay(songs, viewTitle, startIndex);
-            
+
             // Update UI state
             Song selectedSong = songs.get(startIndex);
             currentSong.postValue(selectedSong);
-            
-            android.util.Log.d("SongDetailViewModel", "✅ Playing from " + viewTitle + 
-                ": " + selectedSong.getTitle() + " (" + (startIndex + 1) + "/" + songs.size() + ")");
         } else {
             errorMessage.postValue("Invalid song selection");
         }
@@ -575,7 +567,6 @@ public class SongDetailViewModel extends AndroidViewModel {
         if (progressRunnable != null && progressHandler != null) {
             progressHandler.removeCallbacks(progressRunnable);
             progressRunnable = null;
-            android.util.Log.d("SongDetailViewModel", "✅ Progress updates stopped safely");
         }
     }
 
@@ -646,8 +637,6 @@ public class SongDetailViewModel extends AndroidViewModel {
         executor.execute(() -> {
             try {
                 MediaPlayerState.QueueInfo queueInfo = mediaPlayerRepository.getQueueInfo().getValue();
-                android.util.Log.d("SongDetailViewModel", "Current queue context: " +
-                    (queueInfo != null ? queueInfo.getQueueTitle() + " (" + queueInfo.getCurrentIndex() + "/" + queueInfo.getTotalSongs() + ")" : "null"));
 
                 if (queueInfo == null || queueInfo.getTotalSongs() == 0) {
                     android.util.Log.w("SongDetailViewModel", "No queue context available - navigation may not work");
@@ -695,15 +684,13 @@ public class SongDetailViewModel extends AndroidViewModel {
      */
     public void toggleLike() {
         Song song = currentSong.getValue();
-        android.util.Log.d("SongDetailViewModel", "🔄 toggleLike() called - Song: " + (song != null ? song.getTitle() + " (ID: " + song.getId() + ")" : "NULL"));
-        
+
         if (song != null) {
             // FIXED: Get real current user ID instead of hardcoded 1
             long currentUserId = getCurrentUserId(); // This should get the actual logged-in user
-            android.util.Log.d("SongDetailViewModel", "🔄 Calling toggleLike with songId: " + song.getId() + ", userId: " + currentUserId);
             toggleLike(song.getId(), currentUserId);
         } else {
-            android.util.Log.e("SongDetailViewModel", "❌ No song selected to like");
+            android.util.Log.e("SongDetailViewModel", "No song selected to like");
             errorMessage.postValue("No song selected to like");
         }
     }
@@ -731,25 +718,21 @@ public class SongDetailViewModel extends AndroidViewModel {
         super.onCleared();
         
         // ✅ CRITICAL: Comprehensive cleanup to prevent crashes
-        android.util.Log.d("SongDetailViewModel", "🧹 ViewModel cleanup started");
-        
         try {
             // Stop progress updates first to prevent thread leaks
             stopProgressUpdates();
-            
+
             // ⚠️ IMPORTANT: DO NOT shutdown MediaPlayerRepository here!
             // It's a singleton that must persist across activity changes
             // Only shutdown local repository
             if (repository != null) {
                 repository.shutdown();
             }
-            
+
             if (executor != null) {
                 executor.shutdown();
             }
-            
-            android.util.Log.d("SongDetailViewModel", "✅ ViewModel cleanup completed safely");
-            
+
         } catch (Exception e) {
             android.util.Log.e("SongDetailViewModel", "Error during ViewModel cleanup", e);
         }
@@ -759,15 +742,13 @@ public class SongDetailViewModel extends AndroidViewModel {
      * ✅ NEW: Manual cleanup method for activity transitions
      */
     public void pauseUpdates() {
-        android.util.Log.d("SongDetailViewModel", "🔇 Pausing ViewModel updates");
         stopProgressUpdates();
     }
-    
+
     /**
-     * ✅ NEW: Resume updates method for activity transitions  
+     * ✅ NEW: Resume updates method for activity transitions
      */
     public void resumeUpdates() {
-        android.util.Log.d("SongDetailViewModel", "🔊 Resuming ViewModel updates");
         MediaPlayerState.CurrentPlaybackState state = mediaPlayerRepository.getCurrentPlaybackState().getValue();
         if (state != null && state.isPlaying()) {
             startProgressUpdates();

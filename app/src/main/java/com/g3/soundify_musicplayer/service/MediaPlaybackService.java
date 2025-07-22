@@ -151,16 +151,12 @@ public class MediaPlaybackService extends Service {
      */
     public void playSong(Song song, User artist) {
         if (song == null || song.getAudioUrl() == null) {
-            android.util.Log.d("MediaPlaybackService", "Invalid song or URL");
             return;
         }
 
         boolean isSameSong = currentSong != null && currentSong.getId() == song.getId();
         currentSong = song;
         currentArtist = artist;
-
-        android.util.Log.d("MediaPlaybackService", "Playing song: " + song.getTitle() +
-            " (Same song: " + isSameSong + ") - Thread: " + Thread.currentThread().getName());
 
         // Đảm bảo tất cả ExoPlayer operations chạy trên main thread
         mainHandler.post(() -> {
@@ -183,13 +179,10 @@ public class MediaPlaybackService extends Service {
 
                 // Thông báo UI về bài hát mới (luôn gọi để refresh UI)
                 if (playbackStateListener != null) {
-                    android.util.Log.d("MediaPlaybackService", "Calling onSongChanged listener");
                     playbackStateListener.onSongChanged(song, artist);
                 } else {
                     android.util.Log.w("MediaPlaybackService", "playbackStateListener is NULL!");
                 }
-
-                android.util.Log.d("MediaPlaybackService", "Song setup completed - playing from start");
             } catch (Exception e) {
                 android.util.Log.e("MediaPlaybackService", "Error playing song", e);
             }
@@ -279,7 +272,6 @@ public class MediaPlaybackService extends Service {
         mainHandler.post(() -> {
             try {
                 long duration = exoPlayer.getDuration();
-                android.util.Log.d("MediaPlaybackService", "Seeking to: " + positionMs + "ms (Duration: " + duration + "ms)");
 
                 // Đảm bảo position hợp lệ
                 if (positionMs >= 0 && (duration <= 0 || positionMs <= duration)) {
@@ -290,8 +282,6 @@ public class MediaPlaybackService extends Service {
                     if (wasPlaying) {
                         exoPlayer.setPlayWhenReady(true);
                     }
-
-                    android.util.Log.d("MediaPlaybackService", "Seek completed, playing: " + exoPlayer.isPlaying());
                 } else {
                     android.util.Log.w("MediaPlaybackService", "Invalid seek position: " + positionMs);
                 }
@@ -492,13 +482,10 @@ public class MediaPlaybackService extends Service {
      * FIXED: Đảm bảo ExoPlayer operations chạy trên Main Thread
      */
     public void resume() {
-        android.util.Log.d("MediaPlaybackService", "▶️ RESUME called from thread: " + Thread.currentThread().getName());
-
         // Đảm bảo ExoPlayer operations chạy trên Main Thread
         mainHandler.post(() -> {
             if (exoPlayer != null) {
                 exoPlayer.play();
-                android.util.Log.d("MediaPlaybackService", "✅ RESUME executed on Main Thread");
             }
         });
     }

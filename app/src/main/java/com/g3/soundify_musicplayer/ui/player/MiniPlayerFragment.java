@@ -78,7 +78,6 @@ public class MiniPlayerFragment extends Fragment {
     private void setupViewModel() {
         // Sử dụng SongDetailViewModel THỐNG NHẤT cho cả Mini và Full Player
         viewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
-        android.util.Log.d("MiniPlayerFragment", "SongDetailViewModel initialized: " + viewModel.hashCode());
     }
 
     private void setupClickListeners() {
@@ -89,7 +88,6 @@ public class MiniPlayerFragment extends Fragment {
         btnPlayPause.setOnClickListener(v -> {
             // ✅ SAFE: Add error handling for play/pause
             try {
-                android.util.Log.d("MiniPlayerFragment", "▶️ Play/Pause button clicked");
                 viewModel.togglePlayPause();
                 showToast(isPlaying ? "Paused" : "Playing");
             } catch (Exception e) {
@@ -115,7 +113,6 @@ public class MiniPlayerFragment extends Fragment {
         btnClose.setOnClickListener(v -> {
             // ✅ SAFE: Add error handling for close
             try {
-                android.util.Log.d("MiniPlayerFragment", "❌ Close button clicked");
                 viewModel.hideMiniPlayer();
                 showToast("Mini player closed");
             } catch (Exception e) {
@@ -138,8 +135,6 @@ public class MiniPlayerFragment extends Fragment {
 
         // Observe current song
         viewModel.getCurrentSong().observe(getViewLifecycleOwner(), song -> {
-            android.util.Log.d("MiniPlayerFragment", "Song changed to: " +
-                (song != null ? song.getTitle() : "NULL"));
             if (song != null) {
                 currentSong = song;
                 updateSongInfo(song);
@@ -181,9 +176,6 @@ public class MiniPlayerFragment extends Fragment {
                 // Note: We always allow Next (it will restart current song if at end)
                 // But we can show visual feedback about queue state
                 btnNext.setEnabled(true); // Always enabled - will restart if needed
-
-                android.util.Log.d("MiniPlayerFragment", "Queue updated: " +
-                    queueInfo.getCurrentIndex() + "/" + queueInfo.getTotalSongs());
             }
         });
     }
@@ -253,19 +245,17 @@ public class MiniPlayerFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        android.util.Log.d("MiniPlayerFragment", "🔊 MiniPlayer resumed");
-        
+
         // ✅ CRITICAL: Resume updates when coming back from FullPlayer
         if (viewModel != null) {
             viewModel.resumeUpdates();
         }
     }
-    
+
     @Override
     public void onPause() {
         super.onPause();
-        android.util.Log.d("MiniPlayerFragment", "🔇 MiniPlayer paused");
-        
+
         // ✅ IMPORTANT: Don't pause updates here unless activity is finishing
         // MiniPlayer should continue updating even when FullPlayer is open
         // Only pause if parent activity is actually finishing

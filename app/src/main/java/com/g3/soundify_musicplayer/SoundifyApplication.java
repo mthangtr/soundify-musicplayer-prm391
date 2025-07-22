@@ -27,20 +27,15 @@ public class SoundifyApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        
-        Log.d(TAG, "Soundify Application starting...");
-        
+
         // Initialize notification channels
         createNotificationChannels();
-        
+
         // Initialize database (this will create the database if it doesn't exist)
         initializeDatabase();
 
         // Initialize Repository Manager singleton
         repositoryManager = RepositoryManager.getInstance(this);
-        Log.d(TAG, "Repository Manager initialized");
-
-        Log.d(TAG, "Soundify Application initialized successfully");
     }
     
     /**
@@ -68,8 +63,6 @@ public class SoundifyApplication extends Application {
             );
             generalChannel.setDescription("General app notifications");
             notificationManager.createNotificationChannel(generalChannel);
-            
-            Log.d(TAG, "Notification channels created");
         }
     }
     
@@ -80,7 +73,6 @@ public class SoundifyApplication extends Application {
         try {
             // This will trigger database creation if it doesn't exist
             AppDatabase database = AppDatabase.getInstance(this);
-            Log.d(TAG, "Database initialized successfully");
         } catch (Exception e) {
             Log.e(TAG, "Error initializing database", e);
         }
@@ -89,7 +81,6 @@ public class SoundifyApplication extends Application {
     @Override
     public void onTerminate() {
         super.onTerminate();
-        Log.d(TAG, "Soundify Application terminating...");
 
         // Cleanup repositories
         if (repositoryManager != null) {

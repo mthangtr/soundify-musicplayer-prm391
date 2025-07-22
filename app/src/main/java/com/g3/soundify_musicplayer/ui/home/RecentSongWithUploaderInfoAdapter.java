@@ -46,11 +46,6 @@ public class RecentSongWithUploaderInfoAdapter extends RecyclerView.Adapter<Rece
     public void onBindViewHolder(@NonNull RecentSongVH holder, int position) {
         SongWithUploaderInfo song = data.get(position);
 
-        // Log for debugging - check if data is null
-        android.util.Log.d("RecentSongAdapter", "Binding recent position " + position +
-                ", song: " + (song != null ? song.getTitle() : "NULL") +
-                " by " + (song != null ? song.getDisplayUploaderName() : "NULL"));
-
         if (song == null) {
             android.util.Log.e("RecentSongAdapter", "Song at position " + position + " is null!");
             return;

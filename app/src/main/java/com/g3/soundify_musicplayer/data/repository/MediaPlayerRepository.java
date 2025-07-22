@@ -448,15 +448,9 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
      * Called from RepositoryManager to verify service connection
      */
     public void checkServiceStatus() {
-        android.util.Log.d("MediaPlayerRepository", "🔍 Service Status Check:");
-        android.util.Log.d("MediaPlayerRepository", "   Service Bound: " + isServiceBound);
-        android.util.Log.d("MediaPlayerRepository", "   Service Instance: " + (mediaService != null ? "Connected" : "Null"));
-
         if (!isServiceBound || mediaService == null) {
-            android.util.Log.w("MediaPlayerRepository", "⚠️ Service not properly connected - attempting rebind");
+            android.util.Log.w("MediaPlayerRepository", "Service not properly connected - attempting rebind");
             bindToMediaService();
-        } else {
-            android.util.Log.d("MediaPlayerRepository", "✅ Service connection is healthy");
         }
     }
 
@@ -478,14 +472,13 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
                     currentState.setCurrentSong(song);
                     updateQueueInfo();
 
-                    android.util.Log.d("MediaPlayerRepository", "✅ Single song queue set: " + song.getTitle());
                     return true;
                 } else {
-                    android.util.Log.e("MediaPlayerRepository", "❌ Cannot set queue with null song");
+                    android.util.Log.e("MediaPlayerRepository", "Cannot set queue with null song");
                     return false;
                 }
             } catch (Exception e) {
-                android.util.Log.e("MediaPlayerRepository", "❌ Error setting single song queue", e);
+                android.util.Log.e("MediaPlayerRepository", "Error setting single song queue", e);
                 return false;
             }
         });
@@ -502,13 +495,11 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
 
             if (hasContent) {
                 isPlayerVisible.postValue(true);
-                android.util.Log.d("MediaPlayerRepository", "✅ Player visibility ensured - content available");
             } else {
                 isPlayerVisible.postValue(false);
-                android.util.Log.d("MediaPlayerRepository", "ℹ️ Player visibility hidden - no content");
             }
         } catch (Exception e) {
-            android.util.Log.e("MediaPlayerRepository", "❌ Error ensuring player visibility", e);
+            android.util.Log.e("MediaPlayerRepository", "Error ensuring player visibility", e);
             // Default to visible if there's an error
             isPlayerVisible.postValue(true);
         }

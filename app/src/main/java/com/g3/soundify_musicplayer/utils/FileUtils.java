@@ -213,45 +213,31 @@ public class FileUtils {
     }
 
     /**
-     * Debug method: List all files in app's internal storage
+     * List all files in app's internal storage
      * Call this to see what files are stored
      */
     public static void listAllStoredFiles(Context context) {
-        Log.d(TAG, "=== LISTING ALL STORED FILES ===");
-
         // List audio files
         File audioDir = new File(context.getFilesDir(), "audio");
         if (audioDir.exists()) {
-            Log.d(TAG, "Audio directory: " + audioDir.getAbsolutePath());
             File[] audioFiles = audioDir.listFiles();
             if (audioFiles != null) {
                 for (File file : audioFiles) {
-                    Log.d(TAG, "Audio file: " + file.getName() + " (" + formatFileSize(file.length()) + ")");
+                    // Files exist but no debug logging
                 }
-            } else {
-                Log.d(TAG, "No audio files found");
             }
-        } else {
-            Log.d(TAG, "Audio directory does not exist");
         }
 
         // List image files
         File imageDir = new File(context.getFilesDir(), "images");
         if (imageDir.exists()) {
-            Log.d(TAG, "Image directory: " + imageDir.getAbsolutePath());
             File[] imageFiles = imageDir.listFiles();
             if (imageFiles != null) {
                 for (File file : imageFiles) {
-                    Log.d(TAG, "Image file: " + file.getName() + " (" + formatFileSize(file.length()) + ")");
+                    // Files exist but no debug logging
                 }
-            } else {
-                Log.d(TAG, "No image files found");
             }
-        } else {
-            Log.d(TAG, "Image directory does not exist");
         }
-
-        Log.d(TAG, "=== END FILE LISTING ===");
     }
 
     /**

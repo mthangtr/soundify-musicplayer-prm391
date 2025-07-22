@@ -75,8 +75,7 @@ public class FullPlayerActivity extends AppCompatActivity {
                 .replace(R.id.full_player_container, fragment)
                 .commit();
         }
-        
-        android.util.Log.d("FullPlayerActivity", "FullPlayerActivity created for song ID: " + songId);
+
     }
     
     /**
@@ -159,8 +158,7 @@ public class FullPlayerActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        android.util.Log.d("FullPlayerActivity", "FullPlayerActivity paused");
-        
+
         // ✅ CRITICAL: Clean up progress updates when paused to prevent leaks
         if (viewModel != null) {
             // Progress updates will be handled by MiniPlayer after minimize
@@ -170,12 +168,11 @@ public class FullPlayerActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        android.util.Log.d("FullPlayerActivity", "FullPlayerActivity destroyed");
-        
+
         // ✅ IMPORTANT: Don't cleanup global state here!
         // MediaPlayerRepository singleton must persist for MiniPlayer
         // Only cleanup local activity resources
-        
+
         try {
             // Clear window flags to prevent leaks
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);

@@ -234,13 +234,7 @@ public class SearchViewModel extends AndroidViewModel {
             // Get all songs from database synchronously
             List<Song> allSongs = songRepository.getAllSongsSync().get();
 
-            // Debug: Log all songs in database
-            android.util.Log.d("SearchViewModel", "Total songs in database: " + allSongs.size());
-            for (Song song : allSongs) {
-                android.util.Log.d("SearchViewModel", "Song: " + song.getTitle() +
-                    ", Public: " + song.isPublic() +
-                    ", Uploader: " + song.getUploaderId());
-            }
+
 
             // Filter songs that match the query
             String lowerQuery = query.toLowerCase();

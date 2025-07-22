@@ -85,7 +85,6 @@ public class CommentsViewModel extends AndroidViewModel {
                 Long commentId = commentRepository.addComment(currentSongId, content).get();
                 if (commentId != null && commentId > 0) {
                     successMessage.postValue("Comment added successfully");
-                    android.util.Log.d("CommentsViewModel", "Comment added with ID: " + commentId);
                 } else {
                     errorMessage.postValue("Failed to add comment");
                 }

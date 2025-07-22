@@ -493,10 +493,8 @@ public class LibraryFragment extends Fragment {
      * Navigate to liked songs playlist fragment
      */
     private void navigateToLikedSongsPlaylist() {
-        android.util.Log.d("LibraryFragment", "🔄 Navigating to LikedSongPlaylistFragment");
-        
         if (getActivity() == null) {
-            android.util.Log.e("LibraryFragment", "❌ Activity is null, cannot navigate");
+            android.util.Log.e("LibraryFragment", "Activity is null, cannot navigate");
             return;
         }
 
@@ -513,8 +511,6 @@ public class LibraryFragment extends Fragment {
             .replace(R.id.fragment_container, fragment)
             .addToBackStack("liked_songs_playlist")
             .commit();
-            
-        android.util.Log.d("LibraryFragment", "✅ Navigation to LikedSongPlaylistFragment completed");
     }
 
     // ========== 🔥 ZERO QUEUE RULE - HELPER METHODS ==========

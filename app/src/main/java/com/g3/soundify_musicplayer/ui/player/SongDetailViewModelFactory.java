@@ -22,9 +22,6 @@ public class SongDetailViewModelFactory implements ViewModelProvider.Factory {
     public SongDetailViewModelFactory(Application application) {
         this.application = application;
         this.repositoryManager = RepositoryManager.getInstance(application);
-        
-        android.util.Log.d("SongDetailViewModelFactory", "🏭 ViewModelFactory created with RepositoryManager: " + 
-            repositoryManager.hashCode());
     }
     
     @NonNull
@@ -32,28 +29,22 @@ public class SongDetailViewModelFactory implements ViewModelProvider.Factory {
     @SuppressWarnings("unchecked")
     public <T extends ViewModel> T create(@NonNull Class<T> modelClass) {
         if (modelClass.isAssignableFrom(SongDetailViewModel.class)) {
-            android.util.Log.d("SongDetailViewModelFactory", "🔄 Creating SongDetailViewModel with singleton repositories...");
-            
             // Get singleton repository instances
             SongDetailRepository songDetailRepository = repositoryManager.getSongDetailRepository();
             MediaPlayerRepository mediaPlayerRepository = repositoryManager.getMediaPlayerRepository();
-            
+
             // Create SongDetailViewModel with injected singleton repositories
             SongDetailViewModel viewModel = new SongDetailViewModel(
-                application, 
-                songDetailRepository, 
+                application,
+                songDetailRepository,
                 mediaPlayerRepository
             );
-            
-            android.util.Log.d("SongDetailViewModelFactory", "✅ SongDetailViewModel created: " + viewModel.hashCode());
-            android.util.Log.d("SongDetailViewModelFactory", "   → Using SongDetailRepository: " + songDetailRepository.hashCode());
-            android.util.Log.d("SongDetailViewModelFactory", "   → Using MediaPlayerRepository: " + mediaPlayerRepository.hashCode());
-            
+
             return (T) viewModel;
         }
-        
+
         // Fallback for other ViewModel types
-        android.util.Log.w("SongDetailViewModelFactory", "⚠️ Unknown ViewModel class: " + modelClass.getName());
+        android.util.Log.w("SongDetailViewModelFactory", "Unknown ViewModel class: " + modelClass.getName());
         throw new IllegalArgumentException("Unknown ViewModel class: " + modelClass.getName());
     }
 

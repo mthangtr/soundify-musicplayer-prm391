@@ -16,15 +16,12 @@ public class SplashActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        android.util.Log.d("SplashActivity", "onCreate started");
 
         try {
             setContentView(R.layout.activity_splash);
-            android.util.Log.d("SplashActivity", "Layout set successfully");
 
             // Simple delay then navigate - no complex logic
             new Handler().postDelayed(() -> {
-                android.util.Log.d("SplashActivity", "Navigating to LoginActivity");
                 Intent intent = new Intent(SplashActivity.this, LoginActivity.class);
                 startActivity(intent);
                 finish();

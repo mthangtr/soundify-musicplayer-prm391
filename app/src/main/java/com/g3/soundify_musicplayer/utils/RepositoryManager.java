@@ -109,16 +109,9 @@ public class RepositoryManager {
     }
     
     /**
-     * Debug method to check repository states
+     * Check repository states
      */
     public void debugRepositoryStates() {
-        android.util.Log.d("RepositoryManager", "=== REPOSITORY DEBUG INFO ===");
-        android.util.Log.d("RepositoryManager", "RepositoryManager instance: " + this.hashCode());
-        android.util.Log.d("RepositoryManager", "MediaPlayerRepository: " + 
-            (mediaPlayerRepository != null ? mediaPlayerRepository.hashCode() : "NULL"));
-        android.util.Log.d("RepositoryManager", "SongDetailRepository: " + 
-            (songDetailRepository != null ? songDetailRepository.hashCode() : "NULL"));
-        
         if (mediaPlayerRepository != null) {
             // Check service binding status
             mediaPlayerRepository.checkServiceStatus();
