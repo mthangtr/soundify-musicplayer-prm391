@@ -22,7 +22,7 @@ import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 // REMOVED: SimplePlaybackHandler - using Zero Queue Rule
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
-import com.g3.soundify_musicplayer.ui.home.RecentSongWithUploaderInfoAdapter;
+import com.g3.soundify_musicplayer.ui.song.RecentSongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
 
 import java.util.ArrayList;
