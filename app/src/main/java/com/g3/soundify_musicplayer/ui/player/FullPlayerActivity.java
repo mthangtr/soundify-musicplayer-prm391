@@ -97,15 +97,6 @@ public class FullPlayerActivity extends AppCompatActivity {
         SongDetailViewModelFactory factory = new SongDetailViewModelFactory(getApplication());
         viewModel = new ViewModelProvider(this, factory).get(SongDetailViewModel.class);
 
-        // Get data from intent
-        long songId = getIntent().getLongExtra(EXTRA_SONG_ID, -1);
-
-        if (songId == -1) {
-            android.util.Log.e("FullPlayerActivity", "No song ID provided");
-            finish();
-            return;
-        }
-
         // Initialize activity-based UI
         initViews();
         setupActivityResultLaunchers();

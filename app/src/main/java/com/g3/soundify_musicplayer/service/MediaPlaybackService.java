@@ -151,7 +151,6 @@ public class MediaPlaybackService extends Service {
             return;
         }
 
-        boolean isSameSong = currentSong != null && currentSong.getId() == song.getId();
         currentSong = song;
         currentArtist = artist;
 

@@ -45,6 +45,7 @@ public class SongDetailViewModel extends AndroidViewModel {
 
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+    private final MutableLiveData<User> currentArtist = new MutableLiveData<>();
 
     private final MutableLiveData<Boolean> isPlaying = new MutableLiveData<>(false);
     private final MutableLiveData<Integer> progress = new MutableLiveData<>(0);
@@ -202,17 +203,12 @@ public class SongDetailViewModel extends AndroidViewModel {
     }
 
     private void loadArtistInfo(long uploaderId) {
-        android.util.Log.d("SongDetailViewModel", "🎤 loadArtistInfo() called with uploaderId: " + uploaderId);
         executor.execute(() -> {
             try {
-                android.util.Log.d("SongDetailViewModel", "🎤 Fetching user from repository...");
                 User artist = repository.getUserById(uploaderId).get();
                 if (artist != null) {
-                    android.util.Log.d("SongDetailViewModel", "🎤 Artist loaded successfully: " + artist.getDisplayName() + " (" + artist.getUsername() + ")");
                     setCurrentArtist(artist);
-                    android.util.Log.d("SongDetailViewModel", "🎤 setCurrentArtist() called - artist should now be available to observers");
                 } else {
-                    android.util.Log.w("SongDetailViewModel", "🎤 Artist not found for uploaderId: " + uploaderId);
                 }
             } catch (Exception e) {
                 android.util.Log.e("SongDetailViewModel", "🎤 Error loading artist info for uploaderId: " + uploaderId, e);
@@ -226,7 +222,6 @@ public class SongDetailViewModel extends AndroidViewModel {
                 List<Playlist> playlists = repository.getUserPlaylistsForAddSong(userId).get();
                 userPlaylists.postValue(playlists);
             } catch (Exception e) {
-                // Silent fail for playlists
             }
         });
     }
@@ -447,10 +442,14 @@ public class SongDetailViewModel extends AndroidViewModel {
             if (state != null) {
                 // Update song info
                 if (state.getCurrentSong() != null) {
-                    currentSong.postValue(state.getCurrentSong());
+                    Song newSong = state.getCurrentSong();
+                    Song currentSongValue = currentSong.getValue();
+                    if (currentSongValue == null || (newSong.getId() != currentSongValue.getId())) {
+                        currentSong.postValue(newSong);
+                        loadArtistInfo(newSong.getUploaderId());
+                    }
                 }
 
-                // FIXED: Update artist info from centralized state
                 if (state.getCurrentArtist() != null) {
                     setCurrentArtist(state.getCurrentArtist());
                 }
@@ -565,7 +564,6 @@ public class SongDetailViewModel extends AndroidViewModel {
      */
     public void hideMiniPlayer() {
         mediaPlayerRepository.hidePlayer();
-        // Pause thông qua MediaPlayerRepository thay vì trực tiếp
         executor.execute(() -> {
             try {
                 mediaPlayerRepository.pause().get();
@@ -575,7 +573,6 @@ public class SongDetailViewModel extends AndroidViewModel {
         });
     }
 
-    private final MutableLiveData<User> currentArtist = new MutableLiveData<>();
 
     /**
      * Get current artist (compatibility method)

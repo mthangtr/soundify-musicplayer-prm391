@@ -118,7 +118,7 @@ public class MiniPlayerFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        // Observe visibility
+        // lắng nghe trạng thái hiển thị của mini player ở trong ViewModel
         viewModel.getIsVisible().observe(getViewLifecycleOwner(), isVisible -> {
             if (isVisible != null) {
                 rootView.setVisibility(isVisible ? View.VISIBLE : View.GONE);
@@ -135,13 +135,9 @@ public class MiniPlayerFragment extends Fragment {
 
         // Observe current artist
         viewModel.getCurrentArtist().observe(getViewLifecycleOwner(), artist -> {
-            android.util.Log.d("MiniPlayerFragment", "Artist changed to: " +
-                (artist != null ? artist.getDisplayName() + " (" + artist.getUsername() + ")" : "NULL"));
             if (artist != null) {
                 currentArtist = artist;
                 updateArtistInfo(artist);
-            } else {
-                android.util.Log.w("MiniPlayerFragment", "Artist is NULL - not updating UI");
             }
         });
 
@@ -168,16 +164,14 @@ public class MiniPlayerFragment extends Fragment {
         // Observe queue info to enable/disable navigation buttons
         viewModel.getQueueInfo().observe(getViewLifecycleOwner(), queueInfo -> {
             if (queueInfo != null) {
-                // Enable/disable Next button based on queue state
-                // Note: We always allow Next (it will restart current song if at end)
-                // But we can show visual feedback about queue state
-                btnNext.setEnabled(true); // Always enabled - will restart if needed
+                btnNext.setEnabled(true);
             }
         });
     }
 
     private void updateSongInfo(Song song) {
         textSongTitle.setText(song.getTitle());
+        textArtistName.setText(song.getUploaderName());
 
         // Load cover art using Glide
         if (song.getCoverArtUrl() != null && !song.getCoverArtUrl().isEmpty()) {
@@ -195,10 +189,7 @@ public class MiniPlayerFragment extends Fragment {
         String displayName = artist.getDisplayName();
         String username = artist.getUsername();
         String finalName = displayName != null && !displayName.isEmpty() ? displayName : username;
-
         textArtistName.setText(finalName);
-
-        android.util.Log.d("MiniPlayerFragment", "Artist name set to TextView: " + finalName);
     }
 
     private void updatePlayPauseButton(boolean isPlaying) {
@@ -215,7 +206,6 @@ public class MiniPlayerFragment extends Fragment {
 
     private void expandToFullPlayer() {
         if (getActivity() == null || currentSong == null) {
-            android.util.Log.w("MiniPlayerFragment", "Cannot expand to full player - activity or song is null");
             return;
         }
 
@@ -228,7 +218,6 @@ public class MiniPlayerFragment extends Fragment {
             } catch (Exception animationError) {
                 startActivity(intent);
             }
-
         } catch (Exception e) {
             showToast("Cannot open full player");
         }
