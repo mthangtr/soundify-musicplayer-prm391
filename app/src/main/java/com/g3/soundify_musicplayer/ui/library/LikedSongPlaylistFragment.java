@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,8 +35,6 @@ public class LikedSongPlaylistFragment extends Fragment {
     private LinearLayout layoutEmptyState;
     private LinearLayout layoutLoading;
     private TextView textSongCount;
-    private Button buttonPlayAll;
-    private Button buttonShuffle;
 
     // ViewModels và Adapter
     private LikedSongPlaylistViewModel viewModel;
@@ -71,7 +68,6 @@ public class LikedSongPlaylistFragment extends Fragment {
 
         initViews(view);
         setupRecyclerView();
-        setupClickListeners();
         observeViewModel();
     }
 
@@ -80,8 +76,6 @@ public class LikedSongPlaylistFragment extends Fragment {
         layoutEmptyState = view.findViewById(R.id.layout_empty_state);
         layoutLoading = view.findViewById(R.id.layout_loading);
         textSongCount = view.findViewById(R.id.text_song_count);
-        buttonPlayAll = view.findViewById(R.id.button_play_all);
-        buttonShuffle = view.findViewById(R.id.button_shuffle);
     }
 
     private void setupRecyclerView() {
@@ -102,10 +96,7 @@ public class LikedSongPlaylistFragment extends Fragment {
         recyclerViewLikedSongs.setAdapter(songsAdapter);
     }
 
-    private void setupClickListeners() {
-        buttonPlayAll.setOnClickListener(v -> playAllSongs(false));
-        buttonShuffle.setOnClickListener(v -> playAllSongs(true));
-    }
+
 
     private void observeViewModel() {
         // Observer liked songs
@@ -125,7 +116,6 @@ public class LikedSongPlaylistFragment extends Fragment {
         viewModel.getSongCount().observe(getViewLifecycleOwner(), count -> {
             if (count != null) {
                 updateSongCountText(count);
-                updateActionButtonsState(count > 0);
             }
         });
 
@@ -173,33 +163,7 @@ public class LikedSongPlaylistFragment extends Fragment {
         showToast("Đang phát: " + song.getTitle());
     }
 
-    /**
-     * Play all songs (với shuffle nếu cần)
-     */
-    private void playAllSongs(boolean shuffle) {
-        if (currentLikedSongs.isEmpty()) {
-            showToast("Không có bài hát nào để phát");
-            return;
-        }
 
-        // Play all songs
-        List<Long> songIds = new ArrayList<>();
-        for (Song song : currentLikedSongs) {
-            songIds.add(song.getId());
-        }
-
-        // REMOVED: NavigationContext - using Simple Queue approach
-
-        // ✅ CONSISTENT: Use playFromView with full liked songs for navigation
-        songDetailViewModel.playFromView(currentLikedSongs, "Liked Songs", 0);
-
-        // TODO: Implement shuffle logic nếu cần
-        if (shuffle) {
-            showToast("Phát ngẫu nhiên " + currentLikedSongs.size() + " bài hát yêu thích");
-        } else {
-            showToast("Phát tất cả " + currentLikedSongs.size() + " bài hát yêu thích");
-        }
-    }
 
     /**
      * Update UI state based on data availability
@@ -227,16 +191,7 @@ public class LikedSongPlaylistFragment extends Fragment {
         }
     }
 
-    /**
-     * Enable/disable action buttons based on songs availability
-     */
-    private void updateActionButtonsState(boolean hasData) {
-        buttonPlayAll.setEnabled(hasData);
-        buttonShuffle.setEnabled(hasData);
 
-        buttonPlayAll.setAlpha(hasData ? 1.0f : 0.5f);
-        buttonShuffle.setAlpha(hasData ? 1.0f : 0.5f);
-    }
 
     /**
      * Show toast message
