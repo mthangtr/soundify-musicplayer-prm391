@@ -203,12 +203,7 @@ public class SongDetailViewModel extends AndroidViewModel {
     }
 
     private void loadArtistInfo(long uploaderId) {
-        if (executor == null || executor.isShutdown()) {
-            android.util.Log.w("SongDetailViewModel", "Executor shutdown, skipping loadArtistInfo");
-            return;
-        }
-
-        executor.execute(() -> {
+        safeExecute(() -> {
             try {
                 User artist = repository.getUserById(uploaderId).get();
                 if (artist != null) {
@@ -608,11 +603,22 @@ public class SongDetailViewModel extends AndroidViewModel {
     /**
      * Track recently played for current song (called when song changes via next/previous)
      */
+    /**
+     * Safe executor helper method
+     */
+    private void safeExecute(Runnable task) {
+        if (executor == null || executor.isShutdown()) {
+            android.util.Log.w("SongDetailViewModel", "Executor shutdown, skipping task");
+            return;
+        }
+        executor.execute(task);
+    }
+
     private void trackRecentlyPlayedForCurrentSong(long songId) {
         long currentUserId = getCurrentUserId();
         if (currentUserId != -1) {
             // Track in background thread
-            executor.execute(() -> {
+            safeExecute(() -> {
                 try {
                     // Use SongRepository to track recently played
                     SongRepository songRepository = new SongRepository(getApplication());

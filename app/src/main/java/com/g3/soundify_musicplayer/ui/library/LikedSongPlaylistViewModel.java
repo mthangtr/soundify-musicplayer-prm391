@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
 import com.g3.soundify_musicplayer.utils.AuthManager;
 
@@ -23,7 +24,7 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
     private AuthManager authManager;
     
     // LiveData cho UI
-    private LiveData<List<Song>> likedSongs;
+    private LiveData<List<SongWithUploaderInfo>> likedSongs;
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private MutableLiveData<Integer> songCount = new MutableLiveData<>(0);
@@ -47,8 +48,8 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
         if (currentUserId != -1) {
             isLoading.setValue(true);
             
-            // Get liked songs from repository - this returns LiveData
-            likedSongs = musicPlayerRepository.getLikedSongsByUser(currentUserId);
+            // Get liked songs with uploader info from repository - this returns LiveData
+            likedSongs = musicPlayerRepository.getLikedSongsWithUploaderInfoByUser(currentUserId);
             
             // Note: songCount will be updated via observer in Fragment
             isLoading.setValue(false);
@@ -97,7 +98,7 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
     }
 
     // Getters for LiveData
-    public LiveData<List<Song>> getLikedSongs() {
+    public LiveData<List<SongWithUploaderInfo>> getLikedSongs() {
         return likedSongs;
     }
 

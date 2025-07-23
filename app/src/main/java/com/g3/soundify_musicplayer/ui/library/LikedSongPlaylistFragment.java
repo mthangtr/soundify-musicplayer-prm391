@@ -17,9 +17,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.song.SongAdapter;
+import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,10 +41,10 @@ public class LikedSongPlaylistFragment extends Fragment {
     // ViewModels và Adapter
     private LikedSongPlaylistViewModel viewModel;
     private SongDetailViewModel songDetailViewModel;
-    private SongAdapter songsAdapter;
+    private SongWithUploaderInfoAdapter songsAdapter;
 
     // Data
-    private List<Song> currentLikedSongs = new ArrayList<>();
+    private List<SongWithUploaderInfo> currentLikedSongs = new ArrayList<>();
 
     public static LikedSongPlaylistFragment newInstance() {
         return new LikedSongPlaylistFragment();
@@ -81,15 +83,25 @@ public class LikedSongPlaylistFragment extends Fragment {
     private void setupRecyclerView() {
         recyclerViewLikedSongs.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        songsAdapter = new SongAdapter(new ArrayList<>(), new SongAdapter.OnSongClick() {
+        songsAdapter = new SongWithUploaderInfoAdapter(new ArrayList<>(), new SongWithUploaderInfoAdapter.OnSongClick() {
             @Override
-            public void onPlay(Song song) {
+            public void onPlay(SongWithUploaderInfo song) {
                 playSelectedSong(song);
             }
 
             @Override
-            public void onOpenDetail(Song song) {
+            public void onOpenDetail(SongWithUploaderInfo song) {
                 playSelectedSong(song);
+            }
+
+            @Override
+            public void onEditSong(SongWithUploaderInfo song) {
+                showToast("Không thể chỉnh sửa bài hát này");
+            }
+
+            @Override
+            public void onDeleteSong(SongWithUploaderInfo song) {
+                showToast("Sử dụng nút unlike để bỏ thích bài hát");
             }
         });
 
@@ -138,29 +150,54 @@ public class LikedSongPlaylistFragment extends Fragment {
     /**
      * Play một bài hát cụ thể với context của Liked Songs playlist
      */
-    private void playSelectedSong(Song song) {
+    private void playSelectedSong(SongWithUploaderInfo songWithUploader) {
         if (currentLikedSongs.isEmpty()) {
             showToast("Không có bài hát nào để phát");
             return;
         }
 
-        // Play liked song
-        List<Long> songIds = new ArrayList<>();
+        // Convert SongWithUploaderInfo to Song list for playback
+        List<Song> songList = new ArrayList<>();
         int clickedPosition = 0;
 
         for (int i = 0; i < currentLikedSongs.size(); i++) {
-            Song s = currentLikedSongs.get(i);
-            songIds.add(s.getId());
+            SongWithUploaderInfo s = currentLikedSongs.get(i);
 
-            if (s.getId() == song.getId()) {
+            // Convert to Song object
+            Song song = convertToSong(s);
+            songList.add(song);
+
+            if (s.getId() == songWithUploader.getId()) {
                 clickedPosition = i;
             }
         }
 
         // ✅ CONSISTENT: Use playFromView with full liked songs for navigation
-        songDetailViewModel.playFromView(currentLikedSongs, "Liked Songs", clickedPosition);
+        songDetailViewModel.playFromView(songList, "Liked Songs", clickedPosition);
 
-        showToast("Đang phát: " + song.getTitle());
+        showToast("Đang phát: " + songWithUploader.getTitle());
+    }
+
+    /**
+     * Convert SongWithUploaderInfo to Song
+     */
+    private Song convertToSong(SongWithUploaderInfo songWithUploader) {
+        Song song = new Song();
+        song.setId(songWithUploader.getId());
+        song.setUploaderId(songWithUploader.getUploaderId());
+        song.setTitle(songWithUploader.getTitle());
+        song.setDescription(songWithUploader.getDescription());
+        song.setAudioUrl(songWithUploader.getAudioUrl());
+        song.setCoverArtUrl(songWithUploader.getCoverArtUrl());
+        song.setGenre(songWithUploader.getGenre());
+        song.setDurationMs(songWithUploader.getDurationMs());
+        song.setPublic(songWithUploader.isPublic());
+        song.setCreatedAt(songWithUploader.getCreatedAt());
+
+        // Set uploader name from the joined data
+        song.setUploaderName(songWithUploader.getDisplayUploaderName());
+
+        return song;
     }
 
 

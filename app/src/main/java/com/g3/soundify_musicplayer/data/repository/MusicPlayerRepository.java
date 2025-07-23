@@ -14,6 +14,7 @@ import com.g3.soundify_musicplayer.data.entity.SongLike;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.entity.UserFollow;
 import com.g3.soundify_musicplayer.data.entity.Song;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -164,6 +165,13 @@ public class MusicPlayerRepository {
     public LiveData<List<Song>> getLikedSongsByUser(long userId) {
         LiveData<List<Song>> result = songLikeDao.getLikedSongsByUser(userId);
         return result;
+    }
+
+    /**
+     * Get liked songs with uploader information for a user
+     */
+    public LiveData<List<SongWithUploaderInfo>> getLikedSongsWithUploaderInfoByUser(long userId) {
+        return songLikeDao.getLikedSongsWithUploaderInfoByUser(userId);
     }
     
     public LiveData<List<User>> getUsersWhoLikedSong(long songId) {

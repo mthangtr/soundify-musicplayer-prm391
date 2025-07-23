@@ -9,6 +9,7 @@ import androidx.room.Query;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.SongLike;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
 import java.util.List;
 
@@ -23,6 +24,19 @@ public interface SongLikeDao {
     
     @Query("SELECT s.* FROM songs s INNER JOIN song_likes sl ON s.id = sl.song_id WHERE sl.user_id = :userId ORDER BY sl.created_at DESC")
     LiveData<List<Song>> getLikedSongsByUser(long userId);
+
+    /**
+     * Get liked songs with uploader information for a user
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN song_likes sl ON s.id = sl.song_id " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE sl.user_id = :userId " +
+           "ORDER BY sl.created_at DESC")
+    LiveData<List<SongWithUploaderInfo>> getLikedSongsWithUploaderInfoByUser(long userId);
     
     @Query("SELECT u.* FROM users u INNER JOIN song_likes sl ON u.id = sl.user_id WHERE sl.song_id = :songId ORDER BY sl.created_at DESC")
     LiveData<List<User>> getUsersWhoLikedSong(long songId);
