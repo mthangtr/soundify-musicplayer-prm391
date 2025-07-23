@@ -203,6 +203,11 @@ public class SongDetailViewModel extends AndroidViewModel {
     }
 
     private void loadArtistInfo(long uploaderId) {
+        if (executor == null || executor.isShutdown()) {
+            android.util.Log.w("SongDetailViewModel", "Executor shutdown, skipping loadArtistInfo");
+            return;
+        }
+
         executor.execute(() -> {
             try {
                 User artist = repository.getUserById(uploaderId).get();
@@ -551,6 +556,7 @@ public class SongDetailViewModel extends AndroidViewModel {
     public void playPrevious() {
         executor.execute(() -> {
             try {
+                android.util.Log.d("SongDetailViewModel", "Playing previous song=====================");
                 mediaPlayerRepository.playPrevious().get();
             } catch (Exception e) {
                 errorMessage.postValue("Lỗi khi chuyển bài trước đó: " + e.getMessage());

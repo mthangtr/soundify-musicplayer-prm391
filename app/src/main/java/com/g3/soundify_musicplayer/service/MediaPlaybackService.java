@@ -240,7 +240,14 @@ public class MediaPlaybackService extends Service {
      * Thread-safe getter
      */
     public long getCurrentPosition() {
-        return exoPlayer.getCurrentPosition();
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            // Already on Main Thread - safe to call directly
+            return exoPlayer != null ? exoPlayer.getCurrentPosition() : 0;
+        } else {
+            // Background thread - return cached value or 0
+            android.util.Log.w("MediaPlaybackService", "getCurrentPosition() called from background thread, returning 0");
+            return 0;
+        }
     }
 
     /**
@@ -248,7 +255,14 @@ public class MediaPlaybackService extends Service {
      * Thread-safe getter
      */
     public long getDuration() {
-        return exoPlayer.getDuration();
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            // Already on Main Thread - safe to call directly
+            return exoPlayer != null ? exoPlayer.getDuration() : 0;
+        } else {
+            // Background thread - return cached value or 0
+            android.util.Log.w("MediaPlaybackService", "getDuration() called from background thread, returning 0");
+            return 0;
+        }
     }
 
     /**

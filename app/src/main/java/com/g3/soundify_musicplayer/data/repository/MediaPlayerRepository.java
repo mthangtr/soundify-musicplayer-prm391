@@ -123,7 +123,7 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
                     mediaService.playSong(songToPlay, null);
                 }
 
-                isPlayerVisible.setValue(true);
+                isPlayerVisible.postValue(true);
             } catch (Exception e) {
                 android.util.Log.e("MediaPlayerRepository", "Error in replaceListAndPlay", e);
             }
@@ -168,19 +168,33 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
                 if (currentSongList.isEmpty()) {
                     return false;
                 }
+                android.util.Log.d("MediaPlayerRepository", "Playing previous song===================== 2");
 
                 // Get current position
-                long currentPosition;
-                if (mediaService != null) {
-                    currentPosition = mediaService.getCurrentPosition();
-                } else {
+                long currentPosition = 0;
+                try {
+                    if (mediaService != null) {
+                        currentPosition = mediaService.getCurrentPosition();
+                        android.util.Log.d("MediaPlayerRepository", "Got position from service: " + currentPosition);
+                    } else {
+                        currentPosition = currentState.getCurrentPosition();
+                        android.util.Log.d("MediaPlayerRepository", "Got position from state: " + currentPosition);
+                    }
+                } catch (Exception positionException) {
+                    android.util.Log.e("MediaPlayerRepository", "Error getting position, using fallback", positionException);
                     currentPosition = currentState.getCurrentPosition();
                 }
 
+
+
+                android.util.Log.d("MediaPlayerRepository", "Playing previous song===================== 3");
                 // If position > 3 seconds, restart current song
                 if (currentPosition > 3000) {
                     return seekToSync(0);
                 }
+
+
+                android.util.Log.d("MediaPlayerRepository", "Playing previous song===================== 4");
 
                 // Go to previous song
                 if (currentIndex > 0) {
@@ -192,6 +206,8 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
                     updateQueueInfo();
 
                     if (isServiceBound && mediaService != null) {
+
+                        android.util.Log.d("MediaPlayerRepository", "Playing previous song===================== 5");
                         mediaService.playSong(prevSong, null);
                     }
 
