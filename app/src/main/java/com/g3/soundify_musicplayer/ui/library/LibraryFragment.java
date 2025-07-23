@@ -33,7 +33,6 @@ import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.data.entity.User;
 
-// REMOVED: SimplePlaybackHandler import - using Zero Queue Rule
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
@@ -440,11 +439,6 @@ public class LibraryFragment extends Fragment {
         }
     }
 
-    // ========== 🗑️ REMOVED: Complex NavigationContext method ==========
-    // Replaced by SimplePlaybackHandler.playFromCurrentView() pattern
-
-    // Mock artist method removed - using real user data from database
-
     private void showToast(String message) {
         Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
     }
@@ -595,8 +589,6 @@ public class LibraryFragment extends Fragment {
         }
         return 0; // Default to first position if not found
     }
-
-    // REMOVED: getCurrentViewSongsInfo - replaced by getCurrentTabSongsInfo
 
     /**
      * Convert SongWithUploaderInfo to Song

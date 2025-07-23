@@ -16,6 +16,7 @@ import com.g3.soundify_musicplayer.data.model.MediaPlayerState;
 import com.g3.soundify_musicplayer.data.repository.MediaPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.MusicPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.SongDetailRepository;
+import com.g3.soundify_musicplayer.data.repository.SongRepository;
 
 import com.g3.soundify_musicplayer.utils.AuthManager;
 import com.g3.soundify_musicplayer.utils.RepositoryManager;
@@ -452,6 +453,9 @@ public class SongDetailViewModel extends AndroidViewModel {
                     if (currentSongValue == null || (newSong.getId() != currentSongValue.getId())) {
                         currentSong.postValue(newSong);
                         loadArtistInfo(newSong.getUploaderId());
+
+                        // ✅ TRACK RECENTLY PLAYED: Track when song changes (including next/previous)
+                        trackRecentlyPlayedForCurrentSong(newSong.getId());
                     }
                 }
 
@@ -602,6 +606,28 @@ public class SongDetailViewModel extends AndroidViewModel {
         long currentUserId = getCurrentUserId();
         assert song != null;
         toggleLike(song.getId(), currentUserId);
+    }
+
+    /**
+     * Track recently played for current song (called when song changes via next/previous)
+     */
+    private void trackRecentlyPlayedForCurrentSong(long songId) {
+        long currentUserId = getCurrentUserId();
+        if (currentUserId != -1) {
+            // Track in background thread
+            executor.execute(() -> {
+                try {
+                    // Use SongRepository to track recently played
+                    SongRepository songRepository = new SongRepository(getApplication());
+                    songRepository.trackRecentlyPlayed(currentUserId, songId);
+                    android.util.Log.d("SongDetailViewModel", "✅ Tracked recently played for song: " + songId + " (via next/previous)");
+                } catch (Exception e) {
+                    android.util.Log.e("SongDetailViewModel", "❌ Error tracking recently played", e);
+                }
+            });
+        } else {
+            android.util.Log.w("SongDetailViewModel", "Cannot track recently played - user not logged in");
+        }
     }
 
     // Getters cho playback LiveData

@@ -377,4 +377,19 @@ public class LibraryViewModel extends AndroidViewModel {
         });
     }
 
+    public LiveData<List<Song>> getMySongs() {
+        return mySongs;
+    }
+
+    public void setMySongs(LiveData<List<Song>> mySongs) {
+        this.mySongs = mySongs;
+    }
+
+    public LiveData<List<Playlist>> getMyPlaylists() {
+        return myPlaylists;
+    }
+
+    public void setMyPlaylists(LiveData<List<Playlist>> myPlaylists) {
+        this.myPlaylists = myPlaylists;
+    }
 }
