@@ -15,6 +15,7 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.repository.MediaPlayerRepository;
+import com.g3.soundify_musicplayer.data.repository.SongRepository;
 import com.g3.soundify_musicplayer.utils.RepositoryManager;
 
 import java.util.List;
@@ -36,6 +37,7 @@ public class QueueActivity extends AppCompatActivity {
     private QueueAdapter adapter;
     private ItemTouchHelper itemTouchHelper;
     private MediaPlayerRepository mediaPlayerRepository;
+    private SongRepository songRepository;
 
     // Data
     private long songId;
@@ -54,8 +56,9 @@ public class QueueActivity extends AppCompatActivity {
         // Get song ID from intent
         songId = getIntent().getLongExtra(EXTRA_SONG_ID, -1);
 
-        // Initialize MediaPlayerRepository
+        // Initialize repositories
         mediaPlayerRepository = RepositoryManager.getInstance(getApplication()).getMediaPlayerRepository();
+        songRepository = RepositoryManager.getInstance(getApplication()).getSongRepository();
 
         initializeViews();
         setupClickListeners();
@@ -76,7 +79,7 @@ public class QueueActivity extends AppCompatActivity {
     }
 
     private void setupRecyclerView() {
-        adapter = new QueueAdapter(this);
+        adapter = new QueueAdapter(this, songRepository);
 
         adapter.setOnItemClickListener((song, position) -> {
             mediaPlayerRepository.jumpToIndex(position);
@@ -129,4 +132,6 @@ public class QueueActivity extends AppCompatActivity {
         super.onBackPressed();
         finish();
     }
+
+
 }

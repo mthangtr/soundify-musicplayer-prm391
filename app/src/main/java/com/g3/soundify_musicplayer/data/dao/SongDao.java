@@ -142,4 +142,15 @@ public interface SongDao {
     @Query("SELECT * FROM songs WHERE genre = :genre AND is_public = 1 ORDER BY created_at DESC")
     List<Song> getSongsByGenreSync(String genre);
 
+    /**
+     * Get song with uploader information by song ID (sync)
+     */
+    @Query("SELECT s.id, s.uploader_id, s.title, s.description, s.audio_url, s.cover_art_url, " +
+           "s.genre, s.duration_ms, s.is_public, s.created_at, " +
+           "u.username as uploaderUsername, u.display_name as uploaderDisplayName, u.avatar_url as uploaderAvatarUrl " +
+           "FROM songs s " +
+           "INNER JOIN users u ON s.uploader_id = u.id " +
+           "WHERE s.id = :songId")
+    SongWithUploaderInfo getSongWithUploaderInfoSync(long songId);
+
 }
