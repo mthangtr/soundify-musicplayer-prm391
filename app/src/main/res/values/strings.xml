@@ -415,4 +415,32 @@
     <string name="playlist_name_too_long">Playlist name is too long</string>
     <string name="playlist_updated_successfully">Playlist updated successfully</string>
     <string name="error_updating_playlist">Error updating playlist</string>
+
+    <!-- Edit Song -->
+    <string name="edit_song">Edit Song</string>
+    <string name="cover_art_optional">Cover Art (Optional)</string>
+    <string name="change_cover_art">Change Cover</string>
+    <string name="song_updated_successfully">Song updated successfully</string>
+
+    <!-- Delete Song -->
+    <string name="confirm_delete_song">Delete Song</string>
+    <string name="confirm_delete_song_message">Are you sure you want to delete \"%s\"? This action cannot be undone and will remove the song from all playlists.</string>
+    <string name="song_deleted_successfully">Song deleted successfully</string>
+
+    <!-- Song Management -->
+    <string name="song_not_found">Song not found</string>
+    <string name="not_song_owner">You can only edit your own songs</string>
+    <string name="song_title_empty">Song title cannot be empty</string>
+    <string name="song_title_too_long">Song title is too long</string>
+    <string name="song_description_too_long">Song description is too long</string>
+
+    <!-- Delete Playlist -->
+    <string name="delete_playlist">Delete Playlist</string>
+    <string name="confirm_delete_playlist">Delete Playlist</string>
+    <string name="confirm_delete_playlist_message">Are you sure you want to delete \'%s\'? This action cannot be undone.</string>
+    <string name="playlist_deleted_successfully">Playlist deleted successfully</string>
+    <string name="error_deleting_playlist">Error deleting playlist</string>
+
+    <!-- Playlist Management -->
+    <string name="playlist_description_too_long">Playlist description is too long</string>
 </resources>

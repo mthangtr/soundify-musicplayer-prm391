@@ -51,6 +51,8 @@ public class SongDetailViewModel extends AndroidViewModel {
     private final MutableLiveData<Long> currentPosition = new MutableLiveData<>(0L);
     private final MutableLiveData<Long> duration = new MutableLiveData<>(0L);
     private final MutableLiveData<Boolean> isFollowing = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> isSongOwner = new MutableLiveData<>(false);
+    private final MutableLiveData<String> successMessage = new MutableLiveData<>();
 
     private final Handler progressHandler = new Handler(Looper.getMainLooper());
     private Runnable progressRunnable;
@@ -102,6 +104,9 @@ public class SongDetailViewModel extends AndroidViewModel {
                     loadRelatedSongs(data.song.getGenre(), songId);
                     loadMoreSongsByArtist(data.song.getUploaderId(), songId);
                     loadUserPlaylists(userId);
+
+                    // Check song ownership
+                    checkSongOwnership(songId, userId);
                 } else {
                     errorMessage.postValue("Không thể tải thông tin bài hát");
                 }
@@ -343,6 +348,97 @@ public class SongDetailViewModel extends AndroidViewModel {
     }
 
     /**
+     * Check if current user is the owner of the song
+     */
+    public void checkSongOwnership(long songId, long userId) {
+        executor.execute(() -> {
+            try {
+                Boolean isOwner = repository.isSongOwner(songId, userId).get();
+                isSongOwner.postValue(isOwner);
+                android.util.Log.d("SongDetailViewModel", "Song ownership check - SongId: " + songId + ", UserId: " + userId + ", IsOwner: " + isOwner);
+            } catch (Exception e) {
+                android.util.Log.e("SongDetailViewModel", "Error checking song ownership", e);
+                isSongOwner.postValue(false);
+            }
+        });
+    }
+
+    /**
+     * Update song information (only for song owner)
+     */
+    public void updateSongInfo(long songId, long userId, String title, String description, String genre, boolean isPublic, String coverArtUrl) {
+        if (title == null || title.trim().isEmpty()) {
+            errorMessage.postValue("Song title cannot be empty");
+            return;
+        }
+
+        if (title.trim().length() > 100) {
+            errorMessage.postValue("Song title is too long");
+            return;
+        }
+
+        if (description != null && description.length() > 500) {
+            errorMessage.postValue("Song description is too long");
+            return;
+        }
+
+        android.util.Log.d("SongDetailViewModel", "Updating song info - SongId: " + songId + ", Title: " + title);
+
+        executor.execute(() -> {
+            try {
+                Boolean success = repository.updateSongInfo(songId, userId, title.trim(), description, genre, isPublic, coverArtUrl).get();
+
+                if (success) {
+                    android.util.Log.d("SongDetailViewModel", "Successfully updated song info");
+                    // Reload song data to refresh UI
+                    loadSongDetail(songId, userId);
+                    successMessage.postValue("Song updated successfully");
+                } else {
+                    android.util.Log.e("SongDetailViewModel", "Failed to update song info");
+                    errorMessage.postValue("Error updating song");
+                }
+
+            } catch (Exception e) {
+                android.util.Log.e("SongDetailViewModel", "Error updating song info", e);
+                errorMessage.postValue("Error updating song: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Delete song (only for song owner)
+     */
+    public void deleteSong(long songId, long userId) {
+        android.util.Log.d("SongDetailViewModel", "Deleting song - SongId: " + songId + ", UserId: " + userId);
+
+        executor.execute(() -> {
+            try {
+                Boolean success = repository.deleteSongByOwner(songId, userId).get();
+
+                if (success) {
+                    android.util.Log.d("SongDetailViewModel", "Successfully deleted song");
+                    successMessage.postValue("Song deleted successfully");
+                    // Note: Fragment should handle navigation away from deleted song
+                } else {
+                    android.util.Log.e("SongDetailViewModel", "Failed to delete song");
+                    errorMessage.postValue("Error deleting song");
+                }
+
+            } catch (Exception e) {
+                android.util.Log.e("SongDetailViewModel", "Error deleting song", e);
+                errorMessage.postValue("Error deleting song: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Clear success message
+     */
+    public void clearSuccessMessage() {
+        successMessage.setValue(null);
+    }
+
+    /**
      * Setup observers để sync state từ MediaPlayerRepository
      */
     private void setupMediaPlayerObservers() {
@@ -505,8 +601,17 @@ public class SongDetailViewModel extends AndroidViewModel {
         toggleLike(song.getId(), currentUserId);
     }
 
+    // Getters cho playback LiveData
     public LiveData<Boolean> getIsPlaying() {
         return isPlaying;
+    }
+
+    public LiveData<Boolean> getIsSongOwner() {
+        return isSongOwner;
+    }
+
+    public LiveData<String> getSuccessMessage() {
+        return successMessage;
     }
 
     public LiveData<Boolean> getIsVisible() {

@@ -31,13 +31,14 @@
 
         <!-- Playlist Info Container -->
         <LinearLayout
+            android:id="@+id/layoutPlaylistInfo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             android:orientation="vertical"
             app:layout_constraintStart_toEndOf="@id/ivPlaylistCover"
-            app:layout_constraintEnd_toStartOf="@id/ivPlayButton"
+            app:layout_constraintEnd_toStartOf="@+id/layoutActionButtons"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
 
@@ -77,20 +78,44 @@
 
         </LinearLayout>
 
-        <!-- Play Button -->
-        <ImageView
-            android:id="@+id/ivPlayButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_play"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:contentDescription="Play playlist"
-            android:clickable="true"
-            android:focusable="true"
+        <!-- Action Buttons Container -->
+        <LinearLayout
+            android:id="@+id/layoutActionButtons"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <!-- Play Button -->
+            <ImageView
+                android:id="@+id/ivPlayButton"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_play"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:contentDescription="Play playlist"
+                android:clickable="true"
+                android:focusable="true"
+                android:layout_marginEnd="4dp" />
+
+            <!-- Overflow Menu Button (Only for owner) -->
+            <ImageButton
+                android:id="@+id/btnPlaylistOverflow"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_more_vert"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="8dp"
+                android:contentDescription="@string/cd_more_options"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"
+                app:tint="?attr/colorOnSurface" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

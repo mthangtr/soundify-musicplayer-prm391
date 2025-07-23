@@ -58,7 +58,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongCard
     private TextView playlistInfo;
     private Button playAllButton;
     private Button shuffleButton;
-    private Button editPlaylistButton;
     private TextView songsHeader;
     private RecyclerView songsRecyclerView;
     private LinearLayout emptyStateLayout;
@@ -125,7 +124,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongCard
         playlistInfo = view.findViewById(R.id.text_view_playlist_info);
         playAllButton = view.findViewById(R.id.button_play_all);
         shuffleButton = view.findViewById(R.id.button_shuffle);
-        editPlaylistButton = view.findViewById(R.id.button_edit_playlist);
         songsHeader = view.findViewById(R.id.text_view_songs_header);
         songsRecyclerView = view.findViewById(R.id.recycler_view_songs);
         emptyStateLayout = view.findViewById(R.id.layout_empty_state);
@@ -150,7 +148,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongCard
     private void setupClickListeners() {
         playAllButton.setOnClickListener(v -> playAllSongs());
         shuffleButton.setOnClickListener(v -> shufflePlaySongs());
-        editPlaylistButton.setOnClickListener(v -> showEditPlaylistDialog());
     }
     
     /**
@@ -173,8 +170,6 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongCard
         viewModel.getIsOwner().observe(getViewLifecycleOwner(), isOwner -> {
             android.util.Log.d("PlaylistDetailFragment", "Owner status observed: " + isOwner);
             if (isOwner != null) {
-                editPlaylistButton.setVisibility(isOwner ? View.VISIBLE : View.GONE);
-
                 // Update adapter remove option visibility
                 if (adapter != null) {
                     adapter.setShowRemoveOption(isOwner);
@@ -203,18 +198,24 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongCard
                 viewModel.clearErrorMessage(); // Clear after showing
             }
         });
-        
-        // Observe error messages
-        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), errorMessage -> {
-            if (errorMessage != null && !errorMessage.isEmpty()) {
-                showToast(errorMessage);
-            }
-        });
-        
+
         // Observe success messages
         viewModel.getSuccessMessage().observe(getViewLifecycleOwner(), successMessage -> {
             if (successMessage != null && !successMessage.isEmpty()) {
+                android.util.Log.d("PlaylistDetailFragment", "Success message observed: " + successMessage);
                 showToast(successMessage);
+
+                // Handle navigation after successful deletion
+                if (successMessage.contains("deleted successfully")) {
+                    android.util.Log.d("PlaylistDetailFragment", "Playlist deleted, navigating back");
+                    // Navigate back to Library or previous screen
+                    if (getParentFragmentManager().getBackStackEntryCount() > 0) {
+                        getParentFragmentManager().popBackStack();
+                    } else {
+                        // Fallback: navigate to Library
+                        requireActivity().finish();
+                    }
+                }
             }
         });
     }
@@ -679,6 +680,8 @@ public class PlaylistDetailFragment extends Fragment implements PlaylistSongCard
         saveButton.setEnabled(true);
         return true;
     }
+
+
 
 
 }

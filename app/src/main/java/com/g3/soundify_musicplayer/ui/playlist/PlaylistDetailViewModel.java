@@ -184,24 +184,38 @@ public class PlaylistDetailViewModel extends AndroidViewModel {
             errorMessage.setValue("No playlist to delete");
             return;
         }
-        
+
         Boolean ownerCheck = isOwner.getValue();
         if (ownerCheck == null || !ownerCheck) {
             errorMessage.setValue("Only playlist owner can delete");
             return;
         }
-        
+
+        android.util.Log.d("PlaylistDetailViewModel", "Deleting playlist: " + playlist.getName());
         isLoading.setValue(true);
-        
-        Future<Void> future = playlistRepository.delete(playlist);
-        try {
-            future.get();
-            successMessage.setValue("Playlist deleted");
-        } catch (ExecutionException | InterruptedException e) {
-            errorMessage.setValue("Error deleting playlist");
-        } finally {
-            isLoading.setValue(false);
-        }
+
+        // Execute deletion in background
+        executor.execute(() -> {
+            try {
+                playlistRepository.delete(playlist).get();
+                android.util.Log.d("PlaylistDetailViewModel", "Successfully deleted playlist");
+
+                // Post success message on main thread
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    successMessage.setValue("Playlist deleted successfully");
+                    isLoading.setValue(false);
+                });
+
+            } catch (Exception e) {
+                android.util.Log.e("PlaylistDetailViewModel", "Error deleting playlist", e);
+
+                // Post error message on main thread
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    errorMessage.setValue("Error deleting playlist: " + e.getMessage());
+                    isLoading.setValue(false);
+                });
+            }
+        });
     }
     
     /**

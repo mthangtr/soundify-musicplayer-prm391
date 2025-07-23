@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.PopupMenu;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,15 +26,30 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
 
     private final List<SongWithUploaderInfo> data;
     private final OnSongClick listener;
+    private boolean showOwnerOptions = false; // Show edit/delete options for owner songs
+    private long currentUserId = -1; // Current user ID to check ownership
 
     public interface OnSongClick {
         void onPlay(SongWithUploaderInfo song);
         void onOpenDetail(SongWithUploaderInfo song);
+        void onEditSong(SongWithUploaderInfo song); // New method for edit
+        void onDeleteSong(SongWithUploaderInfo song); // New method for delete
     }
 
     public SongWithUploaderInfoAdapter(List<SongWithUploaderInfo> data, OnSongClick listener) {
         this.data = new ArrayList<>(data != null ? data : new ArrayList<>());
         this.listener = listener;
+    }
+
+    /**
+     * Set whether to show owner options (edit/delete) and current user ID
+     */
+    public void setOwnerOptions(boolean showOwnerOptions, long currentUserId) {
+        if (this.showOwnerOptions != showOwnerOptions || this.currentUserId != currentUserId) {
+            this.showOwnerOptions = showOwnerOptions;
+            this.currentUserId = currentUserId;
+            notifyDataSetChanged(); // Refresh to show/hide overflow buttons
+        }
     }
 
     @NonNull
@@ -86,16 +102,27 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
             holder.imgCover.setImageResource(R.drawable.splashi_icon);
         }
 
+        // Show/hide overflow button based on ownership
+        boolean isOwner = showOwnerOptions && currentUserId != -1 && song.getUploaderId() == currentUserId;
+        holder.btnOverflow.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+
         // Set click listeners
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onOpenDetail(song);
             }
         });
-        
+
         holder.btnPlay.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onPlay(song);
+            }
+        });
+
+        // Set up overflow menu
+        holder.btnOverflow.setOnClickListener(v -> {
+            if (listener != null && isOwner) {
+                showOwnerMenu(v, song);
             }
         });
     }
@@ -127,10 +154,36 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
         return new java.util.ArrayList<>(data);
     }
 
+    /**
+     * Show owner menu with edit and delete options
+     */
+    private void showOwnerMenu(View anchor, SongWithUploaderInfo song) {
+        PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
+        popup.getMenuInflater().inflate(R.menu.song_owner_menu, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_edit_song) {
+                if (listener != null) {
+                    listener.onEditSong(song);
+                }
+                return true;
+            } else if (item.getItemId() == R.id.action_delete_song) {
+                if (listener != null) {
+                    listener.onDeleteSong(song);
+                }
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
+    }
+
     static class SongVH extends RecyclerView.ViewHolder {
         ImageView imgCover;
         TextView tvTitle, tvUploader;
         ImageButton btnPlay;
+        ImageButton btnOverflow;
 
         SongVH(View view) {
             super(view);
@@ -138,6 +191,7 @@ public class SongWithUploaderInfoAdapter extends RecyclerView.Adapter<SongWithUp
             tvTitle = view.findViewById(R.id.tvTitle);
             tvUploader = view.findViewById(R.id.tvUploader);
             btnPlay = view.findViewById(R.id.btnPlay);
+            btnOverflow = view.findViewById(R.id.btnOverflow);
         }
     }
 }

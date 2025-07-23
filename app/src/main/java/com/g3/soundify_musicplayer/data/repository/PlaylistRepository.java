@@ -91,6 +91,38 @@ public class PlaylistRepository {
             return null;
         });
     }
+
+    /**
+     * Delete playlist with ownership check
+     */
+    public Future<Boolean> deletePlaylistByOwner(long playlistId, long userId) {
+        return executor.submit(() -> {
+            try {
+                // Check ownership first
+                Playlist playlist = playlistDao.getPlaylistByIdSync(playlistId);
+                if (playlist == null) {
+                    android.util.Log.e("PlaylistRepository", "Playlist not found: " + playlistId);
+                    return false;
+                }
+
+                if (playlist.getOwnerId() != userId) {
+                    android.util.Log.e("PlaylistRepository", "User " + userId + " is not owner of playlist " + playlistId);
+                    return false;
+                }
+
+                // Delete playlist - Room will handle cascade operations for:
+                // - Playlist songs (via foreign key cascade)
+                // - Playlist access records (via foreign key cascade)
+                playlistDao.delete(playlist);
+                android.util.Log.d("PlaylistRepository", "Successfully deleted playlist: " + playlistId);
+                return true;
+
+            } catch (Exception e) {
+                android.util.Log.e("PlaylistRepository", "Error deleting playlist: " + playlistId, e);
+                return false;
+            }
+        });
+    }
     
     // Playlist-Song relationship
     public Future<Void> addSongToPlaylist(long playlistId, long songId) {

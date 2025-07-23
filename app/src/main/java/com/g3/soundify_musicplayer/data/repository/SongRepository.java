@@ -230,6 +230,89 @@ public class SongRepository {
     }
 
     /**
+     * Check if user is the owner of the song
+     */
+    public Future<Boolean> isSongOwner(long songId, long userId) {
+        return executor.submit(() -> {
+            Song song = songDao.getSongByIdSync(songId);
+            return song != null && song.getUploaderId() == userId;
+        });
+    }
+
+    /**
+     * Update song information (only for song owner)
+     */
+    public Future<Boolean> updateSongInfo(long songId, long userId, String title, String description, String genre, boolean isPublic, String coverArtUrl) {
+        return executor.submit(() -> {
+            try {
+                // Check ownership first
+                Song song = songDao.getSongByIdSync(songId);
+                if (song == null) {
+                    android.util.Log.e("SongRepository", "Song not found: " + songId);
+                    return false;
+                }
+
+                if (song.getUploaderId() != userId) {
+                    android.util.Log.e("SongRepository", "User " + userId + " is not owner of song " + songId);
+                    return false;
+                }
+
+                // Update song fields
+                song.setTitle(title);
+                song.setDescription(description);
+                song.setGenre(genre);
+                song.setPublic(isPublic);
+                if (coverArtUrl != null) {
+                    song.setCoverArtUrl(coverArtUrl);
+                }
+
+                // Save to database
+                songDao.update(song);
+                android.util.Log.d("SongRepository", "Successfully updated song: " + songId);
+                return true;
+
+            } catch (Exception e) {
+                android.util.Log.e("SongRepository", "Error updating song: " + songId, e);
+                return false;
+            }
+        });
+    }
+
+    /**
+     * Delete song (only for song owner) - cascades to all related data
+     */
+    public Future<Boolean> deleteSongByOwner(long songId, long userId) {
+        return executor.submit(() -> {
+            try {
+                // Check ownership first
+                Song song = songDao.getSongByIdSync(songId);
+                if (song == null) {
+                    android.util.Log.e("SongRepository", "Song not found: " + songId);
+                    return false;
+                }
+
+                if (song.getUploaderId() != userId) {
+                    android.util.Log.e("SongRepository", "User " + userId + " is not owner of song " + songId);
+                    return false;
+                }
+
+                // Delete song - Room will handle cascade operations for:
+                // - Comments (via foreign key cascade)
+                // - Song likes (via foreign key cascade)
+                // - Playlist songs (via foreign key cascade)
+                // - Recently played (via foreign key cascade)
+                songDao.delete(song);
+                android.util.Log.d("SongRepository", "Successfully deleted song: " + songId);
+                return true;
+
+            } catch (Exception e) {
+                android.util.Log.e("SongRepository", "Error deleting song: " + songId, e);
+                return false;
+            }
+        });
+    }
+
+    /**
      * Get songs by the same uploader (for "More from this artist" section)
      */
     public Future<List<Song>> getMoreSongsByUploader(long uploaderId, long excludeSongId, int limit) {

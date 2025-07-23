@@ -72,6 +72,27 @@ public class SongDetailRepository {
         return songRepository.getSongByIdSync(songId);
     }
 
+    /**
+     * Check if user is the owner of the song
+     */
+    public Future<Boolean> isSongOwner(long songId, long userId) {
+        return songRepository.isSongOwner(songId, userId);
+    }
+
+    /**
+     * Update song information (only for song owner)
+     */
+    public Future<Boolean> updateSongInfo(long songId, long userId, String title, String description, String genre, boolean isPublic, String coverArtUrl) {
+        return songRepository.updateSongInfo(songId, userId, title, description, genre, isPublic, coverArtUrl);
+    }
+
+    /**
+     * Delete song (only for song owner)
+     */
+    public Future<Boolean> deleteSongByOwner(long songId, long userId) {
+        return songRepository.deleteSongByOwner(songId, userId);
+    }
+
     // ========== USER OPERATIONS ==========
 
     /**

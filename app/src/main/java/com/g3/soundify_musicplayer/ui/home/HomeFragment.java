@@ -83,6 +83,18 @@ public class HomeFragment extends Fragment {
 
                 // TODO: Implement play playlist functionality
             }
+
+            @Override
+            public void onEditPlaylist(PlaylistWithSongCount playlistWithSongCount) {
+                // Not implemented for home - users should edit from My Playlists
+                Toast.makeText(getContext(), "Edit playlists from My Playlists tab in Library", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onDeletePlaylist(PlaylistWithSongCount playlistWithSongCount) {
+                // Not implemented for home - users should delete from My Playlists
+                Toast.makeText(getContext(), "Delete playlists from My Playlists tab in Library", Toast.LENGTH_SHORT).show();
+            }
         });
         rvMyPlaylists.setAdapter(playlistAdapter);
 
@@ -146,6 +158,18 @@ public class HomeFragment extends Fragment {
                         List<Song> allSongs = convertToSongs(suggestedAdapter.getCurrentData());
                         int position = findSongPosition(songInfo, suggestedAdapter.getCurrentData());
                         songDetailViewModel.playFromView(allSongs, "Suggested For You", position);
+                    }
+
+                    @Override
+                    public void onEditSong(SongWithUploaderInfo songInfo) {
+                        // Not implemented for suggested songs - users should edit from My Songs
+                        Toast.makeText(getContext(), "Edit songs from My Songs tab in Library", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onDeleteSong(SongWithUploaderInfo songInfo) {
+                        // Not implemented for suggested songs - users should delete from My Songs
+                        Toast.makeText(getContext(), "Delete songs from My Songs tab in Library", Toast.LENGTH_SHORT).show();
                     }
                 });
         rv.setAdapter(suggestedAdapter);

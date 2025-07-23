@@ -3,7 +3,9 @@ package com.g3.soundify_musicplayer.ui.playlist;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -25,15 +27,30 @@ public class PlaylistWithSongCountAdapter extends RecyclerView.Adapter<PlaylistW
     
     private List<PlaylistWithSongCount> playlists;
     private OnPlaylistClickListener listener;
-    
+    private boolean showOwnerOptions = false; // Show edit/delete options for owner playlists
+    private long currentUserId = -1; // Current user ID to check ownership
+
     public interface OnPlaylistClickListener {
         void onPlaylistClick(PlaylistWithSongCount playlistWithSongCount);
         void onPlayButtonClick(PlaylistWithSongCount playlistWithSongCount);
+        void onEditPlaylist(PlaylistWithSongCount playlistWithSongCount); // New method for edit
+        void onDeletePlaylist(PlaylistWithSongCount playlistWithSongCount); // New method for delete
     }
     
     public PlaylistWithSongCountAdapter(List<PlaylistWithSongCount> playlists, OnPlaylistClickListener listener) {
         this.playlists = new ArrayList<>(playlists != null ? playlists : new ArrayList<>());
         this.listener = listener;
+    }
+
+    /**
+     * Set whether to show owner options (edit/delete) and current user ID
+     */
+    public void setOwnerOptions(boolean showOwnerOptions, long currentUserId) {
+        if (this.showOwnerOptions != showOwnerOptions || this.currentUserId != currentUserId) {
+            this.showOwnerOptions = showOwnerOptions;
+            this.currentUserId = currentUserId;
+            notifyDataSetChanged(); // Refresh to show/hide overflow buttons
+        }
     }
     
     @NonNull
@@ -58,7 +75,8 @@ public class PlaylistWithSongCountAdapter extends RecyclerView.Adapter<PlaylistW
     class PlaylistViewHolder extends RecyclerView.ViewHolder {
         private TextView tvPlaylistName, tvSongCount, tvCreatedDate;
         private ImageView ivPlaylistCover, ivPlayButton;
-        
+        private ImageButton btnPlaylistOverflow;
+
         public PlaylistViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPlaylistName = itemView.findViewById(R.id.tvPlaylistName);
@@ -66,6 +84,7 @@ public class PlaylistWithSongCountAdapter extends RecyclerView.Adapter<PlaylistW
             tvCreatedDate = itemView.findViewById(R.id.tvCreatedDate);
             ivPlaylistCover = itemView.findViewById(R.id.ivPlaylistCover);
             ivPlayButton = itemView.findViewById(R.id.ivPlayButton);
+            btnPlaylistOverflow = itemView.findViewById(R.id.btnPlaylistOverflow);
         }
         
         public void bind(PlaylistWithSongCount playlistWithSongCount) {
@@ -85,23 +104,59 @@ public class PlaylistWithSongCountAdapter extends RecyclerView.Adapter<PlaylistW
             // Set playlist cover (placeholder for now)
             ivPlaylistCover.setImageResource(R.drawable.placeholder_album_art);
             
+            // Show/hide overflow button based on ownership
+            boolean isOwner = showOwnerOptions && currentUserId != -1 && playlistWithSongCount.getOwnerId() == currentUserId;
+            btnPlaylistOverflow.setVisibility(isOwner ? View.VISIBLE : View.GONE);
+
             // Click listeners
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onPlaylistClick(playlistWithSongCount);
                 }
             });
-            
+
             ivPlayButton.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onPlayButtonClick(playlistWithSongCount);
                 }
             });
-            
+
+            // Set up overflow menu
+            btnPlaylistOverflow.setOnClickListener(v -> {
+                if (listener != null && isOwner) {
+                    showOwnerMenu(v, playlistWithSongCount);
+                }
+            });
+
             // Disable play button if playlist is empty
             ivPlayButton.setEnabled(songCount > 0);
             ivPlayButton.setAlpha(songCount > 0 ? 1.0f : 0.5f);
         }
+    }
+
+    /**
+     * Show owner menu with edit and delete options
+     */
+    private void showOwnerMenu(View anchor, PlaylistWithSongCount playlist) {
+        PopupMenu popup = new PopupMenu(anchor.getContext(), anchor);
+        popup.getMenuInflater().inflate(R.menu.playlist_detail_menu, popup.getMenu());
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_edit_playlist) {
+                if (listener != null) {
+                    listener.onEditPlaylist(playlist);
+                }
+                return true;
+            } else if (item.getItemId() == R.id.action_delete_playlist) {
+                if (listener != null) {
+                    listener.onDeletePlaylist(playlist);
+                }
+                return true;
+            }
+            return false;
+        });
+
+        popup.show();
     }
 
     /**

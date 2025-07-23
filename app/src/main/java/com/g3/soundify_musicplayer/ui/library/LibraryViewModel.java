@@ -18,6 +18,8 @@ import com.g3.soundify_musicplayer.utils.AuthManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * ViewModel for Library Screen
@@ -37,6 +39,14 @@ public class LibraryViewModel extends AndroidViewModel {
     private PlaylistRepository playlistRepository;
     private MusicPlayerRepository musicPlayerRepository;
     private AuthManager authManager;
+
+    // Executor for background tasks
+    private ExecutorService executor = Executors.newFixedThreadPool(2);
+
+    // Tab constants (match existing refreshTab method)
+    public static final int TAB_MY_SONGS = 0;
+    public static final int TAB_MY_PLAYLISTS = 1;
+    public static final int TAB_LIKED_SONGS = 2;
 
     // LiveData for UI states
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -230,6 +240,118 @@ public class LibraryViewModel extends AndroidViewModel {
         successMessage.setValue(null);
     }
 
+    /**
+     * Get current user ID
+     */
+    public long getCurrentUserId() {
+        return authManager.getCurrentUserId();
+    }
+
+    /**
+     * Update playlist information
+     */
+    public void updatePlaylist(long playlistId, String name, String description, boolean isPublic) {
+        if (name == null || name.trim().isEmpty()) {
+            errorMessage.setValue("Playlist name cannot be empty");
+            return;
+        }
+
+        if (name.trim().length() > 100) {
+            errorMessage.setValue("Playlist name is too long");
+            return;
+        }
+
+        if (description != null && description.length() > 500) {
+            errorMessage.setValue("Playlist description is too long");
+            return;
+        }
+
+        android.util.Log.d("LibraryViewModel", "Updating playlist: " + name);
+        isLoading.setValue(true);
+
+        executor.execute(() -> {
+            try {
+                // Get current playlist
+                Playlist playlist = playlistRepository.getPlaylistByIdSync(playlistId).get();
+                if (playlist == null) {
+                    errorMessage.postValue("Playlist not found");
+                    isLoading.postValue(false);
+                    return;
+                }
+
+                // Check ownership
+                long currentUserId = authManager.getCurrentUserId();
+                if (playlist.getOwnerId() != currentUserId) {
+                    errorMessage.postValue("You can only edit your own playlists");
+                    isLoading.postValue(false);
+                    return;
+                }
+
+                // Update playlist
+                playlist.setName(name.trim());
+                playlist.setDescription(description);
+                playlist.setPublic(isPublic);
+
+                playlistRepository.update(playlist).get();
+
+                android.util.Log.d("LibraryViewModel", "Successfully updated playlist");
+                successMessage.postValue("Playlist updated successfully");
+
+                // Refresh data
+                refreshTab(TAB_MY_PLAYLISTS);
+
+            } catch (Exception e) {
+                android.util.Log.e("LibraryViewModel", "Error updating playlist", e);
+                errorMessage.postValue("Error updating playlist: " + e.getMessage());
+            } finally {
+                isLoading.postValue(false);
+            }
+        });
+    }
+
+    /**
+     * Delete playlist
+     */
+    public void deletePlaylist(long playlistId) {
+        android.util.Log.d("LibraryViewModel", "Deleting playlist: " + playlistId);
+        isLoading.setValue(true);
+
+        executor.execute(() -> {
+            try {
+                // Get current playlist
+                Playlist playlist = playlistRepository.getPlaylistByIdSync(playlistId).get();
+                if (playlist == null) {
+                    errorMessage.postValue("Playlist not found");
+                    isLoading.postValue(false);
+                    return;
+                }
+
+                // Check ownership
+                long currentUserId = authManager.getCurrentUserId();
+                if (playlist.getOwnerId() != currentUserId) {
+                    errorMessage.postValue("You can only delete your own playlists");
+                    isLoading.postValue(false);
+                    return;
+                }
+
+                // Delete playlist
+                playlistRepository.delete(playlist).get();
+
+                android.util.Log.d("LibraryViewModel", "Successfully deleted playlist");
+                successMessage.postValue("Playlist deleted successfully");
+
+                // Refresh data
+                refreshTab(TAB_MY_PLAYLISTS);
+
+            } catch (Exception e) {
+                android.util.Log.e("LibraryViewModel", "Error deleting playlist", e);
+                errorMessage.postValue("Error deleting playlist: " + e.getMessage());
+            } finally {
+                isLoading.postValue(false);
+            }
+        });
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();
@@ -266,4 +388,5 @@ public class LibraryViewModel extends AndroidViewModel {
             }
         });
     }
+
 }

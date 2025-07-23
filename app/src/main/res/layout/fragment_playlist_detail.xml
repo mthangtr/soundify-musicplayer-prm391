@@ -98,19 +98,7 @@
 
             </LinearLayout>
 
-            <!-- Edit Playlist Button (Only for owner) -->
-            <Button
-                android:id="@+id/button_edit_playlist"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="8dp"
-                android:text="@string/action_edit_playlist"
-                app:icon="@drawable/ic_edit"
-                android:visibility="gone"
-                android:contentDescription="@string/cd_edit_playlist_button"
-                tools:visibility="visible" />
+
 
             <!-- Songs Section -->
             <LinearLayout

@@ -213,6 +213,18 @@ public class UserProfileFragment extends Fragment {
                 // QUAN TRỌNG: Gọi method để phát nhạc với queue
                 showMiniPlayerWithSongInfo(songInfo);
             }
+
+            @Override
+            public void onEditSong(SongWithUploaderInfo songInfo) {
+                // Not implemented for user profile - users should edit from My Songs
+                showToast("Edit songs from My Songs tab in Library");
+            }
+
+            @Override
+            public void onDeleteSong(SongWithUploaderInfo songInfo) {
+                // Not implemented for user profile - users should delete from My Songs
+                showToast("Delete songs from My Songs tab in Library");
+            }
         });
         songsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         songsRecyclerView.setAdapter(songsAdapter);
@@ -227,6 +239,18 @@ public class UserProfileFragment extends Fragment {
             @Override
             public void onPlayButtonClick(PlaylistWithSongCount playlistWithSongCount) {
                 showToast("Playing playlist: " + playlistWithSongCount.getName());
+            }
+
+            @Override
+            public void onEditPlaylist(PlaylistWithSongCount playlistWithSongCount) {
+                // Not implemented for user profile - users should edit from My Playlists
+                showToast("Edit playlists from My Playlists tab in Library");
+            }
+
+            @Override
+            public void onDeletePlaylist(PlaylistWithSongCount playlistWithSongCount) {
+                // Not implemented for user profile - users should delete from My Playlists
+                showToast("Delete playlists from My Playlists tab in Library");
             }
         });
         playlistsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
