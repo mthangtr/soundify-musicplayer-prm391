@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.g3.soundify_musicplayer.data.repository.MediaPlayerRepository;
 import com.g3.soundify_musicplayer.data.repository.SongDetailRepository;
+import com.g3.soundify_musicplayer.data.repository.SongRepository;
 
 /**
  * Singleton Repository Manager
@@ -17,6 +18,7 @@ public class RepositoryManager {
     // Singleton Repository instances
     private MediaPlayerRepository mediaPlayerRepository;
     private SongDetailRepository songDetailRepository;
+    private SongRepository songRepository;
     
     // Application context
     private final Application application;
@@ -50,6 +52,7 @@ public class RepositoryManager {
         // Tạo MediaPlayerRepository trước (quan trọng cho service binding)
         mediaPlayerRepository = new MediaPlayerRepository(application);
         songDetailRepository = new SongDetailRepository(application);
+        songRepository = new SongRepository(application);
     }
     
     /**
@@ -71,6 +74,16 @@ public class RepositoryManager {
             throw new IllegalStateException("SongDetailRepository not initialized!");
         }
         return songDetailRepository;
+    }
+
+    /**
+     * Get singleton SongRepository instance
+     */
+    public SongRepository getSongRepository() {
+        if (songRepository == null) {
+            throw new IllegalStateException("SongRepository not initialized!");
+        }
+        return songRepository;
     }
     
     /**

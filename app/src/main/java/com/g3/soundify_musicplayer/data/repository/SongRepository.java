@@ -202,6 +202,13 @@ public class SongRepository {
         return executor.submit(() -> songDao.getSongsByUploaderWithInfoSync(uploaderId));
     }
 
+    /**
+     * Get song with uploader information by song ID (sync)
+     */
+    public Future<SongWithUploaderInfo> getSongWithUploaderInfoSync(long songId) {
+        return executor.submit(() -> songDao.getSongWithUploaderInfoSync(songId));
+    }
+
     // Song Detail specific methods
 
     /**

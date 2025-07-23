@@ -107,6 +107,7 @@ public class MediaPlayerRepository extends SongDetailRepository implements Media
     public void replaceListAndPlay(List<Song> songs, String title, int startIndex) {
         executor.execute(() -> {
             try {
+
                 // Clear and replace
                 currentSongList.clear();
                 currentSongList.addAll(songs);

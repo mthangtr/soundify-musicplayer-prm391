@@ -198,7 +198,6 @@ public class SongDetailViewModel extends AndroidViewModel {
                 List<Song> songs = repository.getMoreSongsByUploader(uploaderId, excludeSongId, 10).get();
                 moreSongsByArtist.postValue(songs);
             } catch (Exception e) {
-                // Silent fail for more songs
             }
         });
     }
@@ -382,8 +381,6 @@ public class SongDetailViewModel extends AndroidViewModel {
             errorMessage.postValue("Song description is too long");
             return;
         }
-
-        android.util.Log.d("SongDetailViewModel", "Updating song info - SongId: " + songId + ", Title: " + title);
 
         executor.execute(() -> {
             try {

@@ -1,15 +1,24 @@
 package com.g3.soundify_musicplayer.ui.library;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.text.Editable;
 import android.text.TextWatcher;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -68,6 +77,13 @@ public class LibraryFragment extends Fragment {
     // Current tab state
     private int currentTab = 0; // 0: My Songs, 1: My Playlists, 2: Liked Songs
 
+    // Activity result launcher for image picker
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+
+    // Variables for edit song dialog
+    private Uri selectedCoverArtUri;
+    private ImageView currentCoverPreview;
+
     // Tab constants
     private static final int TAB_MY_SONGS = 0;
     private static final int TAB_MY_PLAYLISTS = 1;
@@ -88,6 +104,9 @@ public class LibraryFragment extends Fragment {
         libraryViewModel = new ViewModelProvider(this).get(LibraryViewModel.class);
         songDetailViewModel = new ViewModelProvider(requireActivity()).get(SongDetailViewModel.class);
         homeViewModel = new ViewModelProvider(requireActivity()).get(HomeViewModel.class);
+
+        // Setup activity result launcher
+        setupImagePickerLauncher();
 
         initViews(view);
         setupTabs();
@@ -625,16 +644,31 @@ public class LibraryFragment extends Fragment {
         TextInputLayout descriptionInputLayout = dialogView.findViewById(R.id.text_input_layout_song_description);
         TextInputEditText descriptionEditText = dialogView.findViewById(R.id.edit_text_song_description);
         TextInputLayout genreInputLayout = dialogView.findViewById(R.id.text_input_layout_song_genre);
-        TextInputEditText genreEditText = dialogView.findViewById(R.id.edit_text_song_genre);
+        AutoCompleteTextView genreAutoComplete = dialogView.findViewById(R.id.auto_complete_song_genre);
         MaterialSwitch publicSwitch = dialogView.findViewById(R.id.switch_song_public);
+        ImageView coverPreview = dialogView.findViewById(R.id.image_view_cover_preview);
+        Button changeCoverButton = dialogView.findViewById(R.id.button_change_cover);
         Button cancelButton = dialogView.findViewById(R.id.button_cancel);
         Button saveButton = dialogView.findViewById(R.id.button_save);
+
+        // Set reference for image handling
+        currentCoverPreview = coverPreview;
+        selectedCoverArtUri = null; // Reset selected cover art
+
+        // Setup genre dropdown
+        setupGenreDropdown(genreAutoComplete);
+
+        // Setup cover art click listener
+        changeCoverButton.setOnClickListener(v -> selectCoverArt());
 
         // Pre-fill current song data
         titleEditText.setText(songInfo.getTitle());
         descriptionEditText.setText(songInfo.getDescription());
-        genreEditText.setText(songInfo.getGenre());
+        genreAutoComplete.setText(songInfo.getGenre(), false); // false to prevent filtering
         publicSwitch.setChecked(songInfo.isPublic());
+
+        // Load current cover art if available
+        loadCurrentCoverArt(songInfo, coverPreview);
 
         // Move cursor to end
         titleEditText.setSelection(titleEditText.getText().length());
@@ -673,15 +707,25 @@ public class LibraryFragment extends Fragment {
         saveButton.setOnClickListener(v -> {
             String newTitle = titleEditText.getText().toString().trim();
             String newDescription = descriptionEditText.getText().toString().trim();
-            String newGenre = genreEditText.getText().toString().trim();
+            String newGenre = genreAutoComplete.getText().toString().trim();
             boolean isPublic = publicSwitch.isChecked();
 
             android.util.Log.d("LibraryFragment", "Saving song with new data - Title: " + newTitle);
 
             if (validateSongInput(newTitle, newDescription, titleInputLayout, descriptionInputLayout, saveButton)) {
+                // Prepare cover art URL
+                String coverArtUrl = null;
+                if (selectedCoverArtUri != null) {
+                    // Use the selected new cover art
+                    coverArtUrl = selectedCoverArtUri.toString();
+                } else {
+                    // Keep the existing cover art
+                    coverArtUrl = songInfo.getCoverArtUrl();
+                }
+
                 // Update song via ViewModel
                 long currentUserId = libraryViewModel.getCurrentUserId();
-                songDetailViewModel.updateSongInfo(songInfo.getId(), currentUserId, newTitle, newDescription, newGenre, isPublic, null);
+                songDetailViewModel.updateSongInfo(songInfo.getId(), currentUserId, newTitle, newDescription, newGenre, isPublic, coverArtUrl);
                 dialog.dismiss();
             }
         });
@@ -693,6 +737,71 @@ public class LibraryFragment extends Fragment {
 
         // Focus on title field
         titleEditText.requestFocus();
+    }
+
+    /**
+     * Setup genre dropdown with predefined options
+     */
+    private void setupGenreDropdown(AutoCompleteTextView autoCompleteGenre) {
+        String[] genres = getResources().getStringArray(R.array.music_genres);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            genres
+        );
+        autoCompleteGenre.setAdapter(adapter);
+    }
+
+    /**
+     * Setup image picker launcher for cover art selection
+     */
+    private void setupImagePickerLauncher() {
+        imagePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri imageUri = result.getData().getData();
+                    if (imageUri != null) {
+                        handleImageSelection(imageUri);
+                    }
+                }
+            }
+        );
+    }
+
+    /**
+     * Launch image picker for cover art selection
+     */
+    private void selectCoverArt() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        imagePickerLauncher.launch(Intent.createChooser(intent, getString(R.string.select_cover_art)));
+    }
+
+    /**
+     * Handle image selection for cover art
+     */
+    private void handleImageSelection(Uri imageUri) {
+        if (currentCoverPreview != null) {
+            currentCoverPreview.setImageURI(imageUri);
+            selectedCoverArtUri = imageUri;
+        }
+    }
+
+    /**
+     * Load current cover art for the song
+     */
+    private void loadCurrentCoverArt(SongWithUploaderInfo songInfo, ImageView coverPreview) {
+        if (songInfo.getCoverArtUrl() != null && !songInfo.getCoverArtUrl().isEmpty()) {
+            // TODO: Use Glide or similar image loading library to load from URL
+            // For now, just set a placeholder or default image
+            // Glide.with(this).load(songInfo.getCoverArtUrl()).into(coverPreview);
+            android.util.Log.d("LibraryFragment", "Loading cover art from URL: " + songInfo.getCoverArtUrl());
+        } else {
+            // Set default cover art
+            coverPreview.setImageResource(R.drawable.splashi_icon);
+        }
     }
 
     /**

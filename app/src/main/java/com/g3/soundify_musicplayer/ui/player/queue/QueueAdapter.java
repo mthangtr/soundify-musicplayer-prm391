@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
 import com.g3.soundify_musicplayer.data.entity.User;
+import com.g3.soundify_musicplayer.data.repository.SongRepository;
+import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 import com.g3.soundify_musicplayer.utils.TimeUtils;
 
 import java.util.ArrayList;
@@ -34,6 +36,8 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
     private int currentPlayingIndex = -1;
     private User currentArtist;
 
+    private final SongRepository songRepository;
+
     public interface OnItemClickListener {
         void onItemClick(Song song, int position);
     }
@@ -42,9 +46,10 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         void onItemMoveRequested(int fromPosition, int toPosition);
     }
 
-    public QueueAdapter(Context context) {
+    public QueueAdapter(Context context, SongRepository songRepository) {
         this.context = context;
         this.queueItems = new ArrayList<>();
+        this.songRepository = songRepository;
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -57,19 +62,6 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
 
     public void setItemTouchHelper(ItemTouchHelper itemTouchHelper) {
         this.itemTouchHelper = itemTouchHelper;
-    }
-
-    public void setCurrentPlayingIndex(int index) {
-        int oldIndex = this.currentPlayingIndex;
-        this.currentPlayingIndex = index;
-
-        // Update the old and new positions
-        if (oldIndex != -1) {
-            notifyItemChanged(oldIndex);
-        }
-        if (index != -1) {
-            notifyItemChanged(index);
-        }
     }
 
     @NonNull
@@ -101,33 +93,6 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         notifyDataSetChanged();
     }
 
-    /**
-     * Update only the current playing index without reloading the entire list
-     * More efficient for when only the playing indicator needs to change
-     */
-    public void updateCurrentPlayingIndex(int newIndex) {
-        int oldIndex = this.currentPlayingIndex;
-        this.currentPlayingIndex = newIndex;
-
-        // Only update the affected items
-        if (oldIndex != -1 && oldIndex < queueItems.size()) {
-            notifyItemChanged(oldIndex);
-        }
-        if (newIndex != -1 && newIndex < queueItems.size()) {
-            notifyItemChanged(newIndex);
-        }
-    }
-    
-    /**
-     * ✅ Update current artist efficiently
-     */
-    public void updateCurrentArtist(User artist) {
-        this.currentArtist = artist;
-        // Only update currently playing item to show correct artist
-        if (currentPlayingIndex >= 0 && currentPlayingIndex < queueItems.size()) {
-            notifyItemChanged(currentPlayingIndex);
-        }
-    }
 
     // ItemTouchHelperAdapter implementation
     @Override
@@ -151,9 +116,6 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         if (position == currentPlayingIndex) {
             return;
         }
-
-        // For now, we don't support removing songs from queue
-        // This can be implemented later if needed
     }
 
     class QueueViewHolder extends RecyclerView.ViewHolder {
@@ -179,12 +141,8 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
         public void bind(Song song, int position, boolean isCurrentlyPlaying) {
             tvSongTitle.setText(song.getTitle());
 
-            // Use real artist name from current artist info
-            String artistName = "Unknown Artist";
-            if (currentArtist != null && currentArtist.getUsername() != null) {
-                artistName = currentArtist.getUsername();
-            }
-            tvArtistName.setText(artistName);
+            // Set initial artist name
+            setArtistName(song, isCurrentlyPlaying);
 
             // ✅ NULL SAFE: Handle null duration
             Integer duration = song.getDurationMs();
@@ -209,13 +167,13 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
                 tvSongTitle.setTextColor(context.getColor(R.color.text_primary));
             }
 
-            // Setup drag handle
-            ivDragHandle.setOnTouchListener((v, event) -> {
-                if (event.getAction() == MotionEvent.ACTION_DOWN && itemTouchHelper != null) {
-                    itemTouchHelper.startDrag(this);
-                }
-                return false;
-            });
+//            // Setup drag handle
+//            ivDragHandle.setOnTouchListener((v, event) -> {
+//                if (event.getAction() == MotionEvent.ACTION_DOWN && itemTouchHelper != null) {
+//                    itemTouchHelper.startDrag(this);
+//                }
+//                return false;
+//            });
 
             // Click listener
             itemView.setOnClickListener(v -> {
@@ -224,5 +182,46 @@ public class QueueAdapter extends RecyclerView.Adapter<QueueAdapter.QueueViewHol
                 }
             });
         }
+
+        private void setArtistName(Song song, boolean isCurrentlyPlaying) {
+            // Check if song already has uploader name
+            if (song.getUploaderName() != null && !song.getUploaderName().isEmpty()) {
+                tvArtistName.setText(song.getUploaderName());
+                return;
+            }
+
+            // Fallback to current artist for currently playing song
+            if (currentArtist != null && isCurrentlyPlaying) {
+                String artistName = currentArtist.getDisplayName() != null && !currentArtist.getDisplayName().isEmpty()
+                    ? currentArtist.getDisplayName()
+                    : currentArtist.getUsername();
+                tvArtistName.setText(artistName);
+                return;
+            }
+
+            // Fetch uploader info synchronously (simple approach)
+            fetchUploaderInfo(song);
+        }
+
+        private void fetchUploaderInfo(Song song) {
+            if (songRepository == null) {
+                tvArtistName.setText("Unknown Artist");
+                return;
+            }
+
+            try {
+                SongWithUploaderInfo songWithUploader = songRepository.getSongWithUploaderInfoSync(song.getId()).get();
+                if (songWithUploader != null) {
+                    String uploaderName = songWithUploader.getDisplayUploaderName();
+                    tvArtistName.setText(uploaderName);
+                } else {
+                    tvArtistName.setText("Unknown Artist");
+                }
+            } catch (Exception e) {
+                android.util.Log.e("QueueAdapter", "Error fetching uploader info for song: " + song.getTitle(), e);
+                tvArtistName.setText("Unknown Artist");
+            }
+        }
     }
+
 }
