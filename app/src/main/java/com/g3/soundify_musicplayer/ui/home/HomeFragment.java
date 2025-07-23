@@ -16,8 +16,6 @@ import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistWithSongCountAdapter;
 import com.g3.soundify_musicplayer.ui.playlist.PlaylistDetailFragment;
 import com.g3.soundify_musicplayer.data.entity.Song;
-import com.g3.soundify_musicplayer.data.entity.Playlist;
-import com.g3.soundify_musicplayer.data.entity.User;
 import com.g3.soundify_musicplayer.data.dto.PlaylistWithSongCount;
 import com.g3.soundify_musicplayer.data.dto.SongWithUploaderInfo;
 
@@ -26,7 +24,6 @@ import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
 import com.g3.soundify_musicplayer.ui.song.SongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.ui.home.RecentSongWithUploaderInfoAdapter;
 import com.g3.soundify_musicplayer.viewmodel.HomeViewModel;
-import android.view.LayoutInflater;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,32 +180,6 @@ public class HomeFragment extends Fragment {
             }
         });
     }
-    
-    // Demo playlist method removed - now using real user playlists from database
-
-
-
-    // Helper method to show mini player with SongWithUploaderInfo
-    private void showMiniPlayerWithSongInfo(SongWithUploaderInfo songInfo) {
-        // Create Song object from SongWithUploaderInfo
-        Song song = new Song(songInfo.getUploaderId(), songInfo.getTitle(), songInfo.getAudioUrl());
-        song.setId(songInfo.getId());
-        song.setDescription(songInfo.getDescription());
-        song.setCoverArtUrl(songInfo.getCoverArtUrl());
-        song.setGenre(songInfo.getGenre());
-        song.setDurationMs(songInfo.getDurationMs());
-        song.setPublic(songInfo.isPublic());
-        song.setCreatedAt(songInfo.getCreatedAt());
-
-        // Play song directly
-        // Find position in suggested songs and play from current view
-        List<SongWithUploaderInfo> suggestedSongs = suggestedAdapter != null ? suggestedAdapter.getCurrentData() : new ArrayList<>();
-        int position = findSongPosition(songInfo, suggestedSongs);
-
-
-    }
-
-    // Mock artist method removed - using real user data from SongWithUploaderInfo
 
     // ========== QUEUE CONTEXT METHODS (FOLLOWING UserProfileFragment PATTERN) ==========
 
@@ -223,15 +194,6 @@ public class HomeFragment extends Fragment {
             }
         }
         return songs;
-    }
-
-    /**
-     * Helper method để check section nào đang active
-     */
-    private boolean isRecentSectionActive() {
-        // TODO: Implement logic để check tab nào đang active
-        // Tạm thời return false (suggested section)
-        return false;
     }
 
     /**
@@ -268,20 +230,6 @@ public class HomeFragment extends Fragment {
         song.setPublic(songInfo.isPublic());
         song.setCreatedAt(songInfo.getCreatedAt());
         return song;
-    }
-
-    /**
-     * Convert SongWithUploaderInfo to User object
-     */
-    private User convertToUser(SongWithUploaderInfo songInfo) {
-        if (songInfo == null) return null;
-
-        User user = new User();
-        user.setId(songInfo.getUploaderId());
-        user.setDisplayName(songInfo.getDisplayUploaderName());
-        user.setUsername(songInfo.getUploaderUsername());
-        user.setAvatarUrl(songInfo.getUploaderAvatarUrl());
-        return user;
     }
 
     /**

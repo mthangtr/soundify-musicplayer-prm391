@@ -114,56 +114,5 @@ public class SearchResult {
         
         return String.format("%d:%02d", minutes, seconds);
     }
-    
-    // Helper method for search matching
-    public boolean matchesQuery(String query) {
-        if (query == null || query.trim().isEmpty()) {
-            return true;
-        }
-        
-        String searchTerm = query.toLowerCase().trim();
-        
-        // Check primary text
-        if (primaryText != null && primaryText.toLowerCase().contains(searchTerm)) {
-            return true;
-        }
-        
-        // Check secondary text
-        if (secondaryText != null && secondaryText.toLowerCase().contains(searchTerm)) {
-            return true;
-        }
-        
-        // Type-specific matching
-        switch (type) {
-            case SONG:
-                if (song != null) {
-                    if (song.getGenre() != null && song.getGenre().toLowerCase().contains(searchTerm)) {
-                        return true;
-                    }
-                    if (song.getDescription() != null && song.getDescription().toLowerCase().contains(searchTerm)) {
-                        return true;
-                    }
-                }
-                break;
-            case ARTIST:
-                if (user != null) {
-                    if (user.getUsername() != null && user.getUsername().toLowerCase().contains(searchTerm)) {
-                        return true;
-                    }
-                    if (user.getBio() != null && user.getBio().toLowerCase().contains(searchTerm)) {
-                        return true;
-                    }
-                }
-                break;
-            case PLAYLIST:
-                if (playlist != null) {
-                    if (playlist.getDescription() != null && playlist.getDescription().toLowerCase().contains(searchTerm)) {
-                        return true;
-                    }
-                }
-                break;
-        }
-        
-        return false;
-    }
+
 }

@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
 
 import com.g3.soundify_musicplayer.data.entity.Playlist;
 import com.g3.soundify_musicplayer.data.entity.Song;
@@ -145,10 +144,6 @@ public class SearchViewModel extends AndroidViewModel {
 
     public LiveData<String> getError() {
         return error;
-    }
-
-    public LiveData<FilterType> getCurrentFilter() {
-        return currentFilter;
     }
 
     public LiveData<String> getCurrentQuery() {

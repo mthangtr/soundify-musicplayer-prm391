@@ -52,13 +52,6 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
         notifyDataSetChanged();
     }
 
-    /**
-     * Get current search results (for creating NavigationContext)
-     */
-    public List<SearchResult> getCurrentSearchResults() {
-        return new ArrayList<>(searchResults);
-    }
-
     public void setOnSearchResultClickListener(OnSearchResultClickListener listener) {
         this.clickListener = listener;
     }
@@ -71,42 +64,6 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.SearchView
     public void setCurrentUserId(long userId) {
         this.currentUserId = userId;
         notifyDataSetChanged();
-    }
-
-    public void updateFollowStatus(long userId, boolean isFollowing) {
-        if (isFollowing) {
-            followingUserIds.add(userId);
-        } else {
-            followingUserIds.remove(userId);
-        }
-
-        // Find and update the specific item
-        for (int i = 0; i < searchResults.size(); i++) {
-            SearchResult result = searchResults.get(i);
-            if (result.getType() == SearchResult.Type.ARTIST &&
-                result.getUser() != null && result.getUser().getId() == userId) {
-                notifyItemChanged(i);
-                break;
-            }
-        }
-    }
-
-    public void setUserLoading(long userId, boolean isLoading) {
-        if (isLoading) {
-            loadingUserIds.add(userId);
-        } else {
-            loadingUserIds.remove(userId);
-        }
-
-        // Find and update the specific item
-        for (int i = 0; i < searchResults.size(); i++) {
-            SearchResult result = searchResults.get(i);
-            if (result.getType() == SearchResult.Type.ARTIST &&
-                result.getUser() != null && result.getUser().getId() == userId) {
-                notifyItemChanged(i);
-                break;
-            }
-        }
     }
 
     @NonNull

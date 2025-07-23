@@ -121,13 +121,6 @@ public class LikedSongPlaylistViewModel extends AndroidViewModel {
     }
 
     /**
-     * Check if user is logged in
-     */
-    public boolean isUserLoggedIn() {
-        return authManager.isLoggedIn();
-    }
-
-    /**
      * Get current user ID
      */
     public long getCurrentUserId() {

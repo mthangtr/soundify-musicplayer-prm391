@@ -43,10 +43,7 @@ public class LibraryViewModel extends AndroidViewModel {
     // Executor for background tasks
     private ExecutorService executor = Executors.newFixedThreadPool(2);
 
-    // Tab constants (match existing refreshTab method)
-    public static final int TAB_MY_SONGS = 0;
     public static final int TAB_MY_PLAYLISTS = 1;
-    public static final int TAB_LIKED_SONGS = 2;
 
     // LiveData for UI states
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -66,17 +63,8 @@ public class LibraryViewModel extends AndroidViewModel {
         loadLibraryData();
     }
 
-    // Getters for LiveData
-    public LiveData<List<Song>> getMySongs() {
-        return mySongs;
-    }
-
     public LiveData<List<SongWithUploaderInfo>> getMySongsWithUploaderInfo() {
         return mySongsWithUploaderInfo;
-    }
-
-    public LiveData<List<Playlist>> getMyPlaylists() {
-        return myPlaylists;
     }
 
     public LiveData<List<PlaylistWithSongCount>> getMyPlaylistsWithSongCount() {

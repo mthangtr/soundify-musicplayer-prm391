@@ -18,10 +18,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.g3.soundify_musicplayer.R;
 import com.g3.soundify_musicplayer.data.entity.Song;
-import com.g3.soundify_musicplayer.data.entity.User;
 
-import com.g3.soundify_musicplayer.ui.home.SongAdapter;
 import com.g3.soundify_musicplayer.ui.player.SongDetailViewModel;
+import com.g3.soundify_musicplayer.ui.song.SongAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -183,9 +182,6 @@ public class LikedSongPlaylistFragment extends Fragment {
             return;
         }
 
-        // Lấy bài đầu tiên để bắt đầu phát
-        Song firstSong = currentLikedSongs.get(0);
-
         // Play all songs
         List<Long> songIds = new ArrayList<>();
         for (Song song : currentLikedSongs) {
@@ -193,9 +189,6 @@ public class LikedSongPlaylistFragment extends Fragment {
         }
 
         // REMOVED: NavigationContext - using Simple Queue approach
-
-        // Tạo mock artist
-        User mockArtist = createMockArtist(firstSong.getUploaderId());
 
         // ✅ CONSISTENT: Use playFromView with full liked songs for navigation
         songDetailViewModel.playFromView(currentLikedSongs, "Liked Songs", 0);
@@ -243,19 +236,6 @@ public class LikedSongPlaylistFragment extends Fragment {
 
         buttonPlayAll.setAlpha(hasData ? 1.0f : 0.5f);
         buttonShuffle.setAlpha(hasData ? 1.0f : 0.5f);
-    }
-
-    /**
-     * Create mock artist for song playback
-     */
-    private User createMockArtist(long artistId) {
-        User artist = new User();
-        artist.setId(artistId);
-        artist.setUsername("artist_" + artistId);
-        artist.setDisplayName("Artist " + artistId);
-        artist.setAvatarUrl("mock://avatar/artist_" + artistId + ".jpg");
-        artist.setCreatedAt(System.currentTimeMillis() - (30L * 24 * 60 * 60 * 1000)); // 30 days ago
-        return artist;
     }
 
     /**

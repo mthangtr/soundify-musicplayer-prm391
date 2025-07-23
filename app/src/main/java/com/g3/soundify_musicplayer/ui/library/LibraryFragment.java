@@ -428,30 +428,6 @@ public class LibraryFragment extends Fragment {
     }
 
     /**
-     * ✅ Get current tab songs as SongWithUploaderInfo
-     */
-    private List<SongWithUploaderInfo> getCurrentTabSongsInfo() {
-        int currentTab = tabLayout.getSelectedTabPosition();
-        switch (currentTab) {
-            case 0: // My Songs
-                return mySongsAdapter != null ? mySongsAdapter.getCurrentData() : new ArrayList<>();
-            case 2: // Liked Songs - convert Song to SongWithUploaderInfo
-                List<Song> likedSongs = likedSongsAdapter != null ? likedSongsAdapter.getCurrentData() : new ArrayList<>();
-                List<SongWithUploaderInfo> likedSongsInfo = new ArrayList<>();
-                for (Song song : likedSongs) {
-                    SongWithUploaderInfo songInfo = new SongWithUploaderInfo();
-                    songInfo.setId(song.getId());
-                    songInfo.setTitle(song.getTitle());
-                    songInfo.setUploaderId(song.getUploaderId());
-                    likedSongsInfo.add(songInfo);
-                }
-                return likedSongsInfo;
-            default:
-                return new ArrayList<>();
-        }
-    }
-
-    /**
      * ✅ Get current tab title
      */
     private String getCurrentTabTitle() {
@@ -638,18 +614,6 @@ public class LibraryFragment extends Fragment {
         song.setPublic(songInfo.isPublic());
         song.setCreatedAt(songInfo.getCreatedAt());
         return song;
-    }
-
-    /**
-     * Convert SongWithUploaderInfo to User
-     */
-    private User convertToUser(SongWithUploaderInfo songInfo) {
-        if (songInfo == null) return null;
-
-        User user = new User(songInfo.getUploaderUsername(), songInfo.getUploaderDisplayName(), "dummy@email.com", "password");
-        user.setId(songInfo.getUploaderId());
-        user.setAvatarUrl(songInfo.getUploaderAvatarUrl());
-        return user;
     }
 
     /**
@@ -917,37 +881,6 @@ public class LibraryFragment extends Fragment {
             android.util.Log.e("LibraryFragment", "Error deleting playlist", e);
             showToast(getString(R.string.error_deleting_playlist));
         }
-    }
-
-    /**
-     * Validate playlist input and update UI accordingly
-     */
-    private boolean validatePlaylistInput(String name, String description,
-                                        TextInputLayout nameLayout, TextInputLayout descriptionLayout,
-                                        Button saveButton) {
-        boolean isValid = true;
-
-        // Validate name
-        if (name == null || name.trim().isEmpty()) {
-            nameLayout.setError(getString(R.string.playlist_name_empty));
-            isValid = false;
-        } else if (name.trim().length() > 100) {
-            nameLayout.setError(getString(R.string.playlist_name_too_long));
-            isValid = false;
-        } else {
-            nameLayout.setError(null);
-        }
-
-        // Validate description
-        if (description != null && description.length() > 500) {
-            descriptionLayout.setError(getString(R.string.playlist_description_too_long));
-            isValid = false;
-        } else {
-            descriptionLayout.setError(null);
-        }
-
-        saveButton.setEnabled(isValid);
-        return isValid;
     }
 
     /**
